@@ -1,0 +1,2382 @@
+﻿<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0f1e" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Samsung Welstory Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0f1e;
+            --surface: #111827;
+            --card: rgba(17, 24, 39, .85);
+            --card-hover: rgba(23, 32, 52, .9);
+            --border: rgba(148, 163, 184, .08);
+            --border-hover: rgba(56, 189, 248, .2);
+            --accent: #38bdf8;
+            --accent2: #818cf8;
+            --accent3: #a78bfa;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --text: #f1f5f9;
+            --muted: #64748b;
+            --dim: #475569;
+            --r: 16px;
+            --r2: 12px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, .4);
+            --glow: 0 0 20px rgba(56, 189, 248, .08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', 'Malgun Gothic', sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden
+        }
+
+        input,
+        textarea,
+        select,
+        button {
+            font-family: inherit;
+            user-select: auto !important;
+            -webkit-user-select: auto !important
+        }
+
+        /* ===== LOGIN ===== */
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000
+        }
+
+        .login-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 30%, rgba(56, 189, 248, .06), transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(129, 140, 248, .04), transparent 50%)
+        }
+
+        .login-card {
+            position: relative;
+            background: linear-gradient(145deg, rgba(17, 24, 39, .9), rgba(15, 23, 42, .95));
+            padding: 48px 32px 36px;
+            border-radius: 28px;
+            border: 1px solid rgba(148, 163, 184, .06);
+            width: 88%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .5), var(--glow)
+        }
+
+        .login-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 14px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 8px 24px rgba(56, 189, 248, .2)
+        }
+
+        .login-card h2 {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -.5px;
+            margin-bottom: 6px;
+            background: linear-gradient(90deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .login-card p {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 28px;
+            line-height: 1.5
+        }
+
+        .login-field {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, .03);
+            border: 1.5px solid rgba(148, 163, 184, .1);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            height: 50px;
+            padding: 0 16px;
+            transition: all .3s
+        }
+
+        .login-field:focus-within {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, .04);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, .08)
+        }
+
+        .login-field input {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            outline: none
+        }
+
+        .login-field input::placeholder {
+            color: var(--dim);
+            font-weight: 600
+        }
+
+        .domain-tag {
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 800;
+            opacity: .7;
+            flex-shrink: 0;
+            white-space: nowrap
+        }
+
+        #loginPw {
+            width: 100%;
+            height: 50px;
+            padding: 0 16px;
+            background: rgba(255, 255, 255, .03);
+            border: 1.5px solid rgba(148, 163, 184, .1);
+            border-radius: 14px;
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            outline: none;
+            transition: all .3s
+        }
+
+        #loginPw:focus {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, .04);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, .08)
+        }
+
+        #loginPw::placeholder {
+            color: var(--dim);
+            font-weight: 600
+        }
+
+        .login-btn {
+            width: 100%;
+            height: 50px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            font-weight: 900;
+            font-size: 15px;
+            cursor: pointer;
+            letter-spacing: -.3px;
+            box-shadow: 0 4px 16px rgba(56, 189, 248, .25);
+            transition: all .2s
+        }
+
+        .login-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(56, 189, 248, .35)
+        }
+
+        .login-btn:disabled {
+            opacity: .4;
+            transform: none;
+            cursor: not-allowed
+        }
+
+        #login-error {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 14px;
+            font-weight: 700;
+            display: none;
+            line-height: 1.5;
+            background: rgba(248, 113, 113, .06);
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(248, 113, 113, .1);
+            width: 100%;
+            text-align: left
+        }
+
+        /* ===== SPLASH ===== */
+        #splash {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000
+        }
+
+        .sp-ring {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, .06);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            animation: spin .7s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* ===== DASHBOARD ===== */
+        #dashboard {
+            display: none;
+            opacity: 0;
+            flex-direction: column;
+            width: 100%;
+            overflow-y: auto;
+            transition: opacity .4s
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(10, 15, 30, .92);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(20px) saturate(1.2);
+            padding: env(safe-area-inset-top, 12px) 20px 14px
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .header-top>div:first-child {
+            min-width: 0;
+            flex: 1 1 0;
+            overflow: hidden;
+        }
+
+        .header-top h1 {
+            font-size: clamp(12px, 3.8vw, 18px);
+            font-weight: 900;
+            letter-spacing: -.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #lastUpdate {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-top: 3px
+        }
+
+        .hdr-btns {
+            display: flex;
+            gap: 6px
+        }
+
+        .hdr-btn {
+            height: 34px;
+            padding: 0 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 4px
+        }
+
+        .hdr-btn:hover {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, .06)
+        }
+
+        .hdr-btn.accent {
+            border-color: rgba(56, 189, 248, .2);
+            color: var(--accent)
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 2px
+        }
+
+        .filter-row::-webkit-scrollbar {
+            display: none
+        }
+
+        .chip {
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1.5px solid rgba(148, 163, 184, .1);
+            background: rgba(255, 255, 255, .02);
+            color: var(--dim);
+            font-weight: 800;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all .25s
+        }
+
+        .chip:hover {
+            border-color: rgba(56, 189, 248, .3);
+            color: var(--text)
+        }
+
+        .chip.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 2px 12px rgba(56, 189, 248, .2)
+        }
+
+        main {
+            padding: 16px;
+            display: grid;
+            gap: 14px;
+            max-width: 580px;
+            margin: 0 auto;
+            width: 100%
+        }
+
+        /* ===== CARD ===== */
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: border-color .3s
+        }
+
+        .card:hover {
+            border-color: var(--border-hover)
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px
+        }
+
+        .region-tag {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            opacity: .8
+        }
+
+        .site-name {
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: -.5px;
+            line-height: 1.2
+        }
+
+        .total-badge {
+            text-align: right
+        }
+
+        .total-badge .label {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 3px
+        }
+
+        .total-badge .val {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--success)
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px
+        }
+
+        .sbox {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: var(--r2);
+            padding: 12px 8px;
+            text-align: center;
+            position: relative;
+            transition: border-color .2s
+        }
+
+        .sbox:hover {
+            border-color: rgba(255, 255, 255, .12)
+        }
+
+        .sbox .lb {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: block
+        }
+
+        .sbox .vl {
+            font-size: 16px;
+            font-weight: 900;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .edit-sm {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            opacity: .3;
+            transition: opacity .2s;
+            padding: 2px
+        }
+
+        .edit-sm:hover {
+            opacity: 1
+        }
+
+        .staff-panel {
+            background: linear-gradient(135deg, rgba(56, 189, 248, .04), rgba(129, 140, 248, .03));
+            border: 1px solid rgba(56, 189, 248, .08);
+            border-radius: var(--r2);
+            padding: 12px;
+            margin-bottom: 14px;
+            position: relative
+        }
+
+        .staff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            text-align: center;
+            gap: 4px
+        }
+
+        .staff-grid .lb {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 3px
+        }
+
+        .staff-grid .vl {
+            font-size: 16px;
+            font-weight: 900
+        }
+
+        .edit-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all .2s
+        }
+
+        .edit-icon:hover {
+            background: rgba(56, 189, 248, .1);
+            border-color: var(--accent)
+        }
+
+        .tbl-wrap {
+            background: rgba(0, 0, 0, .25);
+            border-radius: var(--r2);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-bottom: 14px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px
+        }
+
+        th {
+            padding: 10px 8px;
+            text-align: right;
+            color: var(--dim);
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .01)
+        }
+
+        td {
+            padding: 9px 8px;
+            text-align: right;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            font-weight: 700
+        }
+
+        td:first-child,
+        th:first-child {
+            text-align: left
+        }
+
+        td:first-child {
+            color: var(--accent);
+            font-weight: 800
+        }
+
+        .row-sum td {
+            background: rgba(52, 211, 153, .04);
+            font-weight: 900;
+            color: var(--success) !important
+        }
+
+        .btn-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px
+        }
+
+        .mbtn {
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .02);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .mbtn:hover {
+            border-color: rgba(255, 255, 255, .15);
+            background: rgba(255, 255, 255, .05)
+        }
+
+        .mbtn.pri {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            border: none;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, .15)
+        }
+
+        .mbtn.pri:hover {
+            box-shadow: 0 4px 16px rgba(56, 189, 248, .25)
+        }
+
+        /* ===== INLINE PANELS ===== */
+        .ipanel {
+            display: none;
+            margin-top: 14px;
+            padding: 18px;
+            background: rgba(10, 15, 30, .7);
+            border: 1px solid var(--border);
+            border-radius: var(--r2);
+            animation: slideIn .25s ease-out;
+            overflow: hidden;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .ipanel.show {
+            display: block
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .sec-title {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--accent);
+            margin: 18px 0 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            letter-spacing: .3px
+        }
+
+        .sec-title:first-child {
+            margin-top: 0
+        }
+
+        .fg {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px
+        }
+
+        .fg.c4 {
+            grid-template-columns: 1fr 1fr 1fr 1fr
+        }
+
+        @media (max-width: 400px) {
+            .fg.c4 {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+
+        .ff {
+            display: flex;
+            flex-direction: column;
+            gap: 3px
+        }
+
+        .ff label {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: 700
+        }
+
+        .ff input,
+        .ff textarea {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 10px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            outline: none;
+            transition: border-color .2s;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+
+        .ff input:focus,
+        .ff textarea:focus {
+            border-color: var(--accent)
+        }
+
+        .ff textarea {
+            resize: none;
+            height: 56px
+        }
+
+        .sv-btn {
+            width: 100%;
+            height: 42px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: -.2px
+        }
+
+        .sv-btn.green {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(52, 211, 153, .2)
+        }
+
+        .sv-btn.blue {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(56, 189, 248, .15)
+        }
+
+        .sv-btn:disabled {
+            opacity: .4
+        }
+
+        .sv-msg {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 8px;
+            font-weight: 800
+        }
+
+        /* ===== REPORT OVERLAY ===== */
+        .ov {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 15, 30, .85);
+            backdrop-filter: blur(12px);
+            z-index: 1500;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 16px
+        }
+
+        .ov-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 540px;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .5)
+        }
+
+        .ov-hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px
+        }
+
+        .ov-hdr h3 {
+            font-size: 16px;
+            font-weight: 900;
+            letter-spacing: -.3px
+        }
+
+        .cls-btn {
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .cls-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        /* Chart components */
+        .ch-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px
+        }
+
+        .ch-name {
+            width: 48px;
+            text-align: right;
+            font-size: 11px;
+            font-weight: 800;
+            flex-shrink: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--muted)
+        }
+
+        .ch-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(255, 255, 255, .03);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative
+        }
+
+        .ch-fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 10px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .4);
+            min-width: 28px;
+            transition: width .6s ease-out
+        }
+
+        .ch-val {
+            width: 50px;
+            text-align: right;
+            font-size: 12px;
+            font-weight: 900;
+            flex-shrink: 0
+        }
+
+        .ch-dual {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 3px
+        }
+
+        .ch-dual .ch-track {
+            height: 18px
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 900
+        }
+
+        .note-box {
+            background: linear-gradient(135deg, rgba(56, 189, 248, .03), rgba(129, 140, 248, .02));
+            border: 1px solid rgba(56, 189, 248, .08);
+            border-radius: var(--r2);
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.8
+        }
+
+        .note-box strong {
+            color: var(--accent)
+        }
+
+        .note-box .formula {
+            color: var(--dim);
+            margin-left: 14px;
+            display: block
+        }
+
+        /* ===== 데일리 식수 캘린더 모달 ===== */
+        .cal-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 15, 30, .92);
+            backdrop-filter: blur(16px);
+            z-index: 1600;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .cal-modal.show {
+            display: flex
+        }
+
+        .cal-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .6)
+        }
+
+        .cal-hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px
+        }
+
+        .cal-hdr h3 {
+            font-size: 15px;
+            font-weight: 900
+        }
+
+        .cal-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .cal-nav button {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s
+        }
+
+        .cal-nav button:hover {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .cal-nav .mon-lbl {
+            font-size: 13px;
+            font-weight: 900;
+            min-width: 80px;
+            text-align: center
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-bottom: 16px
+        }
+
+        .cal-dow {
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--dim);
+            padding: 4px 0
+        }
+
+        .cal-day {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 800;
+            transition: all .2s;
+            position: relative;
+            gap: 1px
+        }
+
+        .cal-day:hover {
+            background: rgba(56, 189, 248, .08);
+            border-color: rgba(56, 189, 248, .2)
+        }
+
+        .cal-day.has-data::after {
+            content: '';
+            width: 5px;
+            height: 5px;
+            background: var(--accent);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 3px
+        }
+
+        .cal-day.today {
+            background: rgba(56, 189, 248, .1);
+            border: 1px solid rgba(56, 189, 248, .3)
+        }
+
+        .cal-day.selected {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff
+        }
+
+        .cal-day.other-month {
+            opacity: .25
+        }
+
+        .cal-detail {
+            background: rgba(0, 0, 0, .3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 8px;
+            animation: slideIn .2s ease-out
+        }
+
+        .cal-detail .dt-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 12px
+        }
+
+        .cal-meal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px
+        }
+
+        .cal-meal-box {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center
+        }
+
+        .cal-meal-box .mlb {
+            font-size: 9px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 4px
+        }
+
+        .cal-meal-box .mval {
+            font-size: 16px;
+            font-weight: 900
+        }
+
+        .cal-meal-box .msub {
+            font-size: 9px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .emotion-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 22px;
+            padding: 2px 6px;
+            transition: transform .2s;
+            display: inline-block
+        }
+
+        .emotion-btn:hover {
+            transform: scale(1.25)
+        }
+
+        /* ===== 정밀 데이터 입력 ===== */
+        .precise-panel {
+            background: linear-gradient(135deg, rgba(129, 140, 248, .05), rgba(167, 139, 250, .03));
+            border: 1px solid rgba(129, 140, 248, .12);
+            border-radius: var(--r2);
+            padding: 14px;
+            margin-bottom: 12px
+        }
+
+        .precise-title {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--accent2);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .meal-staff-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 10px
+        }
+
+        .meal-staff-cell {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center
+        }
+
+        .meal-staff-cell .mc-lb {
+            font-size: 9px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 4px
+        }
+
+        .meal-staff-cell input {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 15px;
+            font-weight: 900;
+            text-align: center;
+            outline: none
+        }
+
+        .intensity-meter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px
+        }
+
+        .intensity-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, .05);
+            border-radius: 4px;
+            overflow: hidden
+        }
+
+        .intensity-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width .5s ease, background .5s
+        }
+
+        /* ===== 회전율 자동계산 표시 ===== */
+        .sbox-auto {
+            border-color: rgba(52, 211, 153, .25) !important;
+            background: rgba(52, 211, 153, .03) !important;
+        }
+
+        .auto-dot {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            display: block;
+            box-shadow: 0 0 6px rgba(52, 211, 153, .5);
+        }
+
+        /* ===== 추이 분석 리포트 ===== */
+        .trend-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 15, 30, .95);
+            backdrop-filter: blur(20px);
+            z-index: 1700;
+            display: none;
+            flex-direction: column;
+        }
+
+        .trend-modal.show {
+            display: flex
+        }
+
+        .trend-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(17, 24, 39, .9);
+            flex-shrink: 0
+        }
+
+        .trend-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px
+        }
+
+        .trend-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r2);
+            padding: 18px;
+            margin-bottom: 16px
+        }
+
+        .trend-section-title {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 14px;
+            letter-spacing: .3px
+        }
+
+        .sparkline-wrap {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px
+        }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px
+        }
+
+        .kpi-box {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center
+        }
+
+        .kpi-box .kl {
+            font-size: 9px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 4px
+        }
+
+        .kpi-box .kv {
+            font-size: 18px;
+            font-weight: 900
+        }
+
+        .kpi-box .kt {
+            font-size: 10px;
+            font-weight: 700;
+            margin-top: 2px
+        }
+
+        .forecast-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            background: rgba(167, 139, 250, .1);
+            color: var(--accent3);
+            border: 1px solid rgba(167, 139, 250, .2)
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            background: rgba(17, 24, 39, .9);
+            flex-shrink: 0
+        }
+
+        .report-btn {
+            flex: 1;
+            height: 44px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .report-btn.pri {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff
+        }
+
+        .report-btn.sec {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            color: var(--text)
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 120px;
+            display: block
+        }
+
+        .data-table-mini {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px
+        }
+
+        .data-table-mini th {
+            padding: 6px 8px;
+            text-align: center;
+            color: var(--dim);
+            font-size: 9px;
+            font-weight: 800;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .01)
+        }
+
+        .data-table-mini td {
+            padding: 6px 8px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            font-weight: 700;
+            font-size: 11px
+        }
+
+        .data-table-mini td:first-child {
+            text-align: left;
+            color: var(--accent);
+            font-weight: 800
+        }
+
+        .trend-up {
+            color: var(--success)
+        }
+
+        .trend-down {
+            color: var(--danger)
+        }
+
+        .trend-flat {
+            color: var(--warning)
+        }
+
+        .no-data-msg {
+            text-align: center;
+            padding: 30px;
+            color: var(--dim);
+            font-size: 13px
+        }
+
+        .goal-input {
+            width: 100%;
+            background: rgba(56, 189, 248, .06);
+            border: 1.5px solid var(--accent);
+            border-radius: 6px;
+            padding: 4px 6px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 900;
+            text-align: center;
+            outline: none;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- LOGIN -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-bg"></div>
+        <div class="login-card">
+            <div class="login-logo">🏢</div>
+            <h2>Welstory Dashboard</h2>
+            <p>Samsung Welstory 운영 현황 관리 시스템<br />인가된 관계자만 접근 가능합니다</p>
+            <div class="login-field"><input type="text" id="loginId" placeholder="싱글 아이디" autocomplete="off">
+                <div class="domain-tag">@samsung.com</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:flex-end;margin:-4px 0 10px;gap:6px">
+                <span id="save-id-label" style="font-size:11px;color:var(--dim);font-weight:600"></span>
+                <button id="save-id-btn" onclick="toggleSaveId()" style="
+                    padding:4px 12px;border-radius:8px;border:1px solid var(--border);
+                    background:rgba(255,255,255,.04);color:var(--muted);
+                    font-size:11px;font-weight:800;cursor:pointer;transition:all .2s;
+                    line-height:1.4;
+                ">아이디 저장</button>
+            </div>
+            <input type="password" id="loginPw" placeholder="비밀번호">
+            <button class="login-btn" onclick="doLogin()">로그인</button>
+            <div id="login-error"></div>
+        </div>
+    </div>
+    <!-- SPLASH -->
+    <div id="splash">
+        <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:24px;letter-spacing:-.5px">Welstory
+            Dashboard</div>
+        <div class="sp-ring"></div>
+        <div style="margin-top:20px;font-size:13px;color:var(--dim)">데이터를 불러오는 중...</div>
+    </div>
+    <!-- DASHBOARD -->
+    <div id="dashboard">
+        <header>
+            <div class="header-top">
+                <div>
+                    <h1>기/화 사업장 현황</h1>
+                    <div id="lastUpdate"></div>
+                </div>
+                <div class="hdr-btns"><button id="rpt-btn" class="hdr-btn accent" style="display:none"
+                        onclick="openReport()">📊 리포트</button>
+                    <button class="hdr-btn" onclick="openTrendReport()" title="추이 분석 리포트">📈</button>
+                    <button class="hdr-btn" onclick="openCal()" title="데일리 식수 열람">📅</button>
+                    <button class="hdr-btn" onclick="location.reload()">↻</button>
+                </div>
+            </div>
+            <div class="filter-row" id="chips"></div>
+        </header>
+        <main id="grid"></main>
+    </div>
+    <!-- REPORT OVERLAY -->
+    <div id="ov" class="ov" onclick="this.style.display='none'">
+        <div class="ov-box" id="ov-ct" onclick="event.stopPropagation()"></div>
+    </div>
+
+    <!-- 데일리 캘린더 모달 -->
+    <div id="cal-modal" class="cal-modal" onclick="this.classList.remove('show')">
+        <div class="cal-box" onclick="event.stopPropagation()">
+            <div class="cal-hdr">
+                <h3>📅 데일리 식수 열람</h3>
+                <button class="cls-btn"
+                    onclick="document.getElementById('cal-modal').classList.remove('show')">닫기</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <div class="cal-nav">
+                    <button onclick="calPrev()">‹</button>
+                    <div class="cal-nav">
+                        <div class="mon-lbl" id="cal-month-lbl"></div>
+                    </div>
+                    <button onclick="calNext()">›</button>
+                </div>
+                <div>
+                    <select id="cal-site-sel" onchange="renderCal()"
+                        style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:12px;font-weight:700;outline:none">
+                        <option value="ALL">전체 사업장</option>
+                    </select>
+                </div>
+            </div>
+            <div class="cal-grid" id="cal-days"></div>
+            <div id="cal-detail"></div>
+        </div>
+    </div>
+
+    <!-- 추이 분석 리포트 모달 -->
+    <div id="trend-modal" class="trend-modal">
+        <div class="trend-header">
+            <div>
+                <div
+                    style="font-size:18px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                    📈 정밀 분석 리포트</div>
+                <div style="font-size:11px;color:var(--dim);margin-top:3px" id="trend-date-range"></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+                <span class="forecast-tag">✨ AI 추정 포함</span>
+                <button class="cls-btn" onclick="closeTrend()">닫기</button>
+            </div>
+        </div>
+        <div class="trend-body" id="trend-body"></div>
+        <div class="report-actions">
+            <button class="report-btn pri" onclick="exportReport()">📥 리포트 추출 (HTML)</button>
+            <button class="report-btn sec" onclick="copyReportText()">📋 텍스트 복사</button>
+            <button class="report-btn sec" onclick="closeTrend()">✕ 닫기</button>
+        </div>
+    </div>
+
+
+    <script>
+        /* ===== 역매핑: 서버 난독화 키 → 원래 한글 키 ===== */
+        const RM = { "a": "사업장명", "b": "지역", "c1": "영양사", "c2": "조리사", "c3": "웰프로_주", "c4": "웰프로_야", "d1": "좌석수", "d2": "코너수", "e1": "DI_조식", "e2": "DI_중식", "e3": "DI_석식", "e4": "DI_야식", "f1": "TO_조식", "f2": "TO_중식", "f3": "TO_석식", "f4": "TO_야식", "e5": "DI_조식(주말)", "e6": "DI_중식(주말)", "e7": "DI_석식(주말)", "e8": "DI_야식(주말)", "f5": "TO_조식(주말)", "f6": "TO_중식(주말)", "f7": "TO_석식(주말)", "f8": "TO_야식(주말)", "g1": "회전율(중식_T/O포함)", "g2": "회전율(중식_T/O제외)", "h1": "도전매출", "h2": "도전영업이익", "h3": "목표재료비" };
+        function deobf(arr) { return arr.map(function (row) { var o = {}; Object.keys(row).forEach(function (k) { o[RM[k] || k] = row[k] }); return o }) }
+
+        /* ===== API ===== */
+        const API = "https://script.google.com/macros/s/AKfycbzZ9e70jIEF1FdQoJ2jETHHowGIqVayw7vL_GsQTZN8TPdTBgn4A4aLa_ak-ZBHP-_X/exec";
+        let D = [], USER = null, TK = null, REG = "ALL", OV = JSON.parse(sessionStorage.getItem("OV") || "{ }");
+        function so() { sessionStorage.setItem("OV", JSON.stringify(OV)) }
+        function n(v) { if (v == null) return 0; const t = String(v).trim(); if (!t || t === "-") return 0; const x = parseFloat(t.replace(/[^0-9.-]/g, '')); return isFinite(x) ? x : 0 }
+        function f(v) { const x = n(v); return x === 0 ? "-" : x.toLocaleString() }
+        function rc(v) { return v >= 2.5 ? "var(--danger)" : v >= 2 ? "var(--warning)" : "var(--success)" }
+        function ov(sn, k, fb) { return (OV[sn] && OV[sn][k] != null) ? Number(OV[sn][k]) : fb }
+        function gSt(d) { const sn = d["사업장명"]; return ov(sn, "영양사", n(d["영양사"])) + ov(sn, "조리사", n(d["조리사"])) + ov(sn, "웰프로_주", n(d["웰프로_주"])) + ov(sn, "웰프로_야", n(d["웰프로_야"])) }
+        function gMS(sn, m) { const o = OV[sn]; if (o && o[m + "_평일"] > 0) return Number(o[m + "_평일"]); const d = D.find(x => x["사업장명"] === sn); return d ? gSt(d) : 1 }
+        function gSeats(d) { return ov(d["사업장명"], "좌석수", n(d["좌석수"])) }
+        function inten(d) { const st = gSt(d) || 1, tm = ["조식", "중식", "석식", "야식"].reduce((a, m) => a + n(d["DI_" + m]) + n(d["TO_" + m]), 0); return { s: tm / st, tm, st } }
+        function iLb(s) { if (s >= 95) return { t: "과부하", e: "🔴", c: "var(--danger)", b: "rgba(248,113,113,.1)" }; if (s >= 80) return { t: "주의", e: "🟡", c: "var(--warning)", b: "rgba(251,191,36,.1)" }; return { t: "양호", e: "🟢", c: "var(--success)", b: "rgba(52,211,153,.1)" } }
+
+        /* ===== LOGIN — fetch ===== */
+        window.doLogin = async function () {
+            const err = document.getElementById("login-error"); err.style.display = "none";
+            const id = document.getElementById("loginId").value.trim(), pw = document.getElementById("loginPw").value, btn = document.querySelector(".login-btn");
+            if (!id || !pw) { err.innerText = "아이디와 비밀번호를 입력하세요."; err.style.display = "block"; return }
+            btn.innerText = "접속 중..."; btn.disabled = true;
+            try {
+                const r = await fetch(API + "?type=login&userId=" + encodeURIComponent(id) + "&pw=" + encodeURIComponent(pw));
+                const t = await r.text();
+                if (t.startsWith("Valid")) {
+                    USER = id; TK = t.split("|")[1] || null;
+                    try { sessionStorage.setItem("WS", id); if (TK) sessionStorage.setItem("WTK", TK); } catch (e) { }
+                    document.getElementById("login-overlay").style.display = "none";
+                    init(); setTimeout(() => initSecurity(id), 500);
+                } else {
+                    err.innerText = t === "NoPermission" ? "등록되지 않은 계정입니다." : "비밀번호가 올바르지 않습니다.";
+                    err.style.display = "block";
+                }
+            } catch (e) {
+                err.innerText = "통신 오류: " + e.message; err.style.display = "block";
+            }
+            btn.innerText = "로그인"; btn.disabled = false;
+        };
+
+        /* ===== DATA LOAD — fetch ===== */
+        async function init() {
+            const sp = document.getElementById("splash"), db = document.getElementById("dashboard");
+            sp.style.display = "flex";
+            try {
+                const url = TK ? API + "?tk=" + TK : API + "?pw=" + encodeURIComponent(document.getElementById("loginPw").value);
+                const r = await fetch(url);
+                const raw = await r.json();
+                if (raw.error) throw new Error(raw.error);
+                D = deobf(raw || []);
+                chips(); render();
+                const now = new Date();
+                document.getElementById("lastUpdate").innerText = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")} 업데이트`;
+                sp.style.opacity = "0";
+                setTimeout(() => { sp.style.display = "none"; db.style.display = "flex"; db.style.opacity = "1" }, 400);
+            } catch (e) {
+                sp.style.display = "none"; db.style.display = "flex"; db.style.opacity = "1";
+                document.getElementById("grid").innerHTML = `<div style="padding:50px 20px;text-align:center"><div style="font-size:36px;margin-bottom:16px">⚠️</div><p style="color:var(--muted);font-size:14px;margin-bottom:20px">${e.message}</p><button class="sv-btn blue" style="width:auto;padding:0 32px" onclick="location.reload()">다시 시도</button></div>`;
+            }
+        }
+
+        function chips() { const rg = [...new Set(D.map(d => d["지역"]))].filter(Boolean); document.getElementById("chips").innerHTML = [{ v: "ALL", l: "전체" }, ...rg.map(r => ({ v: r, l: r }))].map(c => `<button class="chip ${REG === c.v ? " active" : ""}" onclick="setR('${c.v}')">${c.l}</button>`).join("") }
+        window.setR = function (r) { REG = r; chips(); render() };
+        function render() {
+            const g = document.getElementById("grid"), fd = D.filter(d => REG === "ALL" || d["지역"] === REG);
+            document.getElementById("rpt-btn").style.display = REG === "ALL" ? "none" : "flex";
+            g.innerHTML = fd.map((d, i) => {
+                const sn = d["사업장명"], rg = d["지역"], u = sn.replace(/[^a-zA-Z0-9가-힣]/g, '') + '_' + i;
+                const gS = m => n(d["DI_" + m]) + n(d["TO_" + m]); const st = gSt(d), seats = gSeats(d), corners = ov(sn, "코너수", n(d["코너수"]));
+                const ri_raw = n(d["회전율(중식_T/O포함)"]);
+                const re_raw = n(d["회전율(중식_T/O제외)"]);
+                // 회전율 자동계산: 미입력시 좌석수 기준 자동 산출
+                const seats_v = seats || 1;
+                const diMid = n(d["DI_중식"]), toMid = n(d["TO_중식"]);
+                const re = re_raw > 0 ? re_raw : (seats_v > 0 ? diMid / seats_v : 0);
+                const ri = ri_raw > 0 ? ri_raw : (seats_v > 0 ? (diMid + toMid) / seats_v : 0);
+                const reAuto = re_raw === 0 && seats_v > 0 && diMid > 0;
+                const riAuto = ri_raw === 0 && seats_v > 0 && (diMid + toMid) > 0;
+                const o = OV[sn] || {}, meals = ["조식", "중식", "석식", "야식"];
+                let gR = ''; meals.forEach(m => { const di = n(d["DI_" + m]), to = n(d["TO_" + m]), tot = di + to, ms = gMS(sn, m), ps = (tot / ms).toFixed(1); gR += `<tr><td>${m}</td><td>${f(di)}</td><td>${f(to)}</td><td>${f(tot)}</td><td>${ms}</td><td style="color:var(--accent);font-weight:900">${ps}</td></tr>` });
+                const rS = D.filter(x => x["지역"] === rg), mxL = Math.max(...rS.map(x => n(x["DI_중식"]) + n(x["TO_중식"])));
+                let cB = ''; if (rS.length > 1) { cB = `<div class="sec-title">📊 ${rg} 중식 비교</div>`; rS.forEach(r => { const l = n(r["DI_중식"]) + n(r["TO_중식"]), p = mxL > 0 ? (l / mxL * 100) : 0, c = r["사업장명"] === sn; cB += `<div class="ch-bar"><div class="ch-name" style="${c ? 'color:var(--accent)' : ''}">${r["사업장명"]}</div><div class="ch-track"><div class="ch-fill" style="width:${p}%;background:${c ? 'linear-gradient(90deg,var(--accent),var(--accent2))' : 'rgba(100,116,139,.4)'}">${f(l)}</div></div></div>` }) }
+                const eF = meals.map(m => `<div class="ff"><label>${m} 평일</label><input type="number" id="ov_${u}_${m}_평일" value="${o[m + '_평일'] || ''}" placeholder="${st}"></div><div class="ff"><label>${m} 주말</label><input type="number" id="ov_${u}_${m}_주말" value="${o[m + '_주말'] || ''}" placeholder="${st}"></div>`).join('');
+                return `<div class="card">
+            <div class="card-header"><div><div class="region-tag">${rg}</div><div class="site-name">${sn} <button class="emotion-btn" onclick="openCalForSite('${sn}')" title="데일리 식수 열람">📆</button></div></div><div class="total-badge"><div class="label">투입인원</div><div class="val">${st}<span style="font-size:12px;font-weight:700;opacity:.6">명</span></div></div></div>
+            <div class="stats-row">
+                <div class="sbox"><button class="edit-sm" onclick="tp('${u}','seat')">✏️</button><span class="lb">좌석 / 코너</span><span class="vl" style="font-size:14px;letter-spacing:-.5px">${f(seats)}<span style="color:var(--dim);font-size:11px;font-weight:600"> / </span>${f(corners)}</span>${(reAuto || riAuto) ? `<span style="font-size:8px;color:var(--success);display:block;margin-top:2px;font-weight:800">회전율 자동산출 기준</span>` : ''}</div>
+                <div class="sbox${reAuto ? ' sbox-auto' : ''}"><span class="lb">회전율 D/I</span><span class="vl" style="color:${rc(re)}">${re.toFixed(1)}</span>${reAuto ? `<span class="auto-dot" title="좌석수 기준 자동산출"></span>` : ''}</div>
+                <div class="sbox${riAuto ? ' sbox-auto' : ''}"><span class="lb">회전율 T/O포함</span><span class="vl" style="color:${rc(ri)}">${ri.toFixed(1)}</span>${riAuto ? `<span class="auto-dot" title="좌석수 기준 자동산출"></span>` : ''}</div>
+            </div>
+            <div id="p_seat_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">✏️ 좌석·코너 수정</div><div class="fg"><div class="ff"><label>좌석수</label><input type="number" id="ov_${u}_좌석수" value="${o['좌석수'] || ''}" placeholder="${n(d['좌석수'])}"></div><div class="ff"><label>코너수</label><input type="number" id="ov_${u}_코너수" value="${o['코너수'] || ''}" placeholder="${n(d['코너수'])}"></div></div><button class="sv-btn blue" onclick="svSeat('${u}','${sn}')">적용</button></div>
+            <div class="staff-panel"><div class="edit-icon" onclick="tp('${u}','edit')">✏️</div><div style="font-size:10px;color:var(--dim);font-weight:700;margin-bottom:8px">근무 인원</div>
+                <div class="staff-grid"><div><div class="lb">영양사 / 조리사</div><div class="vl">${ov(sn, "영양사", n(d["영양사"]))} / ${ov(sn, "조리사", n(d["조리사"]))}</div></div><div><div class="lb">웰프로 주 / 야</div><div class="vl">${ov(sn, "웰프로_주", n(d["웰프로_주"]))} / ${ov(sn, "웰프로_야", n(d["웰프로_야"]))}</div></div></div></div>
+            <div id="p_edit_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">✏️ 인력 수정</div><div style="font-size:10px;color:var(--dim);margin-bottom:8px">기본 인원</div>
+                <div class="fg c4"><div class="ff"><label>영양사</label><input type="number" id="ov_${u}_영양사" value="${o['영양사'] || ''}" placeholder="${n(d['영양사'])}"></div><div class="ff"><label>조리사</label><input type="number" id="ov_${u}_조리사" value="${o['조리사'] || ''}" placeholder="${n(d['조리사'])}"></div><div class="ff"><label>웰(주)</label><input type="number" id="ov_${u}_웰프로_주" value="${o['웰프로_주'] || ''}" placeholder="${n(d['웰프로_주'])}"></div><div class="ff"><label>웰(야)</label><input type="number" id="ov_${u}_웰프로_야" value="${o['웰프로_야'] || ''}" placeholder="${n(d['웰프로_야'])}"></div></div>
+                <div style="font-size:10px;color:var(--dim);margin:4px 0 8px">끼니별 투입인원</div><div class="fg">${eF}</div>
+                <div class="precise-title">🎯 업무강도 보정 데이터</div>
+                <div class="meal-staff-grid">
+                    ${meals.map(m => `<div class="meal-staff-cell"><div class="mc-lb">${m}실투입</div><input type="number" id="ov_${u}_${m}_실투입" value="${o[m + '_실투입'] || ''}" placeholder="${gMS(sn, m)}" onchange="updateIntensity('${u}','${sn}')"></div>`).join('')}
+                </div>
+                <div class="intensity-meter" id="im_${u}">
+                    <span style="font-size:10px;color:var(--dim);font-weight:700;min-width:52px">업무강도</span>
+                    <div class="intensity-bar"><div class="intensity-fill" id="ib_${u}" style="width:0%;background:var(--success)"></div></div>
+                    <span id="iv_${u}" style="font-size:11px;font-weight:900;min-width:36px;text-align:right">-</span>
+                </div>
+                <button class="sv-btn blue" style="margin-top:10px" onclick="svEdit('${u}','${sn}')">적용 (재계산)</button><div id="ov_msg_${u}" class="sv-msg"></div></div>
+            <div class="tbl-wrap"><table><thead><tr><th>구분</th><th>조식</th><th>중식</th><th>석식</th><th>야식</th></tr></thead><tbody>
+                <tr><td>D/I</td><td>${f(d["DI_조식"])}</td><td>${f(d["DI_중식"])}</td><td>${f(d["DI_석식"])}</td><td>${f(d["DI_야식"])}</td></tr>
+                <tr><td>T/O</td><td>${f(d["TO_조식"])}</td><td>${f(d["TO_중식"])}</td><td>${f(d["TO_석식"])}</td><td>${f(d["TO_야식"])}</td></tr>
+                <tr class="row-sum"><td>합계</td><td>${f(gS("조식"))}</td><td>${f(gS("중식"))}</td><td>${f(gS("석식"))}</td><td>${f(gS("야식"))}</td></tr>
+            </tbody></table></div>
+            <div class="btn-row"><button class="mbtn pri" onclick="tp('${u}','perf')">📝 실적기록</button><button class="mbtn" onclick="tp('${u}','wknd')">📅 주말현황</button><button class="mbtn" onclick="tp('${u}','goal')">🎯 도전목표</button></div>
+            <div id="p_perf_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">📝 실적 기록</div><div class="fg"><div class="ff"><label>날짜</label><input type="date" id="fd_${u}" value="${new Date().toISOString().slice(0, 10)}"></div><div class="ff"><label>사업장</label><input value="${sn}" disabled style="opacity:.5"></div></div><div style="font-size:10px;color:var(--dim);font-weight:700;margin:4px 0">D/I</div><div class="fg c4"><div class="ff"><label>조</label><input type="number" id="fd1_${u}"></div><div class="ff"><label>중</label><input type="number" id="fd2_${u}"></div><div class="ff"><label>석</label><input type="number" id="fd3_${u}"></div><div class="ff"><label>야</label><input type="number" id="fd4_${u}"></div></div><div style="font-size:10px;color:var(--dim);font-weight:700;margin:4px 0">T/O</div><div class="fg c4"><div class="ff"><label>조</label><input type="number" id="ft1_${u}"></div><div class="ff"><label>중</label><input type="number" id="ft2_${u}"></div><div class="ff"><label>석</label><input type="number" id="ft3_${u}"></div><div class="ff"><label>야</label><input type="number" id="ft4_${u}"></div></div><div class="fg"><div class="ff"><label>도전매출</label><input type="number" id="fsl_${u}"></div><div class="ff"><label>재료비</label><input type="number" id="fmt_${u}"></div></div><div class="ff" style="margin-bottom:8px"><label>식사 특이</label><textarea id="fn1_${u}"></textarea></div><div class="ff" style="margin-bottom:12px"><label>기타 특이</label><textarea id="fn2_${u}"></textarea></div><button class="sv-btn green" onclick="svRec('${u}','${sn}','${rg}')">💾 저장</button><div id="fm_${u}" class="sv-msg"></div></div>
+            <div id="p_wknd_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">📅 주말 식수</div><div class="tbl-wrap"><table><thead><tr><th>구분</th><th>조식</th><th>중식</th><th>석식</th><th>야식</th></tr></thead><tbody><tr><td>D/I</td><td>${f(d["DI_조식(주말)"])}</td><td>${f(d["DI_중식(주말)"])}</td><td>${f(d["DI_석식(주말)"])}</td><td>${f(d["DI_야식(주말)"])}</td></tr><tr><td>T/O</td><td>${f(d["TO_조식(주말)"])}</td><td>${f(d["TO_중식(주말)"])}</td><td>${f(d["TO_석식(주말)"])}</td><td>${f(d["TO_야식(주말)"])}</td></tr></tbody></table></div></div>
+            <div id="p_goal_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">🎯 도전 목표</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+                    <div class="sbox" style="cursor:pointer" onclick="toggleGoalEdit('${u}')"><span class="lb">도전매출 ✏️</span><span class="vl" style="color:var(--accent)" id="gv_매출_${u}">${f(d["도전매출"])}</span><input type="number" id="gi_매출_${u}" class="goal-input" style="display:none" value="${n(d['도전매출']) || ''}" placeholder="0" onchange="saveGoal('${u}','${sn}','매출',this.value)"></div>
+                    <div class="sbox" style="cursor:pointer" onclick="toggleGoalEdit('${u}')"><span class="lb">영업이익 ✏️</span><span class="vl" style="color:var(--success)" id="gv_이익_${u}">${f(d["도전영업이익"])}</span><input type="number" id="gi_이익_${u}" class="goal-input" style="display:none" value="${n(d['도전영업이익']) || ''}" placeholder="0" onchange="saveGoal('${u}','${sn}','이익',this.value)"></div>
+                    <div class="sbox" style="cursor:pointer" onclick="toggleGoalEdit('${u}')"><span class="lb">목표재료비 ✏️</span><span class="vl" style="color:var(--warning)" id="gv_재료_${u}">${f(d["목표재료비"])}</span><input type="number" id="gi_재료_${u}" class="goal-input" style="display:none" value="${n(d['목표재료비']) || ''}" placeholder="0" onchange="saveGoal('${u}','${sn}','재료',this.value)"></div>
+                </div>
+                <div id="goal-edit-hint-${u}" style="font-size:10px;color:var(--dim);text-align:center;margin-bottom:10px;display:block">📝 수치 터치 시 직접 수정 가능</div>
+                <div class="sec-title">🍽️ 인시당 식수</div><div class="tbl-wrap"><table><thead><tr><th>끼니</th><th>D/I</th><th>T/O</th><th>합계</th><th>투입</th><th>인시당</th></tr></thead><tbody>${gR}</tbody></table></div>${cB}<div class="note-box"><strong>📝 계산</strong><br/>• 인시당 = (D/I+T/O) ÷ 끼니별 투입인원<br/><span class="formula">✏️ 미설정시 총인원 ${st}명 적용</span><br/>• 자동 회전율 = 중식 식수 ÷ 좌석수 (원본값 없을 때)<br/><span class="formula">🟢 초록 테두리 + 점 = 자동 산출 값</span></div></div>
+        </div>`}).join("")
+        }
+
+        window.tp = function (u, t) { ['perf', 'wknd', 'goal', 'edit', 'seat'].forEach(p => { const e = document.getElementById(`p_${p}_${u}`); if (e) { if (p === t) e.classList.toggle('show'); else e.classList.remove('show') } }) };
+        window.svSeat = function (u, sn) { OV[sn] = OV[sn] || {};['좌석수', '코너수'].forEach(k => { const v = document.getElementById(`ov_${u}_${k}`).value; if (v) OV[sn][k] = Number(v); else delete OV[sn][k] }); so(); render() };
+        window.svEdit = function (u, sn) { OV[sn] = OV[sn] || {};['영양사', '조리사', '웰프로_주', '웰프로_야'].forEach(k => { const v = document.getElementById(`ov_${u}_${k}`).value; if (v) OV[sn][k] = Number(v); else delete OV[sn][k] });["조식", "중식", "석식", "야식"].forEach(m => { ["평일", "주말", "실투입"].forEach(t => { const el = document.getElementById(`ov_${u}_${m}_${t}`); if (!el) return; const v = el.value; if (v) OV[sn][m + '_' + t] = Number(v); else delete OV[sn][m + '_' + t] }) }); so(); render() };
+        window.svRec = function (u, sn, rg) { /* replaced by extended svRec below */ };
+
+        /* ===== 도전목표 인라인 수정 ===== */
+        window.toggleGoalEdit = function (u) {
+            const keys = ['매출', '이익', '재료'];
+            const hint = document.getElementById(`goal-edit-hint-${u}`);
+            const isEditing = document.getElementById(`gi_매출_${u}`).style.display !== 'none';
+            keys.forEach(k => {
+                const inp = document.getElementById(`gi_${k}_${u}`);
+                const val = document.getElementById(`gv_${k}_${u}`);
+                if (inp && val) {
+                    inp.style.display = isEditing ? 'none' : 'block';
+                    val.style.display = isEditing ? 'block' : 'none';
+                }
+            });
+            if (hint) hint.textContent = isEditing ? '📝 수치 터치 시 직접 수정 가능' : '✅ 수정 중 — 값 입력 후 다른 곳 터치';
+        };
+
+        window.saveGoal = function (u, sn, key, val) {
+            OV[sn] = OV[sn] || {};
+            const keyMap = { '매출': 'goal_매출', '이익': 'goal_이익', '재료': 'goal_재료' };
+            const colorMap = { '매출': 'var(--accent)', '이익': 'var(--success)', '재료': 'var(--warning)' };
+            if (val) {
+                OV[sn][keyMap[key]] = Number(val);
+                const el = document.getElementById(`gv_${key}_${u}`);
+                if (el) { el.style.color = colorMap[key]; el.textContent = Number(val).toLocaleString(); }
+            } else {
+                delete OV[sn][keyMap[key]];
+            }
+            so();
+        };
+
+        /* ===== 업무강도 실시간 업데이트 ===== */
+        window.updateIntensity = function (u, sn) {
+            const d = D.find(x => x["사업장명"] === sn); if (!d) return;
+            const meals = ["조식", "중식", "석식", "야식"];
+            let totalFood = 0, totalStaff = 0;
+            meals.forEach(m => {
+                const food = n(d["DI_" + m]) + n(d["TO_" + m]);
+                totalFood += food;
+                const el = document.getElementById(`ov_${u}_${m}_실투입`);
+                const st = el && el.value ? Number(el.value) : gMS(sn, m);
+                totalStaff += st;
+            });
+            const avg = totalStaff > 0 ? totalFood / (totalStaff / meals.length) : 0;
+            const pct = Math.min(avg / 130 * 100, 100);
+            const col = avg >= 95 ? "var(--danger)" : avg >= 80 ? "var(--warning)" : "var(--success)";
+            const ib = document.getElementById(`ib_${u}`);
+            const iv = document.getElementById(`iv_${u}`);
+            if (ib) { ib.style.width = pct + "%"; ib.style.background = col; }
+            if (iv) { iv.style.color = col; iv.textContent = avg.toFixed(1) + "식/인"; }
+        };
+
+        /* ===== 누적 데이터 관리 (localStorage) ===== */
+        function getRec() { try { return JSON.parse(localStorage.getItem("WS_REC") || "[]") } catch (e) { return [] } }
+        function saveRec(arr) { localStorage.setItem("WS_REC", JSON.stringify(arr)) }
+        function addRec(rec) { const arr = getRec(); const idx = arr.findIndex(r => r.date === rec.date && r.siteName === rec.siteName); if (idx >= 0) arr[idx] = rec; else arr.push(rec); arr.sort((a, b) => a.date > b.date ? -1 : 1); saveRec(arr); }
+
+        /* svRec 확장: 저장 후 로컬에도 누적 */
+        const _origSvRec = window.svRec;
+        window.svRec = async function (u, sn, rg) {
+            const p = {
+                date: document.getElementById(`fd_${u}`).value,
+                siteName: sn, region: rg,
+                DI_조식: Number(document.getElementById(`fd1_${u}`).value || 0),
+                DI_중식: Number(document.getElementById(`fd2_${u}`).value || 0),
+                DI_석식: Number(document.getElementById(`fd3_${u}`).value || 0),
+                DI_야식: Number(document.getElementById(`fd4_${u}`).value || 0),
+                TO_조식: Number(document.getElementById(`ft1_${u}`).value || 0),
+                TO_중식: Number(document.getElementById(`ft2_${u}`).value || 0),
+                TO_석식: Number(document.getElementById(`ft3_${u}`).value || 0),
+                TO_야식: Number(document.getElementById(`ft4_${u}`).value || 0),
+                도전매출: Number(document.getElementById(`fsl_${u}`).value || 0),
+                재료비: Number(document.getElementById(`fmt_${u}`).value || 0),
+                식사특이사항: document.getElementById(`fn1_${u}`).value || "",
+                기타특이사항: document.getElementById(`fn2_${u}`).value || ""
+            };
+            addRec(p);
+            const btn = event.target, msg = document.getElementById(`fm_${u}`);
+            btn.disabled = true; btn.innerText = "저장 중...";
+            try {
+                const r = await fetch(API, { method: "POST", body: JSON.stringify(p) });
+                const t = await r.text();
+                msg.style.color = t.includes("Success") ? "var(--success)" : "var(--danger)";
+                msg.innerText = t.includes("Success") ? "✅ 저장 완료 (로컬 누적 완료)" : "❌ " + t;
+            } catch (e) {
+                msg.style.color = "var(--warning)";
+                msg.innerText = "⚠️ 서버 오류 (로컬 저장 완료)";
+            } finally { btn.disabled = false; btn.innerText = "💾 저장"; }
+        };
+
+        /* ===== 데일리 캘린더 ===== */
+        let calYear = new Date().getFullYear(), calMonth = new Date().getMonth(), calSel = null;
+
+        window.openCal = function () {
+            populateSiteSel();
+            renderCal();
+            document.getElementById("cal-modal").classList.add("show");
+        };
+        window.openCalForSite = function (sn) {
+            populateSiteSel();
+            document.getElementById("cal-site-sel").value = sn;
+            renderCal();
+            document.getElementById("cal-modal").classList.add("show");
+        };
+
+        function populateSiteSel() {
+            const sel = document.getElementById("cal-site-sel");
+            const sites = [...new Set(D.map(d => d["사업장명"]).filter(Boolean))];
+            sel.innerHTML = '<option value="ALL">전체 사업장</option>' + sites.map(s => `<option value="${s}">${s}</option>`).join("");
+        }
+
+        window.renderCal = function () {
+            const lbl = document.getElementById("cal-month-lbl");
+            lbl.textContent = `${calYear}년 ${calMonth + 1}월`;
+            const recs = getRec();
+            const siteSel = document.getElementById("cal-site-sel").value;
+            const filtered = recs.filter(r => siteSel === "ALL" || r.siteName === siteSel);
+            const dateDates = new Set(filtered.map(r => r.date));
+            const first = new Date(calYear, calMonth, 1);
+            const last = new Date(calYear, calMonth + 1, 0);
+            const today = new Date().toISOString().slice(0, 10);
+            let html = ['일', '월', '화', '수', '목', '금', '토'].map(d => `<div class="cal-dow">${d}</div>`).join("");
+            const startDow = first.getDay();
+            const prevLast = new Date(calYear, calMonth, 0).getDate();
+            for (let i = startDow - 1; i >= 0; i--) {
+                html += `<div class="cal-day other-month" style="cursor:default">${prevLast - i}</div>`;
+            }
+            for (let d = 1; d <= last.getDate(); d++) {
+                const ds = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const hasData = dateDates.has(ds);
+                const isTod = ds === today;
+                const isSel = ds === calSel;
+                html += `<div class="cal-day ${hasData ? 'has-data' : ''} ${isTod ? 'today' : ''} ${isSel ? 'selected' : ''}" onclick="selectCalDay('${ds}')">${d}</div>`;
+            }
+            const remaining = 42 - startDow - last.getDate();
+            for (let i = 1; i <= remaining; i++) html += `<div class="cal-day other-month" style="cursor:default">${i}</div>`;
+            document.getElementById("cal-days").innerHTML = html;
+            if (calSel) showCalDetail(calSel, filtered);
+        };
+
+        window.calPrev = function () { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCal(); };
+        window.calNext = function () { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCal(); };
+
+        window.selectCalDay = function (ds) {
+            calSel = ds;
+            const siteSel = document.getElementById("cal-site-sel").value;
+            const recs = getRec().filter(r => r.date === ds && (siteSel === "ALL" || r.siteName === siteSel));
+            renderCal();
+            showCalDetail(ds, recs.length ? recs : getRec().filter(r => r.date === ds));
+        };
+
+        function showCalDetail(ds, recs) {
+            const dayRecs = recs.filter ? recs.filter(r => r.date === ds) : [];
+            const det = document.getElementById("cal-detail");
+            // 날짜 포맷
+            const dFmt = ds; // YYYY-MM-DD
+            const siteSel = document.getElementById("cal-site-sel").value;
+            // 표시할 사업장 목록 결정
+            const activeSites = siteSel === "ALL"
+                ? [...new Set(D.map(d => d["사업장명"]).filter(Boolean))]
+                : [siteSel];
+
+            let h = `<div class="cal-detail"><div class="dt-title">📅 ${dFmt} 식수 현황</div>`;
+
+            activeSites.forEach(site => {
+                const rec = dayRecs.find(r => r.siteName === site);
+                const di_jo = rec ? rec.DI_조식 : 0;
+                const di_ju = rec ? rec.DI_중식 : 0;
+                const di_sk = rec ? rec.DI_석식 : 0;
+                const di_ya = rec ? rec.DI_야식 : 0;
+                const to_jo = rec ? rec.TO_조식 : 0;
+                const to_ju = rec ? rec.TO_중식 : 0;
+                const to_sk = rec ? rec.TO_석식 : 0;
+                const to_ya = rec ? rec.TO_야식 : 0;
+                const totalDI = di_jo + di_ju + di_sk + di_ya;
+                const totalTO = to_jo + to_ju + to_sk + to_ya;
+                const hasData = !!rec;
+                const statusTag = hasData
+                    ? `<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(52,211,153,.1);color:var(--success);font-weight:800">● 기록됨</span>`
+                    : `<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(100,116,139,.1);color:var(--dim);font-weight:800">○ 미기록</span>`;
+
+                h += `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:10px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <div style="font-size:12px;font-weight:900;color:var(--accent)">🏢 ${site}</div>
+                        ${statusTag}
+                    </div>
+                    <div class="cal-meal-grid">
+                        <div class="cal-meal-box"><div class="mlb">조식</div><div class="mval" style="${!hasData ? 'opacity:.35' : ''}">${(di_jo + to_jo) || '-'}</div><div class="msub">D/I:${di_jo} T/O:${to_jo}</div></div>
+                        <div class="cal-meal-box"><div class="mlb">중식</div><div class="mval" style="color:var(--accent);${!hasData ? 'opacity:.35' : ''}">${(di_ju + to_ju) || '-'}</div><div class="msub">D/I:${di_ju} T/O:${to_ju}</div></div>
+                        <div class="cal-meal-box"><div class="mlb">석식</div><div class="mval" style="${!hasData ? 'opacity:.35' : ''}">${(di_sk + to_sk) || '-'}</div><div class="msub">D/I:${di_sk} T/O:${to_sk}</div></div>
+                        <div class="cal-meal-box"><div class="mlb">야식</div><div class="mval" style="${!hasData ? 'opacity:.35' : ''}">${(di_ya + to_ya) || '-'}</div><div class="msub">D/I:${di_ya} T/O:${to_ya}</div></div>
+                    </div>
+                    <div style="display:flex;gap:8px;font-size:11px;padding:8px;background:rgba(0,0,0,.2);border-radius:8px;margin-top:4px;flex-wrap:wrap">
+                        <span>총 D/I: <strong style="color:var(--accent)">${totalDI || '-'}</strong></span>
+                        <span>총 T/O: <strong style="color:var(--warning)">${totalTO || '-'}</strong></span>
+                        <span>합계: <strong style="color:${hasData ? 'var(--success)' : 'var(--dim)'}">${(totalDI + totalTO) || '-'}</strong></span>
+                        ${rec && rec.도전매출 > 0 ? `<span>매출: <strong>${Number(rec.도전매출).toLocaleString()}원</strong></span>` : ''}
+                    </div>
+                    ${rec && rec.식사특이사항 ? `<div style="font-size:10px;color:var(--dim);margin-top:6px;padding:6px 8px;background:rgba(255,255,255,.02);border-radius:6px">📝 ${rec.식사특이사항}</div>` : ''}
+                </div>`;
+            });
+            h += '</div>';
+            det.innerHTML = h;
+        }
+
+        /* ===== 추이 분석 리포트 ===== */
+        window.openTrendReport = function () {
+            document.getElementById("trend-modal").classList.add("show");
+            renderTrendReport();
+        };
+        window.closeTrend = function () { document.getElementById("trend-modal").classList.remove("show"); };
+
+        function renderTrendReport() {
+            const recs = getRec();
+            const body = document.getElementById("trend-body");
+            if (!recs.length) {
+                body.innerHTML = `<div class="no-data-msg"><div style="font-size:48px;margin-bottom:16px">📭</div><div style="font-size:15px;font-weight:900;margin-bottom:8px">누적 데이터 없음</div><div style="font-size:12px;color:var(--dim)">실적 기록 후 분석 리포트를 확인할 수 있습니다</div></div>`;
+                return;
+            }
+
+            // 날짜 범위
+            const dates = [...new Set(recs.map(r => r.date))].sort();
+            document.getElementById("trend-date-range").textContent = `${dates[0]} ~ ${dates[dates.length - 1]} · 총 ${dates.length}일 · ${recs.length}건`;
+
+            // 사업장별 집계
+            const sites = [...new Set(recs.map(r => r.siteName))];
+
+            let html = '';
+
+            // 1. 전체 KPI 요약
+            const totalByDate = {};
+            recs.forEach(r => {
+                if (!totalByDate[r.date]) totalByDate[r.date] = 0;
+                totalByDate[r.date] += r.DI_중식 + r.TO_중식;
+            });
+            const dailyVals = Object.values(totalByDate);
+            const avgDaily = dailyVals.reduce((a, b) => a + b, 0) / dailyVals.length;
+            const maxDaily = Math.max(...dailyVals);
+            const recentDates = dates.slice(-7);
+            const recentAvg = recentDates.reduce((a, d) => a + (totalByDate[d] || 0), 0) / recentDates.length;
+            const trend = ((recentAvg - avgDaily) / avgDaily * 100).toFixed(1);
+            const trendClass = trend > 1 ? 'trend-up' : trend < -1 ? 'trend-down' : 'trend-flat';
+            const trendIcon = trend > 1 ? '↑' : trend < -1 ? '↓' : '→';
+
+            html += `<div class="trend-section">
+                <div class="trend-section-title">📊 전체 식수 KPI 요약</div>
+                <div class="kpi-row">
+                    <div class="kpi-box"><div class="kl">일평균 중식</div><div class="kv" style="color:var(--accent)">${Math.round(avgDaily).toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div>
+                    <div class="kpi-box"><div class="kl">최고 중식</div><div class="kv" style="color:var(--success)">${maxDaily.toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div>
+                    <div class="kpi-box"><div class="kl">최근 7일 추이</div><div class="kv class="${trendClass}">${recentAvg.toFixed(0)}</div><div class="kt ${trendClass}">${trendIcon} ${Math.abs(trend)}%</div></div>
+                </div>
+                ${renderSparkline(dates, totalByDate, '중식 일별 추이')}
+            </div>`;
+
+            // 2. 사업장별 분석
+            html += `<div class="trend-section"><div class="trend-section-title">🏢 사업장별 추이 분석</div>`;
+            sites.forEach(site => {
+                const siteRecs = recs.filter(r => r.siteName === site);
+                const siteByDate = {};
+                siteRecs.forEach(r => { siteByDate[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); });
+                const siteVals = Object.values(siteByDate);
+                if (!siteVals.length) return;
+                const avg = siteVals.reduce((a, b) => a + b, 0) / siteVals.length;
+                const rec7 = dates.slice(-7).reduce((a, d) => a + (siteByDate[d] || 0), 0) / 7;
+                const t = ((rec7 - avg) / avg * 100).toFixed(1);
+                const tc = t > 1 ? 'trend-up' : t < -1 ? 'trend-down' : 'trend-flat';
+                html += `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                        <div style="font-size:12px;font-weight:900;color:var(--accent)">${site}</div>
+                        <div style="display:flex;gap:8px;font-size:11px">
+                            <span>평균: <strong>${Math.round(avg)}</strong>식</span>
+                            <span class="${tc}">${t > 1 ? '↑' : t < -1 ? '↓' : '→'} ${Math.abs(t)}%</span>
+                        </div>
+                    </div>
+                    ${renderSparkline(dates, siteByDate, null, 60)}
+                </div>`;
+            });
+            html += '</div>';
+
+            // 3. 증감률 테이블
+            html += `<div class="trend-section"><div class="trend-section-title">📉 식수 증감률 주간 비교</div>`;
+            html += `<div class="tbl-wrap"><table class="data-table-mini"><thead><tr><th>사업장</th>${dates.slice(-5).map(d => `<th>${d.slice(5)}</th>`).join('')}<th>추세</th></tr></thead><tbody>`;
+            sites.forEach(site => {
+                const siteRecs = recs.filter(r => r.siteName === site);
+                const siteByDate = {};
+                siteRecs.forEach(r => { siteByDate[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); });
+                html += `<tr><td>${site}</td>${dates.slice(-5).map((d, i, arr) => {
+                    const v = siteByDate[d] || 0;
+                    const prev = i > 0 ? (siteByDate[arr[i - 1]] || 0) : 0;
+                    const ch = prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : 0;
+                    const c = ch > 2 ? 'trend-up' : ch < -2 ? 'trend-down' : 'trend-flat';
+                    return `<td>${v ? v.toLocaleString() : '-'}<br><span class="${c}" style="font-size:9px">${prev > 0 ? (ch > 0 ? '+' : '') + ch + '%' : ''}</span></td>`;
+                }).join('')}<td class="${((siteByDate[dates[dates.length - 1]] || 0) - (siteByDate[dates[dates.length - 2]] || 0)) > 0 ? 'trend-up' : 'trend-down'}" style="font-size:13px">
+                ${((siteByDate[dates[dates.length - 1]] || 0) - (siteByDate[dates[dates.length - 2]] || 0)) > 0 ? '↑' : '↓'}</td></tr>`;
+            });
+            html += '</tbody></table></div></div>';
+
+            // 4. 추정 분석 (선형 회귀)
+            html += `<div class="trend-section"><div class="trend-section-title">🔮 AI 추정 분석 (향후 7일)</div>`;
+            html += `<div style="margin-bottom:10px"><span class="forecast-tag">📐 선형회귀 기반 추정</span></div>`;
+            if (dailyVals.length >= 3) {
+                const n = dailyVals.length;
+                const xs = dailyVals.map((_, i) => i);
+                const ys = dailyVals;
+                const xm = xs.reduce((a, b) => a + b, 0) / n, ym = ys.reduce((a, b) => a + b, 0) / n;
+                const slope = xs.reduce((a, x, i) => a + (x - xm) * (ys[i] - ym), 0) / xs.reduce((a, x) => a + (x - xm) ** 2, 0);
+                const intercept = ym - slope * xm;
+                const forecasts = [1, 2, 3, 4, 5, 6, 7].map(d => ({
+                    d, val: Math.max(0, Math.round(intercept + slope * (n + d - 1)))
+                }));
+                const lastDate = new Date(dates[dates.length - 1]);
+                html += '<div class="tbl-wrap"><table class="data-table-mini"><thead><tr><th>예측일</th><th>추정 중식</th><th>변화</th></tr></thead><tbody>';
+                forecasts.forEach(({ d, val }) => {
+                    const fd = new Date(lastDate); fd.setDate(fd.getDate() + d);
+                    const ds = fd.toISOString().slice(0, 10);
+                    const ch = ((val - avgDaily) / avgDaily * 100).toFixed(1);
+                    const c = ch > 0 ? 'trend-up' : ch < 0 ? 'trend-down' : 'trend-flat';
+                    html += `<tr><td>${ds.slice(5)}</td><td style="color:var(--accent3);font-weight:900">${val.toLocaleString()}</td><td class="${c}">${ch > 0 ? '+' : ''}${ch}%</td></tr>`;
+                });
+                html += '</tbody></table></div>';
+                const direction = slope > 2 ? '📈 증가 추세 (적극 대응 권장)' : slope < -2 ? '📉 감소 추세 (원인 분석 필요)' : '➡️ 안정적 유지 구간';
+                html += `<div style="margin-top:10px;padding:10px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:8px;font-size:11px;line-height:1.8">
+                    <strong style="color:var(--accent3)">종합 진단</strong><br>
+                    ${direction}<br>
+                    <span style="color:var(--dim)">일평균 변화율: ${slope > 0 ? '+' : ''}${slope.toFixed(1)}식/일 · 예측 신뢰도: ${n >= 10 ? '높음 ✅' : n >= 5 ? '중간 ⚠️' : '낮음 (데이터 부족) ❌'}</span>
+                </div>`;
+            } else {
+                html += `<div class="no-data-msg" style="padding:16px">추정에는 최소 3일 이상의 기록이 필요합니다</div>`;
+            }
+            html += '</div>';
+
+            body.innerHTML = html;
+        }
+
+        function renderSparkline(dates, byDate, label, h = 80) {
+            const vals = dates.map(d => byDate[d] || 0).filter(v => v > 0);
+            if (vals.length < 2) return '';
+            const max = Math.max(...vals), min = Math.min(...vals);
+            const w = 300, pad = 8;
+            const pts = vals.map((v, i) => {
+                const x = pad + (i / (vals.length - 1)) * (w - 2 * pad);
+                const y = pad + (1 - (v - min) / (max - min || 1)) * (h - 2 * pad);
+                return `${x},${y}`;
+            }).join(' ');
+            const fill = vals.map((v, i) => {
+                const x = pad + (i / (vals.length - 1)) * (w - 2 * pad);
+                const y = pad + (1 - (v - min) / (max - min || 1)) * (h - 2 * pad);
+                return `${x},${y}`;
+            }).join(' ');
+            return `<div class="sparkline-wrap" style="background:rgba(0,0,0,.2);border-radius:8px;padding:8px">
+                ${label ? `<div style="font-size:10px;color:var(--dim);font-weight:700;margin-bottom:6px">${label}</div>` : ''}
+                <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:${h}px;display:block">
+                    <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity=".4"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+                    <polyline points="${fill} ${w - pad},${h - pad} ${pad},${h - pad}" fill="url(#sg)" stroke="none"/>
+                    <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="${vals.map((v, i) => pad + (i / (vals.length - 1)) * (w - 2 * pad))[vals.length - 1]}" cy="${vals.map((v, i) => pad + (1 - (v - min) / (max - min || 1)) * (h - 2 * pad))[vals.length - 1]}" r="4" fill="var(--accent)"/>
+                </svg>
+                <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dim);margin-top:2px"><span>min ${min.toLocaleString()}</span><span>max ${max.toLocaleString()}</span></div>
+            </div>`;
+        }
+
+        /* ===== 리포트 추출/내보내기 ===== */
+        window.exportReport = function () {
+            const body = document.getElementById("trend-body").innerHTML;
+            const now = new Date().toLocaleDateString('ko-KR');
+            const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>Welstory 분석 리포트 ${now}</title><style>
+body{font-family:'Malgun Gothic',sans-serif;background:#0a0f1e;color:#f1f5f9;padding:24px;max-width:800px;margin:0 auto}
+.trend-section{background:#111827;border:1px solid rgba(148,163,184,.08);border-radius:12px;padding:18px;margin-bottom:16px}
+.trend-section-title{font-size:13px;font-weight:900;color:#38bdf8;margin-bottom:14px}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.kpi-box{background:rgba(255,255,255,.02);border:1px solid rgba(148,163,184,.08);border-radius:10px;padding:12px;text-align:center}
+.kl{font-size:9px;color:#64748b;font-weight:700;margin-bottom:4px}.kv{font-size:18px;font-weight:900}.kt{font-size:10px;font-weight:700;margin-top:2px}
+.trend-up{color:#34d399}.trend-down{color:#f87171}.trend-flat{color:#fbbf24}
+.tbl-wrap{border:1px solid rgba(148,163,184,.08);border-radius:8px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:11px}th{padding:8px;text-align:center;color:#64748b;font-size:10px;font-weight:700;border-bottom:1px solid rgba(148,163,184,.08)}
+td{padding:8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.03);font-weight:700}
+td:first-child{text-align:left;color:#38bdf8;font-weight:800}
+.forecast-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:800;background:rgba(167,139,250,.1);color:#a78bfa;border:1px solid rgba(167,139,250,.2)}
+.sparkline-wrap{background:rgba(0,0,0,.2);border-radius:8px;padding:8px}
+svg{display:block;width:100%}
+h1{font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:6px}
+.sub{font-size:12px;color:#64748b;margin-bottom:24px}
+</style></head><body>
+<h1>📈 Welstory 정밀 분석 리포트</h1>
+<div class="sub">생성일: ${now} · Samsung Welstory 운영 현황 관리시스템</div>
+${body}
+</body></html>`;
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `Welstory_리포트_${now.replace(/\./g, '')}.html`;
+            a.click();
+        };
+
+        window.copyReportText = function () {
+            const body = document.getElementById("trend-body");
+            const text = body ? body.innerText : '';
+            navigator.clipboard.writeText(text).then(() => {
+                alert("리포트 텍스트가 클립보드에 복사되었습니다.");
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = text; document.body.appendChild(ta); ta.select();
+                document.execCommand('copy'); document.body.removeChild(ta);
+                alert("복사 완료");
+            });
+        };
+
+        /* ===== REPORT ===== */
+        window.openReport = function () {
+            const fd = D.filter(d => d["지역"] === REG); if (!fd.length) return;
+            const ct = document.getElementById("ov-ct");
+            let h = `<div class="ov-hdr"><h3>📊 ${REG} 운영 리포트</h3><button class="cls-btn" onclick="document.getElementById('ov').style.display='none'">닫기</button></div>`;
+
+            // 업무강도 — 꺾은선 차트
+            h += `<div class="sec-title">🔥 업무 강도 (사업장 비교)</div>`;
+            const intensities = fd.map(d => ({ name: d["사업장명"], it: inten(d) }));
+            const svgW = 320, svgH = 140, padL = 38, padR = 12, padT = 16, padB = 32;
+            const plotW = svgW - padL - padR, plotH = svgH - padT - padB;
+            const allScores = intensities.map(x => x.it.s);
+            const maxS = Math.max(...allScores, 100), minS = Math.min(0, ...allScores);
+            const toX = i => padL + (i / (intensities.length - 1 || 1)) * plotW;
+            const toY = v => padT + (1 - (v - minS) / (maxS - minS)) * plotH;
+
+            // 기준선 그리기용
+            const y80 = toY(80), y95 = toY(95);
+            const pts = intensities.map((x, i) => `${toX(i)},${toY(x.it.s)}`).join(' ');
+
+            let svgHtml = `<div style="margin-bottom:16px;overflow-x:auto">
+                <svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;min-width:${svgW}px;height:${svgH}px;display:block">
+                    <defs>
+                        <linearGradient id="ig" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#38bdf8" stop-opacity=".25"/>
+                            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- 기준선: 80 양호/주의 경계 -->
+                    <line x1="${padL}" y1="${y80}" x2="${svgW - padR}" y2="${y80}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/>
+                    <text x="${padL - 4}" y="${y80 + 4}" font-size="8" fill="#fbbf24" text-anchor="end" opacity=".7">80</text>
+                    <!-- 기준선: 95 과부하 경계 -->
+                    <line x1="${padL}" y1="${y95}" x2="${svgW - padR}" y2="${y95}" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/>
+                    <text x="${padL - 4}" y="${y95 + 4}" font-size="8" fill="#f87171" text-anchor="end" opacity=".7">95</text>
+                    <!-- 0 기준선 -->
+                    <line x1="${padL}" y1="${padT + plotH}" x2="${svgW - padR}" y2="${padT + plotH}" stroke="rgba(148,163,184,.12)" stroke-width="1"/>
+                    <!-- 채움 영역 -->
+                    <polygon points="${intensities.map((x, i) => `${toX(i)},${toY(x.it.s)}`).join(' ')} ${toX(intensities.length - 1)},${padT + plotH} ${toX(0)},${padT + plotH}" fill="url(#ig)"/>
+                    <!-- 꺾은선 -->
+                    <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- 점 + 라벨 -->
+                    ${intensities.map((x, i) => {
+                const lb = iLb(x.it.s), cx = toX(i), cy = toY(x.it.s);
+                const nameShort = x.name.length > 4 ? x.name.slice(0, 4) + '…' : x.name;
+                return `<circle cx="${cx}" cy="${cy}" r="5" fill="${lb.c}" stroke="var(--bg)" stroke-width="2"/>
+                        <text x="${cx}" y="${cy - 10}" font-size="10" font-weight="900" fill="${lb.c}" text-anchor="middle">${x.it.s.toFixed(0)}</text>
+                        <text x="${cx}" y="${svgH - padB + 14}" font-size="9" fill="var(--muted)" text-anchor="middle">${nameShort}</text>`;
+            }).join('')}
+                </svg>
+                <div style="display:flex;gap:14px;justify-content:center;font-size:9px;color:var(--dim);margin-top:4px">
+                    <span style="display:flex;align-items:center;gap:3px"><span style="width:18px;height:1px;background:#fbbf24;display:inline-block;border-top:1px dashed #fbbf24"></span>80 주의기준</span>
+                    <span style="display:flex;align-items:center;gap:3px"><span style="width:18px;height:1px;background:#f87171;display:inline-block;border-top:1px dashed #f87171"></span>95 과부하기준</span>
+                </div>
+            </div>`;
+
+            // 뱃지 목록
+            svgHtml += `<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">`;
+            intensities.forEach(({ name, it }) => {
+                const lb = iLb(it.s);
+                svgHtml += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(0,0,0,.2);border-radius:8px">
+                    <span style="font-size:12px;font-weight:900">${name}</span>
+                    <div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--dim)">
+                        <span>투입 ${it.st}명</span>
+                        <span>총 ${it.tm.toLocaleString()}식</span>
+                        <span class="badge" style="color:${lb.c};background:${lb.b}">${lb.e} ${lb.t} <strong style="color:${lb.c}">${it.s.toFixed(1)}</strong></span>
+                    </div>
+                </div>`;
+            });
+            svgHtml += '</div>';
+            h += svgHtml;
+
+            // 중식 D/I vs T/O
+            h += `<div class="sec-title">🏢 중식 비교 (D/I · T/O)</div>`;
+            const mxL = Math.max(...fd.map(d => n(d["DI_중식"]) + n(d["TO_중식"])));
+            fd.forEach(d => {
+                const di = n(d["DI_중식"]), to = n(d["TO_중식"]), tot = di + to; const pDI = mxL > 0 ? (di / mxL * 100) : 0, pTO = mxL > 0 ? (to / mxL * 100) : 0;
+                h += `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:4px"><span>${d["사업장명"]}</span><span style="color:var(--dim);font-weight:700">합계 ${f(tot)}</span></div><div class="ch-dual"><div class="ch-track"><div class="ch-fill" style="width:${pDI}%;background:linear-gradient(90deg,var(--accent),var(--accent2))">${f(di)}</div></div></div><div class="ch-dual"><div class="ch-track"><div class="ch-fill" style="width:${pTO}%;background:linear-gradient(90deg,var(--warning),#f59e0b)">${f(to)}</div></div></div><div style="display:flex;gap:12px;font-size:9px;color:var(--dim);margin-top:1px"><span>🔵 D/I</span><span>🟠 T/O</span></div></div>`
+            });
+
+            // 회전율
+            h += `<div class="sec-title">🔄 회전율 비교</div><div class="tbl-wrap"><table><thead><tr><th style="text-align:left">사업장</th><th>D/I</th><th>T/O포함</th><th style="width:100px">비교</th></tr></thead><tbody>`;
+            fd.forEach(d => {
+                const re = n(d["회전율(중식_T/O제외)"]), ri = n(d["회전율(중식_T/O포함)"]);
+                h += `<tr><td>${d["사업장명"]}</td><td style="color:${rc(re)};font-weight:900">${re.toFixed(1)}</td><td style="color:${rc(ri)};font-weight:900">${ri.toFixed(1)}</td><td><div style="display:flex;gap:2px;height:14px"><div style="width:${Math.min(re / 4 * 100, 100)}%;background:var(--success);border-radius:3px 0 0 3px"></div><div style="width:${Math.min((ri - re) / 4 * 100, 100)}%;background:var(--warning);border-radius:0 3px 3px 0"></div></div></td></tr>`
+            });
+            h += `</tbody></table></div>`;
+
+            // 종합표
+            h += `<div class="sec-title">📋 종합 비교</div><div class="tbl-wrap" style="overflow-x:auto"><table style="min-width:440px"><thead><tr><th style="text-align:left">사업장</th><th>인원</th><th>좌석</th><th>중식합</th><th>회전율</th><th>인시당</th><th>강도</th></tr></thead><tbody>`;
+            fd.forEach(d => {
+                const st = gSt(d), di = n(d["DI_중식"]), to = n(d["TO_중식"]), rot = n(d["회전율(중식_T/O포함)"]), it = inten(d), lb = iLb(it.s), eff = st > 0 ? ((di + to) / st).toFixed(1) : "-";
+                h += `<tr><td>${d["사업장명"]}</td><td>${st}</td><td>${f(gSeats(d))}</td><td>${f(di + to)}</td><td style="color:${rc(rot)}">${rot.toFixed(1)}</td><td style="color:var(--accent)">${eff}</td><td><span class="badge" style="color:${lb.c};background:${lb.b};font-size:9px">${lb.e}${it.s.toFixed(0)}</span></td></tr>`
+            });
+            h += `</tbody></table></div>`;
+
+            h += `<div class="note-box"><strong>📝 산출 기준</strong><br/><br/><strong>• 업무 강도</strong> = 일일 총식수(4끼) ÷ 총 투입인원<br/><span class="formula">→ 1인이 하루에 처리하는 총 식수량</span><br/><span class="formula">→ 🟢 80미만 양호 · 🟡 80~94 주의 · 🔴 95이상 과부하</span><br/><br/><strong>• 회전율(D/I)</strong> = D/I 중식 ÷ 좌석수<br/><span class="formula">→ 순수 내부 이용 기준</span><br/><br/><strong>• 회전율(T/O포함)</strong> = (D/I + T/O) 중식 ÷ 좌석수<br/><span class="formula">→ 외부 반출 포함</span><br/><br/><strong>• 인시당 중식</strong> = (D/I + T/O) 중식 ÷ 중식 투입인원<br/><span class="formula">→ 1인 처리 식수량</span><br/><br/><strong>• 도표 범례</strong><br/><span class="formula">🔵 D/I(일반식) · 🟠 T/O(외부반출)</span><br/><span class="formula">🟢 양호(80미만) · 🟡 주의(80~94) · 🔴 과부하(95이상)</span></div>`;
+
+            ct.innerHTML = h; document.getElementById("ov").style.display = "flex"
+        };
+
+        window.onload = function () {
+            // 저장된 아이디 불러오기
+            try {
+                const saved = localStorage.getItem("WS_ID");
+                if (saved) {
+                    document.getElementById("loginId").value = saved;
+                    document.getElementById("loginId").closest('.login-field').style.opacity = '0.7';
+                    document.getElementById("save-id-label").textContent = "저장됨 ✓";
+                    document.getElementById("save-id-btn").textContent = "저장 해제";
+                    document.getElementById("save-id-btn").style.color = "var(--accent)";
+                    document.getElementById("save-id-btn").style.borderColor = "rgba(56,189,248,.3)";
+                    document.getElementById("loginPw").focus();
+                }
+            } catch (e) { /* localStorage 접근 불가 — 무시 */ }
+            try {
+                const s = sessionStorage.getItem("WS");
+                const tk = sessionStorage.getItem("WTK");
+                if (s) { USER = s; TK = tk; document.getElementById("login-overlay").style.display = "none"; init(); setTimeout(() => initSecurity(s), 500); }
+            } catch (e) { /* sessionStorage 접근 불가 — 무시 */ }
+        };
+
+        window.toggleSaveId = function () {
+            try {
+                const saved = localStorage.getItem("WS_ID");
+                const btn = document.getElementById("save-id-btn");
+                const lbl = document.getElementById("save-id-label");
+                const idInput = document.getElementById("loginId");
+                if (saved) {
+                    localStorage.removeItem("WS_ID");
+                    idInput.value = "";
+                    idInput.closest('.login-field').style.opacity = '1';
+                    idInput.disabled = false;
+                    lbl.textContent = "";
+                    btn.textContent = "아이디 저장";
+                    btn.style.color = "var(--muted)";
+                    btn.style.borderColor = "var(--border)";
+                    idInput.focus();
+                } else {
+                    const id = idInput.value.trim();
+                    if (!id) { idInput.focus(); return; }
+                    localStorage.setItem("WS_ID", id);
+                    lbl.textContent = "저장됨 ✓";
+                    btn.textContent = "저장 해제";
+                    btn.style.color = "var(--accent)";
+                    btn.style.borderColor = "rgba(56,189,248,.3)";
+                    idInput.closest('.login-field').style.opacity = '0.7';
+                    document.getElementById("loginPw").focus();
+                }
+            } catch (e) {
+                // localStorage 접근 불가 시 (GAS sandbox 제한)
+                const lbl = document.getElementById("save-id-label");
+                if (lbl) lbl.textContent = "⚠️ 저장 불가";
+                setTimeout(function () { if (lbl) lbl.textContent = ""; }, 2000);
+            }
+        };
+
+        /* ============================================================
+           🔐 보안 강화 모듈 v1.0
+           - 동적 사용자 워터마크 (반투명 대각선 반복)
+           - 화면 캡처 / 화면 공유 감지 → 콘텐츠 블러 처리
+           - 키보드 단축키 전면 차단 (F12, PrintScreen 포함)
+           - 우클릭 / 드래그 / 텍스트 선택 차단
+           - DevTools 오픈 감지 → 자동 로그아웃
+           - 화면 비활성(탭 전환) 시 콘텐츠 마스킹
+        ============================================================ */
+        function initSecurity(userId) {
+
+            /* 1. 워터마크 생성 */
+            function buildWatermark(uid) {
+                const cvs = document.createElement('canvas');
+                cvs.width = 340; cvs.height = 160;
+                const ctx = cvs.getContext('2d');
+                ctx.clearRect(0, 0, cvs.width, cvs.height);
+                ctx.save();
+                ctx.translate(cvs.width / 2, cvs.height / 2);
+                ctx.rotate(-Math.PI / 7);
+                ctx.globalAlpha = 0.055;
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '700 15px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Samsung Welstory', 0, -18);
+                ctx.font = '600 13px Inter, sans-serif';
+                ctx.fillText(uid + '@samsung.com', 0, 4);
+                ctx.font = '500 11px Inter, sans-serif';
+                ctx.fillText(new Date().toLocaleDateString('ko-KR'), 0, 22);
+                ctx.restore();
+                return cvs.toDataURL('image/png');
+            }
+
+            const wmDiv = document.createElement('div');
+            wmDiv.id = 'wm-overlay';
+            wmDiv.style.cssText = `
+                position: fixed; inset: 0; z-index: 99998;
+                pointer-events: none; user-select: none;
+                background-image: url(${buildWatermark(userId)});
+                background-repeat: repeat;
+                background-size: 340px 160px;
+                opacity: 1;
+            `;
+            document.body.appendChild(wmDiv);
+
+            /* 2. 캡처/공유 감지 → 대시보드 블러 + 경고 */
+            const blurShield = document.createElement('div');
+            blurShield.id = 'blur-shield';
+            blurShield.style.cssText = `
+                display: none; position: fixed; inset: 0; z-index: 99997;
+                background: rgba(10,15,30,0.97);
+                backdrop-filter: blur(20px);
+                justify-content: center; align-items: center;
+                flex-direction: column; gap: 12px;
+                pointer-events: all;
+            `;
+            blurShield.innerHTML = `
+                <div style="font-size:48px;">🔒</div>
+                <div style="color:#f1f5f9;font-size:18px;font-weight:900;letter-spacing:-.5px">화면 보호 중</div>
+                <div style="color:#64748b;font-size:13px;text-align:center;line-height:1.6">
+                    화면 공유 또는 캡처 감지됨<br/>이 창을 다시 클릭하면 해제됩니다
+                </div>
+            `;
+            document.body.appendChild(blurShield);
+
+            function showShield() { if (!secReady) return; blurShield.style.display = 'flex'; }
+            function hideShield() { blurShield.style.display = 'none'; }
+            blurShield.addEventListener('click', hideShield);
+
+            /* 3. 화면 비활성(탭 전환 / 앱 전환) 감지 — 첫 5초 유예 */
+            var secReady = false;
+            setTimeout(function () { secReady = true; }, 5000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    showShield();
+                } else {
+                    setTimeout(hideShield, 1200);
+                }
+            });
+
+            /* 4. 화면 공유 API 감지 (크롬 계열) */
+            if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                const origGDM = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices);
+                navigator.mediaDevices.getDisplayMedia = async function (...args) {
+                    showShield();
+                    const stream = await origGDM(...args);
+                    stream.getTracks().forEach(t => t.addEventListener('ended', hideShield));
+                    return stream;
+                };
+            }
+
+            /* 5. 키보드 보안 강화 (기존 대비 확장) */
+            document.addEventListener("keydown", e => {
+                const k = e.key.toLowerCase();
+                // PrintScreen
+                if (e.key === 'PrintScreen') {
+                    e.preventDefault();
+                    showShield();
+                    setTimeout(hideShield, 2000);
+                    return;
+                }
+                // F12
+                if (e.key === 'F12') { e.preventDefault(); return; }
+                // Ctrl / Meta 조합 전면 차단
+                if (e.ctrlKey || e.metaKey) {
+                    const blocked = ['c', 'a', 'u', 's', 'p', 'x', 'f', 'g', 'e', 'h', 'r', 'l', 'd', 'n', 't', 'w', 'j'];
+                    if (blocked.includes(k)) { e.preventDefault(); return; }
+                    if (e.shiftKey && ['i', 'j', 'c', 'k', 'm', 'p', 'e'].includes(k)) { e.preventDefault(); return; }
+                }
+            }, true);
+
+            /* 6. 우클릭 / 드래그 / 선택 차단 */
+            document.addEventListener("contextmenu", e => e.preventDefault(), true);
+            document.addEventListener("dragstart", e => e.preventDefault(), true);
+            document.addEventListener("selectstart", e => {
+                // input/textarea 내부는 허용
+                if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+                    e.preventDefault();
+                }
+            }, true);
+
+            /* 7. CSS 선택 방지 (input 제외) */
+            const noSelectStyle = document.createElement('style');
+            noSelectStyle.textContent = `
+                body, .card, .tbl-wrap, .stats-row, .staff-panel, header, main {
+                    -webkit-user-select: none !important;
+                    -moz-user-select: none !important;
+                    user-select: none !important;
+                }
+                input, textarea, select {
+                    -webkit-user-select: text !important;
+                    user-select: text !important;
+                }
+            `;
+            document.head.appendChild(noSelectStyle);
+
+            /* 8. DevTools 오픈 감지 → 경고 + 5초 후 로그아웃 */
+            let devToolsOpen = false;
+            const devCheck = setInterval(() => {
+                const threshold = 160;
+                if (window.outerWidth - window.innerWidth > threshold ||
+                    window.outerHeight - window.innerHeight > threshold) {
+                    if (!devToolsOpen) {
+                        devToolsOpen = true;
+                        showShield();
+                        blurShield.innerHTML = `
+                            <div style="font-size:48px;">⚠️</div>
+                            <div style="color:#f87171;font-size:18px;font-weight:900">개발자 도구 감지</div>
+                            <div style="color:#64748b;font-size:13px;text-align:center;line-height:1.6">
+                                보안 정책에 의해 접근이 제한됩니다<br/>
+                                <span id="dev-countdown" style="color:#fbbf24;font-weight:700">5초 후 로그아웃...</span>
+                            </div>
+                        `;
+                        let countdown = 5;
+                        const timer = setInterval(() => {
+                            countdown--;
+                            const el = document.getElementById('dev-countdown');
+                            if (el) el.textContent = `${countdown}초 후 로그아웃...`;
+                            if (countdown <= 0) {
+                                clearInterval(timer);
+                                sessionStorage.clear();
+                                location.reload();
+                            }
+                        }, 1000);
+                    }
+                } else {
+                    devToolsOpen = false;
+                }
+            }, 1000);
+
+            console.log('%c🔐 보안 시스템 활성화됨', 'color:#f87171;font-size:16px;font-weight:bold');
+            console.log('%c이 페이지는 운영 정보 보호를 위해 모니터링됩니다.', 'color:#fbbf24;font-size:13px');
+        }
+    </script>
+</body>
+
+</html>
