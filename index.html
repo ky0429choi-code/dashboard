@@ -1667,7 +1667,7 @@
         const RM = {
             "a": "사업장명", "b": "지역",
             "c1": "영양사", "c2": "조리사", "c3": "웰프로_주", "c4": "웰프로_야",
-            "d1": "좌석수", "d2": "코너수",
+            "d1": "좌석수", "d2": "코너수", "d3": "TO_코너수",
             "e1": "DI_조식", "e2": "DI_중식", "e3": "DI_석식", "e4": "DI_야식",
             "f1": "TO_조식", "f2": "TO_중식", "f3": "TO_석식", "f4": "TO_야식",
             "e5": "DI_조식(주말)", "e6": "DI_중식(주말)", "e7": "DI_석식(주말)", "e8": "DI_야식(주말)",
@@ -1805,13 +1805,14 @@
             const d = D.find(x => x["사업장명"] === sn);
             let trigger = false, level = "warn", msg = "";
 
-            /* 기준 ②: 회전율 과부하 (3.5회전 이상) */
+            /* 기준 ②: 회전율 경고 로직 제거 (사용자 요청: T/O 포함 회전율 경고 제외) 
             if (d) {
                 const diMid = n(d["DI_중식"]), toMid = n(d["TO_중식"]);
                 const seats = gSeats(d) || 1;
                 const ri = (n(d["회전율(중식_T/O포함)"]) || 0) || (diMid + toMid) / seats;
                 if (ri >= 3.5) { trigger = true; level = "danger"; msg = `⚠️ 회전율 과부하 감지 (${ri.toFixed(1)}회전) — 좌석 운영 점검 필요`; }
             }
+            */
 
             /* 기준 ①: 중식 ±15% 이상 변동 (최근 5일 평균 대비 오늘) */
             if (!trigger && recs.length >= 3) {
@@ -1938,11 +1939,17 @@
             g.innerHTML = fd.map((d, i) => {
                 const sn = d["사업장명"], rg = d["지역"], u = sn.replace(/[^a-zA-Z0-9가-힣]/g, '') + '_' + i;
                 const gS = m => n(d["DI_" + m]) + n(d["TO_" + m]);
-                const st = gSt(d), seats = gSeats(d), corners = ov(sn, "코너수", n(d["코너수"]));
-                const ri_raw = n(d["회전율(중식_T/O포함)"]), re_raw = n(d["회전율(중식_T/O제외)"]);
-                const seats_v = seats || 1, diMid = n(d["DI_중식"]), toMid = n(d["TO_중식"]);
-                const re = re_raw > 0 ? re_raw : (seats_v > 0 ? diMid / seats_v : 0);
-                const ri = ri_raw > 0 ? ri_raw : (seats_v > 0 ? (diMid + toMid) / seats_v : 0);
+                const seats_v = n(d["좌석수"]) || 1;
+                const diMid = n(d["DI_중식"]);
+                const toMid = n(d["TO_중식"]);
+                const corners = n(d["코너수"]) || 1;
+                const toCorners_v = n(d["TO_코너수"]) || corners || 1;
+
+                const ri_raw = n(d["회전율(중식_T/O포함)"]);
+                const re_raw = n(d["회전율(중식_T/O제외)"]);
+
+                const re = re_raw > 0 ? re_raw : (diMid / seats_v);
+                const ri = ri_raw > 0 ? ri_raw : ((diMid + (toMid / toCorners_v)) / seats_v);
                 const reAuto = re_raw === 0 && seats_v > 0 && diMid > 0, riAuto = ri_raw === 0 && seats_v > 0 && (diMid + toMid) > 0;
                 const o = OV[sn] || {}, meals = ["조식", "중식", "석식", "야식"];
                 let gR = ''; meals.forEach(m => { const di = n(d["DI_" + m]), to = n(d["TO_" + m]), tot = di + to, ms = gMS(sn, m), ps = (tot / ms).toFixed(1); gR += `<tr><td>${m}</td><td>${f(di)}</td><td>${f(to)}</td><td>${f(tot)}</td><td>${ms}</td><td style="color:var(--accent);font-weight:900">${ps}</td></tr>`; });
@@ -1990,7 +1997,7 @@
                 <div class="sbox${reAuto ? ' sbox-auto' : ''}"><span class="lb">회전율 D/I</span><span class="vl" style="color:${rc(re)}">${re.toFixed(1)}</span>${reAuto ? `<span class="auto-dot" title="좌석수 기준 자동산출"></span>` : ''}</div>
                 <div class="sbox${riAuto ? ' sbox-auto' : ''}"><span class="lb">회전율 T/O포함</span><span class="vl" style="color:${rc(ri)}">${ri.toFixed(1)}</span>${riAuto ? `<span class="auto-dot" title="좌석수 기준 자동산출"></span>` : ''}</div>
             </div>
-            ${canEdit ? `<div id="p_seat_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">✏️ 좌석·코너 수정</div><div class="fg"><div class="ff"><label>좌석수</label><input type="number" id="ov_${u}_좌석수" value="${o['좌석수'] || ''}" placeholder="${n(d['좌석수'])}"></div><div class="ff"><label>코너수</label><input type="number" id="ov_${u}_코너수" value="${o['코너수'] || ''}" placeholder="${n(d['코너수'])}"></div></div><button class="sv-btn blue" onclick="svSeat('${u}','${sn}')">적용</button></div>` : ''}
+            ${canEdit ? `<div id="p_seat_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">✏️ 좌석·코너 수정</div><div class="fg"><div class="ff"><label>좌석수</label><input type="number" id="ov_${u}_좌석수" value="${o['좌석수'] || ''}" placeholder="${n(d['좌석수'])}"></div><div class="ff"><label>코너수</label><input type="number" id="ov_${u}_코너수" value="${o['코너수'] || ''}" placeholder="${n(d['코너수'])}"></div><div class="ff"><label>TO_코너수</label><input type="number" id="ov_${u}_TO_코너수" value="${o['TO_코너수'] || ''}" placeholder="${n(d['TO_코너수']) || n(d['코너수'])}"></div></div><button class="sv-btn blue" onclick="svSeat('${u}','${sn}')">적용</button></div>` : ''}
             <div class="staff-panel">
                 ${canEdit ? `<div class="edit-icon" onclick="tp('${u}','edit')">✏️</div>` : ''}
                 <div style="font-size:10px;color:var(--dim);font-weight:700;margin-bottom:8px">근무 인원</div>
@@ -2061,7 +2068,7 @@
            공통 유틸
         ===================================================== */
         window.tp = function (u, t) { ['perf', 'wknd', 'goal', 'edit', 'seat'].forEach(p => { const e = document.getElementById(`p_${p}_${u}`); if (e) { if (p === t) e.classList.toggle('show'); else e.classList.remove('show'); } }); };
-        window.svSeat = function (u, sn) { OV[sn] = OV[sn] || {};['좌석수', '코너수'].forEach(k => { const v = document.getElementById(`ov_${u}_${k}`).value; if (v) OV[sn][k] = Number(v); else delete OV[sn][k]; }); so(); render(); };
+        window.svSeat = function (u, sn) { OV[sn] = OV[sn] || {};['좌석수', '코너수', 'TO_코너수'].forEach(k => { const v = document.getElementById(`ov_${u}_${k}`).value; if (v) OV[sn][k] = Number(v); else delete OV[sn][k]; }); so(); render(); };
         window.svEdit = function (u, sn) { OV[sn] = OV[sn] || {};['영양사', '조리사', '웰프로_주', '웰프로_야'].forEach(k => { const v = document.getElementById(`ov_${u}_${k}`).value; if (v) OV[sn][k] = Number(v); else delete OV[sn][k]; });["조식", "중식", "석식", "야식"].forEach(m => { ["평일", "주말", "실투입"].forEach(t => { const el = document.getElementById(`ov_${u}_${m}_${t}`); if (!el) return; const v = el.value; if (v) OV[sn][m + '_' + t] = Number(v); else delete OV[sn][m + '_' + t]; }); }); so(); render(); };
         window.svRec = function (u, sn, rg) { /* 하단에서 재정의 */ };
         window.toggleGoalEdit = function (u) { const keys = ['매출', '이익', '재료']; const hint = document.getElementById(`goal-edit-hint-${u}`); const isEditing = document.getElementById(`gi_매출_${u}`).style.display !== 'none'; keys.forEach(k => { const inp = document.getElementById(`gi_${k}_${u}`); const val = document.getElementById(`gv_${k}_${u}`); if (inp && val) { inp.style.display = isEditing ? 'none' : 'block'; val.style.display = isEditing ? 'block' : 'none'; } }); if (hint) hint.textContent = isEditing ? '📝 수치 터치 시 직접 수정 가능' : '✅ 수정 중 — 값 입력 후 다른 곳 터치'; };
@@ -2268,9 +2275,35 @@
             const dates = [...new Set(recsToUse.map(r => r.date))].sort();
             document.getElementById("trend-date-range").textContent = `[${regionLabel}] ${dates[0]} ~ ${dates[dates.length - 1]} · 총 ${dates.length}일 · ${recsToUse.length}건`;
             const sites = [...new Set(recsToUse.map(r => r.siteName))];
+
+            // 🔹 식수 비율 자동 학습 (최근 14일 실적 기반)
+            let totalDI_all = 0, totalTO_all = 0, totalMidRatio_all = 0, totalJo_all = 0, countJo_all = 0;
+            recsToUse.slice(0, 14).forEach(r => {
+                const d = n(r.DI_중식), t = n(r.TO_중식), j = n(r.DI_조식) + n(r.TO_조식);
+                if (d + t > 0) { totalDI_all += d; totalTO_all += t; totalMidRatio_all += (d + t); }
+                if (j > 0) { totalJo_all += j; countJo_all++; }
+            });
+            const r_TO = totalMidRatio_all > 0 ? totalTO_all / totalMidRatio_all : 0.35;
+            const r_Jo = (totalMidRatio_all > 0 && totalJo_all > 0) ? (totalJo_all / countJo_all) / (totalMidRatio_all / 14) : 0.15;
+
             let html = ''; const totalByDate = {};
             recsToUse.forEach(r => { if (!totalByDate[r.date]) totalByDate[r.date] = 0; totalByDate[r.date] += r.DI_중식 + r.TO_중식; });
-            const dailyVals = Object.values(totalByDate); const avgDaily = dailyVals.reduce((a, b) => a + b, 0) / dailyVals.length; const maxDaily = Math.max(...dailyVals); const recentDates = dates.slice(-7); const recentAvg = recentDates.reduce((a, d) => a + (totalByDate[d] || 0), 0) / recentDates.length; const trend = ((recentAvg - avgDaily) / avgDaily * 100).toFixed(1); const trendClass = trend > 1 ? 'trend-up' : trend < -1 ? 'trend-down' : 'trend-flat'; const trendIcon = trend > 1 ? '↑' : trend < -1 ? '↓' : '→'; html += `<div class="trend-section"><div class="trend-section-title">📊 ${regionLabel} 식수 KPI 요약</div><div class="kpi-row"><div class="kpi-box"><div class="kl">일평균 중식</div><div class="kv" style="color:var(--accent)">${Math.round(avgDaily).toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최고 중식</div><div class="kv" style="color:var(--success)">${maxDaily.toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최근 7일 추이</div><div class="kv ${trendClass}">${recentAvg.toFixed(0)}</div><div class="kt ${trendClass}">${trendIcon} ${Math.abs(trend)}%</div></div></div>${renderSparkline(dates, totalByDate, '중식 일별 추이')}</div>`; html += `<div class="trend-section"><div class="trend-section-title">🏢 사업장별 추이 분석</div>`; sites.forEach(site => { const siteRecs = recsToUse.filter(r => r.siteName === site); const siteByDate = {}; siteRecs.forEach(r => { siteByDate[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); const siteVals = Object.values(siteByDate); if (!siteVals.length) return; const avg = siteVals.reduce((a, b) => a + b, 0) / siteVals.length; const rec7 = dates.slice(-7).reduce((a, d) => a + (siteByDate[d] || 0), 0) / 7; const t = ((rec7 - avg) / avg * 100).toFixed(1); const tc = t > 1 ? 'trend-up' : t < -1 ? 'trend-down' : 'trend-flat'; html += `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:900;color:var(--accent)">${site}</div><div style="display:flex;gap:8px;font-size:11px"><span>평균: <strong>${Math.round(avg)}</strong>식</span><span class="${tc}">${t > 1 ? '↑' : t < -1 ? '↓' : '→'} ${Math.abs(t)}%</span></div></div>${renderSparkline(dates, siteByDate, null, 60)}</div>`; }); html += '</div>'; html += `<div class="trend-section"><div class="trend-section-title">📉 식수 증감률 주간 비교</div><div class="tbl-wrap"><table class="data-table-mini"><thead><tr><th>사업장</th>${dates.slice(-5).map(d => `<th>${d.slice(5)}</th>`).join('')}<th>추세</th></tr></thead><tbody>`; sites.forEach(site => { const sr = recsToUse.filter(r => r.siteName === site); const sbd = {}; sr.forEach(r => { sbd[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); html += `<tr><td>${site}</td>${dates.slice(-5).map((d, i, arr) => { const v = sbd[d] || 0, prev = i > 0 ? (sbd[arr[i - 1]] || 0) : 0, ch = prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : 0, c = ch > 2 ? 'trend-up' : ch < -2 ? 'trend-down' : 'trend-flat'; return `<td>${v ? v.toLocaleString() : '-'}<br><span class="${c}" style="font-size:9px">${prev > 0 ? (ch > 0 ? '+' : '') + ch + '%' : ''}</span></td>`; }).join('')}<td class="${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? 'trend-up' : 'trend-down'}" style="font-size:13px">${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? '↑' : '↓'}</td></tr>`; }); html += '</tbody></table></div></div>'; html += `<div class="trend-section"><div class="trend-section-title">🔮 AI 추정 분석 (향후 7일)</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap"><span class="forecast-tag">📐 선형회귀 기반 추정</span><select id="ai-site-sel" onchange="renderAIForecast()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:12px;font-weight:700;outline:none"><option value="ALL">전체 합산</option>${sites.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div><div id="ai-forecast-body"></div></div>`;
+            const dailyVals = Object.values(totalByDate); const avgDaily = dailyVals.reduce((a, b) => a + b, 0) / dailyVals.length; const maxDaily = Math.max(...dailyVals); const recentDates = dates.slice(-7); const recentAvg = recentDates.reduce((a, d) => a + (totalByDate[d] || 0), 0) / recentDates.length; const trend = ((recentAvg - avgDaily) / avgDaily * 100).toFixed(1); const trendClass = trend > 1 ? 'trend-up' : trend < -1 ? 'trend-down' : 'trend-flat'; const trendIcon = trend > 1 ? '↑' : trend < -1 ? '↓' : '→';
+
+            html += `<div class="trend-section"><div class="trend-section-title">📊 ${regionLabel} 식수 KPI 요약</div><div class="kpi-row"><div class="kpi-box"><div class="kl">일평균 중식</div><div class="kv" style="color:var(--accent)">${Math.round(avgDaily).toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최고 중식</div><div class="kv" style="color:var(--success)">${maxDaily.toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최근 7일 추이</div><div class="kv ${trendClass}">${recentAvg.toFixed(0)}</div><div class="kt ${trendClass}">${trendIcon} ${Math.abs(trend)}%</div></div></div>${renderSparkline(dates, totalByDate, '중식 일별 추이')}</div>`;
+
+            // 🔹 식수별 정밀 분해 섹션 추가
+            html += `<div class="trend-section">
+                <div class="trend-section-title">📊 식수별 정밀 분해 (추정 포함)</div>
+                <div class="kpi-row">
+                    <div class="kpi-box"><div class="kl">일평균 조식</div><div class="kv">${Math.round(avgDaily * r_Jo).toLocaleString()}</div><div class="kt">식 (비중 ${Math.round(r_Jo * 100)}%)</div></div>
+                    <div class="kpi-box"><div class="kl">중식 일반(DI)</div><div class="kv" style="color:var(--accent)">${Math.round(avgDaily * (1 - r_TO)).toLocaleString()}</div><div class="kt">식 (비중 ${Math.round((1 - r_TO) * 100)}%)</div></div>
+                    <div class="kpi-box"><div class="kl">중식 T/O</div><div class="kv" style="color:var(--warning)">${Math.round(avgDaily * r_TO).toLocaleString()}</div><div class="kt">식 (비중 ${Math.round(r_TO * 100)}%)</div></div>
+                </div>
+                <div style="font-size:10px;color:var(--dim);text-align:right;margin-top:4px">※ 최근 누적 실적 패턴 기반 자동 추정</div>
+            </div>`;
+
+            html += `<div class="trend-section"><div class="trend-section-title">🏢 사업장별 추이 분석</div>`; sites.forEach(site => { const siteRecs = recsToUse.filter(r => r.siteName === site); const siteByDate = {}; siteRecs.forEach(r => { siteByDate[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); const siteVals = Object.values(siteByDate); if (!siteVals.length) return; const avg = siteVals.reduce((a, b) => a + b, 0) / siteVals.length; const rec7 = dates.slice(-7).reduce((a, d) => a + (siteByDate[d] || 0), 0) / 7; const t = ((rec7 - avg) / avg * 100).toFixed(1); const tc = t > 1 ? 'trend-up' : t < -1 ? 'trend-down' : 'trend-flat'; html += `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:900;color:var(--accent)">${site}</div><div style="display:flex;gap:8px;font-size:11px"><span>평균: <strong>${Math.round(avg)}</strong>식</span><span class="${tc}">${t > 1 ? '↑' : t < -1 ? '↓' : '→'} ${Math.abs(t)}%</span></div></div>${renderSparkline(dates, siteByDate, null, 60)}</div>`; }); html += '</div>'; html += `<div class="trend-section"><div class="trend-section-title">📉 식수 증감률 주간 비교</div><div class="tbl-wrap"><table class="data-table-mini"><thead><tr><th>사업장</th>${dates.slice(-5).map(d => `<th>${d.slice(5)}</th>`).join('')}<th>추세</th></tr></thead><tbody>`; sites.forEach(site => { const sr = recsToUse.filter(r => r.siteName === site); const sbd = {}; sr.forEach(r => { sbd[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); html += `<tr><td>${site}</td>${dates.slice(-5).map((d, i, arr) => { const v = sbd[d] || 0, prev = i > 0 ? (sbd[arr[i - 1]] || 0) : 0, ch = prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : 0, c = ch > 2 ? 'trend-up' : ch < -2 ? 'trend-down' : 'trend-flat'; return `<td>${v ? v.toLocaleString() : '-'}<br><span class="${c}" style="font-size:9px">${prev > 0 ? (ch > 0 ? '+' : '') + ch + '%' : ''}</span></td>`; }).join('')}<td class="${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? 'trend-up' : 'trend-down'}" style="font-size:13px">${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? '↑' : '↓'}</td></tr>`; }); html += '</tbody></table></div></div>'; html += `<div class="trend-section"><div class="trend-section-title">🔮 AI 추정 분석 (향후 7일)</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap"><span class="forecast-tag">📐 선형회귀 기반 추정</span><select id="ai-site-sel" onchange="renderAIForecast()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:12px;font-weight:700;outline:none"><option value="ALL">전체 합산</option>${sites.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div><div id="ai-forecast-body"></div></div>`;
             body.innerHTML = html;
             window._aiTrendDates = dates; window._aiTrendRecs = recsToUse; window._aiTrendSites = sites; window._aiTrendAvgDaily = avgDaily;
             renderAIForecast();
@@ -2359,25 +2392,30 @@
             h += `</tbody></table></div>`;
 
             /* 상황 진단 가이드 추가 */
-            h += `<div class="sec-title">💡 운영 상황 진단 및 솔루션 가이드</div>
+            h += `<div class="sec-title">💡 운영 상황 진단 및 솔루션 가이드 (Updated)</div>
             <div style="padding:14px;background:rgba(56,189,248,.04);border:1px solid rgba(56,189,248,.12);border-radius:12px;font-size:11px;line-height:1.7">
                 <div style="margin-bottom:10px">
                     <strong style="color:var(--warning)">CASE A. 회전율은 높으나 업무 강도 보통 (🟡/🟢)</strong><br>
                     • <span style="color:var(--text)">진단:</span> 조리 인력은 적정하나 **식당 공간/좌석이 부족**한 상태입니다.<br>
-                    • <span style="color:var(--accent)">솔루션:</span> 인원 충원보다는 **시차 배식제** 도입 또는 **T/O(도시락) 확대**를 권장합니다.
+                    • <span style="color:var(--accent)">솔루션:</span> 인원 충원보다는 **T/O(도시락 형태) 비율을 확대** 권장합니다.
                 </div>
-                <div>
+                <div style="margin-bottom:10px">
                     <strong style="color:var(--danger)">CASE B. 회전율도 높고 업무 강도도 높음 (🔴)</strong><br>
                     • <span style="color:var(--text)">진단:</span> 공간도 부족하고 **주방 일손도 한계치**에 도달한 위험 상태입니다.<br>
-                    • <span style="color:var(--accent)">솔루션:</span> **신규 인원 충원** 또는 한시적 **지원 인력 투입**이 시급히 필요합니다.
+                    • <span style="color:var(--accent)">솔루션:</span> **신규 인원 충원**, **지원 인력 투입** 또는 **제공 품목수(반찬 등) 축소**가 시급히 필요합니다.
+                </div>
+                <div>
+                    <strong style="color:var(--primary)">CASE C. T/O 코너당 처리량 과다 (분석용)</strong><br>
+                    • <span style="color:var(--text)">진단:</span> T/O 코너당 배식량이 한계치를 초과하여 **대기 동선 지연**이 우려됩니다.<br>
+                    • <span style="color:var(--accent)">솔루션:</span> T/O 제공 품목 단순화 또는 무인 배식대(셀프 코너) 추가 배치 검토.
                 </div>
             </div>`;
 
             h += `<div class="note-box"><strong>📝 산출 기준 및 해석</strong><br/><br/>
             <strong>• 업무 강도</strong> = 일일 총식수 ÷ 총 투입인원<br/>
-            <span class="formula">→ 🟢 80미만 양호 · 🟡 95미만 주의 · 🔴 95이상 과부하(충원 검토)</span><br/><br/>
-            <strong>• 회전율(RI)</strong> = 중식 식수(T/O포함) ÷ 좌석수<br/>
-            <span class="formula">→ 🔴 3.5회 이상: 공간 과부하 (시차배식/TO확대 검토)</span></div>`;
+            <span class="formula">→ 🟢 80미만 양호 · 🟡 95미만 주의 · 🔴 95이상 과부하(옵션: 품목수 축소 검토)</span><br/><br/>
+            <strong>• 회전율(RI)</strong> = (중식 D/I 식수 + 할인된 TO식수) ÷ 좌석수<br/>
+            <span class="formula">→ 🔴 3.5회 이상: 공간 과부하 (T/O 확대 집중)</span></div>`;
 
             ct.innerHTML = h;
             document.getElementById("ov").style.display = "flex";
