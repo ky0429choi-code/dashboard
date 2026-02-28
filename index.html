@@ -1939,7 +1939,9 @@
             g.innerHTML = fd.map((d, i) => {
                 const sn = d["사업장명"], rg = d["지역"], u = sn.replace(/[^a-zA-Z0-9가-힣]/g, '') + '_' + i;
                 const gS = m => n(d["DI_" + m]) + n(d["TO_" + m]);
-                const seats_v = n(d["좌석수"]) || 1;
+                const st = gSt(d);
+                const seats = n(d["좌석수"]);
+                const seats_v = seats || 1;
                 const diMid = n(d["DI_중식"]);
                 const toMid = n(d["TO_중식"]);
                 const corners = n(d["코너수"]) || 1;
