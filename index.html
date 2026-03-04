@@ -2795,7 +2795,7 @@
             </div>
             <!-- 추이 + 예측 차트 -->
             <div class="ch-panel">
-                <div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:var(--dim);font-weight:400">실선=실적 / 점선=예측 · 🟠저조기 / 🟡주말 / 🔴공휴일</span></div>
+                <div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:var(--dim);font-weight:400">🟠저조기 / 🟡주말 / 🔴공휴일</span></div>
                 <div class="chart-scroll-wrap">
                     <div id="chartTrend" class="ch-apex" style="min-width:650px"></div>
                 </div>
@@ -2804,9 +2804,7 @@
             ${mk === '중식' || mk === '합계' ? `<div class="ch-panel">
                 <div class="ch-panel-title">📊 D/I · T/O 일별 비중 추이 (최근 14일)</div>
                 <div class="ch-panel-sub">T/O 비율이 높을수록 좌석 회전 압박 ↑ · 공간 확장 or T/O 코너 증설 검토 신호</div>
-                <div class="chart-scroll-wrap">
-                    <div id="chartDITO" class="ch-apex" style="min-width:500px"></div>
-                </div>
+                <div id="chartDITO" class="ch-apex"></div>
             </div>`: ''}
             </div>`+ (mk === '중식' ? `<div style="font-size:10px;color:var(--dim);text-align:right;margin-top:-8px;padding:0 20px">※ T/O 코너 증설 시 회전율 부하 분산 효과 기대 가능</div>` : '');
 
@@ -2820,11 +2818,25 @@
                         fill: { type: ['gradient', 'solid'], gradient: { shade: 'dark', type: 'vertical', opacityFrom: .3, opacityTo: .01 } },
                         colors: [mkColor, '#f43f5e'],
                         markers: { size: [4, 5], colors: [mkColor, '#f43f5e'], strokeWidth: 2 },
-                        xaxis: { ...APEX_BASE.xaxis, categories: xLabels, tickAmount: undefined, labels: { ...APEX_BASE.xaxis.labels, rotate: 0, minHeight: 40 } },
+                        xaxis: {
+                            ...APEX_BASE.xaxis, categories: xLabels, tickAmount: undefined, labels: {
+                                ...APEX_BASE.xaxis.labels, rotate: 0, minHeight: 40, formatter: (val, opt) => {
+                                    if (!val) return '';
+                                    const idx = opt.pos - 1;
+                                    // 3일 간격 또는 마지막 날짜만 표시하여 겹침 방지
+                                    if (idx % 3 === 0 || idx === allDates.length - 1) return val;
+                                    return '';
+                                }
+                            }
+                        },
                         yaxis: { ...APEX_BASE.yaxis, min: 0, title: { text: '식수(명)', style: { color: '#64748b', fontSize: '10px' } }, labels: { ...APEX_BASE.yaxis.labels, formatter: v => v.toLocaleString() } },
-                        annotations: { xaxis: [{ x: dates[dates.length - 1].slice(5) + (getHolidayType(dates[dates.length - 1]).type !== 'workday' ? '\n' + (getHolidayType(dates[dates.length - 1]).type === 'weekend' ? '🟡' : '🔴') : ''), borderColor: '#f43f5e', strokeDashArray: 4, label: { text: '예측시작', style: { background: 'rgba(244,63,94,.2)', color: '#f43f5e', fontSize: '9px', fontWeight: 700 } } }], yaxis: [{ y: normAvg, borderColor: mkColor + '66', strokeDashArray: 3, label: { text: `정상평균 ${normAvg}`, style: { background: mkColor + '14', color: mkColor, fontSize: '9px' } } }, ...(lowAvg > 0 ? [{ y: lowAvg, borderColor: '#fbbf2488', strokeDashArray: 3, label: { text: `저조평균 ${lowAvg}`, style: { background: 'rgba(251,191,36,.1)', color: '#fbbf24', fontSize: '9px' } } }] : [])] },
+                        annotations: {
+                            xaxis: [{ x: dates[dates.length - 1].slice(5) + (getHolidayType(dates[dates.length - 1]).type !== 'workday' ? '\n' + (getHolidayType(dates[dates.length - 1]).type === 'weekend' ? '🟡' : '🔴') : ''), borderColor: '#f43f5e', strokeDashArray: 4, label: { text: '예측시작', position: 'top', textAnchor: 'start', orientation: 'horizontal', style: { background: 'rgba(244,63,94,.9)', color: '#fff', fontSize: '10px', fontWeight: 900 } } }],
+                            yaxis: [{ y: normAvg, borderColor: mkColor + 'cc', strokeDashArray: 0, label: { text: `정상평균 ${normAvg}`, position: 'right', textAnchor: 'end', orientation: 'horizontal', style: { background: mkColor, color: '#fff', fontSize: '10px', fontWeight: 900 } } },
+                            ...(lowAvg > 0 ? [{ y: lowAvg, borderColor: '#fbbf24cc', strokeDashArray: 0, label: { text: `저조평균 ${lowAvg}`, position: 'right', textAnchor: 'end', orientation: 'horizontal', style: { background: '#fbbf24', color: '#000', fontSize: '10px', fontWeight: 900 } } }] : [])]
+                        },
                         tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v != null ? v.toLocaleString() + '명' : '-' } },
-                        legend: { ...APEX_BASE.legend, position: 'top' },
+                        legend: { show: false },
                     });
                     c1.render(); window._apexCharts.push(c1);
                 } catch (e) { console.error(e); }
@@ -2838,9 +2850,9 @@
                             series: [{ name: 'D/I', data: d14.map(d => diByDate[d] || 0) }, { name: 'T/O', data: d14.map(d => toByDate[d] || 0) }],
                             colors: ['#38bdf8', '#fbbf24'],
                             plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
-                            xaxis: { ...APEX_BASE.xaxis, categories: d14.map(d => { const ht = getHolidayType(d).type; return d.slice(5) + (ht !== 'workday' ? '\n🟡' : ''); }), tickAmount: 7 },
-                            yaxis: { ...APEX_BASE.yaxis, min: 0 },
-                            dataLabels: { enabled: false },
+                            xaxis: { ...APEX_BASE.xaxis, categories: d14.map(d => { const ht = getHolidayType(d).type; return d.slice(5) + (ht !== 'workday' ? '\n' + (ht === 'weekend' ? '🟡' : '🔴') : ''); }) },
+                            yaxis: { ...APEX_BASE.yaxis, min: 0, labels: { ...APEX_BASE.yaxis.labels, formatter: v => v.toLocaleString() } },
+                            dataLabels: { enabled: true, style: { fontSize: '9px' }, formatter: v => v > 0 ? v.toLocaleString() : '' },
                             tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
                             legend: { ...APEX_BASE.legend, position: 'top' },
                         });
@@ -3021,8 +3033,8 @@
                         plotOptions: { bar: { borderRadius: 6, horizontal: true, distributed: true, dataLabels: { position: 'right' } } },
                         dataLabels: { enabled: true, formatter: v => v.toLocaleString() + '명', style: { fontSize: '10px', colors: ['#e2e8f0'] }, offsetX: 8 },
                         xaxis: { ...APEX_BASE.xaxis, min: 0 },
-                        yaxis: { ...APEX_BASE.yaxis, labels: { style: { colors: siteData.map(d => d.color), fontSize: '11px', fontWeight: 700 } }, ...{ categories: siteData.map(d => d.site) } },
-                        annotations: { xaxis: [{ x: overallAvg, borderColor: '#38bdf866', strokeDashArray: 4, label: { text: `전체평균 ${overallAvg}`, style: { background: 'rgba(56,189,248,.1)', color: '#38bdf8', fontSize: '9px' } } }] },
+                        yaxis: { ...APEX_BASE.yaxis, labels: { style: { colors: siteData.map(d => d.color), fontSize: '11px', fontWeight: 700 } }, categories: siteData.map(d => d.site) },
+                        annotations: { xaxis: [{ x: overallAvg, borderColor: '#38bdf866', strokeDashArray: 4, label: { text: `전체평균 ${overallAvg}`, position: 'top', textAnchor: 'middle', orientation: 'horizontal', style: { background: '#38bdf8', color: '#fff', fontSize: '10px', fontWeight: 900 } } }] },
                         legend: { show: false },
                         tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
                     }); c6.render(); window._apexCharts.push(c6);
@@ -3113,8 +3125,8 @@
                         plotOptions: { bar: { borderRadius: 6, distributed: true, columnWidth: '55%', dataLabels: { position: 'top' } } },
                         dataLabels: { enabled: true, formatter: v => v.toLocaleString(), style: { fontSize: '9px', colors: ['#e2e8f0'] }, offsetY: -16 },
                         xaxis: { ...APEX_BASE.xaxis, categories: fLabels },
-                        yaxis: { ...APEX_BASE.yaxis, min: 0 },
-                        annotations: { yaxis: [{ y: Math.round(wdAvg), borderColor: '#38bdf866', strokeDashArray: 4, label: { text: `평일평균 ${Math.round(wdAvg)}`, style: { background: 'rgba(56,189,248,.1)', color: '#38bdf8', fontSize: '9px' } } }, ...(weAvg > 0 ? [{ y: Math.round(weAvg), borderColor: '#fbbf2466', strokeDashArray: 4, label: { text: `주말평균 ${Math.round(weAvg)}`, style: { background: 'rgba(251,191,36,.1)', color: '#fbbf24', fontSize: '9px' } } }] : [])] },
+                        yaxis: { ...APEX_BASE.yaxis, min: 0, labels: { ...APEX_BASE.yaxis.labels, formatter: v => v.toLocaleString() } },
+                        annotations: { yaxis: [{ y: Math.round(wdAvg), borderColor: '#38bdf8aa', strokeDashArray: 0, label: { text: `평일평균 ${Math.round(wdAvg)}`, position: 'left', textAnchor: 'start', orientation: 'horizontal', style: { background: '#38bdf8', color: '#fff', fontSize: '10px', fontWeight: 900 }, offsetX: 10 } }, ...(weAvg > 0 ? [{ y: Math.round(weAvg), borderColor: '#fbbf24aa', strokeDashArray: 0, label: { text: `주말평균 ${Math.round(weAvg)}`, position: 'left', textAnchor: 'start', orientation: 'horizontal', style: { background: '#fbbf24', color: '#000', fontSize: '10px', fontWeight: 900 }, offsetX: 10 } }] : [])] },
                         legend: { show: false },
                         tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명(추정)' } },
                     }); c8.render(); window._apexCharts.push(c8);
