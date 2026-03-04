@@ -10,6 +10,7 @@
     <title>Samsung Welstory Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.46.0/dist/apexcharts.min.js"></script>
     <style>
         :root {
             --bg: #0a0f1e;
@@ -1499,8 +1500,259 @@
             outline: none;
             margin-top: 2px
         }
+
+        /* ===== 정밀 분석 리포트 탭 ===== */
+        .tr-tab {
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s;
+            white-space: nowrap;
+            margin-bottom: -1px
+        }
+
+        .tr-tab:hover {
+            color: var(--text)
+        }
+
+        .tr-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent)
+        }
+
+        /* ===== 차트 대시보드 레이아웃 ===== */
+        .ch-panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            overflow: hidden
+        }
+
+        .ch-panel-title {
+            font-size: 13px;
+            font-weight: 900;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .ch-panel-sub {
+            font-size: 10px;
+            color: var(--dim);
+            margin-bottom: 14px;
+            font-weight: 700
+        }
+
+        .ch-apex {
+            width: 100%;
+            min-height: 10px
+        }
+
+        /* ===== KPI 카드 고도화 ===== */
+        .kpi-row-v2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 14px
+        }
+
+        @media(min-width:480px) {
+            .kpi-row-v2 {
+                grid-template-columns: repeat(4, 1fr)
+            }
+        }
+
+        .kpi-v2 {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 10px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .kpi-v2::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            border-radius: 12px 12px 0 0
+        }
+
+        .kpi-v2.accent::before {
+            background: var(--accent)
+        }
+
+        .kpi-v2.success::before {
+            background: var(--success)
+        }
+
+        .kpi-v2.warning::before {
+            background: var(--warning)
+        }
+
+        .kpi-v2.danger::before {
+            background: var(--danger)
+        }
+
+        .kpi-v2 .kv2-lbl {
+            font-size: 9px;
+            color: var(--dim);
+            font-weight: 800;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        .kpi-v2 .kv2-val {
+            font-size: 20px;
+            font-weight: 900;
+            line-height: 1.1
+        }
+
+        .kpi-v2 .kv2-sub {
+            font-size: 9px;
+            color: var(--dim);
+            margin-top: 3px;
+            font-weight: 700
+        }
+
+        .kpi-v2 .kv2-badge {
+            display: inline-block;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 800;
+            margin-left: 4px;
+            vertical-align: middle
+        }
+
+        /* ===== 주간 비교 테이블 ===== */
+        .week-cmp-tbl {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px
+        }
+
+        .week-cmp-tbl th {
+            padding: 7px 8px;
+            text-align: center;
+            color: var(--dim);
+            font-size: 9px;
+            font-weight: 800;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .01)
+        }
+
+        .week-cmp-tbl td {
+            padding: 7px 8px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            font-weight: 700
+        }
+
+        .week-cmp-tbl td:first-child {
+            text-align: left;
+            color: var(--accent);
+            font-weight: 800
+        }
+
+        .wk-holiday {
+            opacity: .35;
+            font-style: italic
+        }
+
+        .site-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px
+        }
+
+        .site-bar-name {
+            font-size: 11px;
+            font-weight: 800;
+            min-width: 60px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .site-bar-track {
+            flex: 1;
+            height: 20px;
+            background: rgba(255, 255, 255, .04);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative
+        }
+
+        .site-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 6px;
+            font-size: 9px;
+            font-weight: 800;
+            color: #fff;
+            transition: width .6s ease;
+            min-width: 28px
+        }
+
+        .site-bar-avg {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1.5px;
+            background: rgba(255, 255, 255, .25)
+        }
+
+        .site-bar-meta {
+            font-size: 9px;
+            color: var(--dim);
+            min-width: 50px;
+            text-align: right;
+            white-space: nowrap
+        }
+
+        .dow-chip {
+            display: inline-flex;
+            gap: 3px;
+            flex-wrap: wrap;
+            margin-bottom: 10px
+        }
+
+        .dow-chip button {
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .02);
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .dow-chip button.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: transparent
+        }
     </style>
-</head>
+
 
 <body>
     <!-- LOGIN -->
@@ -1647,6 +1899,14 @@
                 <button class="cls-btn" onclick="closeTrend()">닫기</button>
             </div>
         </div>
+        <!-- 탭 네비게이션 -->
+        <div id="trend-tab-nav"
+            style="display:flex;gap:6px;padding:0 20px 0;border-bottom:1px solid var(--border);background:rgba(10,15,30,.8);flex-wrap:wrap;">
+            <button class="tr-tab active" data-tab="trend" onclick="switchTrendTab('trend')">📈 추이 & 예측</button>
+            <button class="tr-tab" data-tab="daily" onclick="switchTrendTab('daily')">📊 요일별 분석</button>
+            <button class="tr-tab" data-tab="sites" onclick="switchTrendTab('sites')">🏢 사업장 비교</button>
+            <button class="tr-tab" data-tab="report" onclick="switchTrendTab('report')">💡 운영 리포트</button>
+        </div>
         <div class="trend-body" id="trend-body"></div>
         <div class="report-actions" id="trend-actions">
             <!-- ③ C/S는 추출·복사 버튼 숨김 -->
@@ -1657,6 +1917,7 @@
             <button class="report-btn sec" onclick="closeTrend()">✕ 닫기</button>
         </div>
     </div>
+
 
     <script>
         /* =====================================================
@@ -2261,41 +2522,610 @@
             await loadPerfFromGAS();
             renderTrendReport();
         };
-        window.closeTrend = function () { document.getElementById("trend-modal").classList.remove("show"); };
+        window.closeTrend = function () {
+            document.getElementById("trend-modal").classList.remove("show");
+            if (window._apexCharts) { window._apexCharts.forEach(c => { try { c.destroy(); } catch (e) { } }); window._apexCharts = []; }
+        };
+
+        /* ===== 탭 전환 ===== */
+        let _trendActiveTab = 'trend';
+        window.switchTrendTab = function (tab) {
+            _trendActiveTab = tab;
+            document.querySelectorAll('.tr-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            renderTrendReport();
+        };
+
+        /* ===== ApexCharts 공통 옵션 ===== */
+        const APEX_BASE = {
+            chart: { background: 'transparent', toolbar: { show: false }, animations: { enabled: true, easing: 'easeinout', speed: 600 } },
+            theme: { mode: 'dark' },
+            grid: { borderColor: 'rgba(148,163,184,.08)', strokeDashArray: 3 },
+            tooltip: { theme: 'dark', style: { fontSize: '12px' } },
+            xaxis: { labels: { style: { colors: '#64748b', fontSize: '10px', fontWeight: 700 } }, axisBorder: { show: false }, axisTicks: { show: false } },
+            yaxis: { labels: { style: { colors: '#64748b', fontSize: '10px' } } },
+            legend: { labels: { colors: '#94a3b8' }, fontSize: '11px' },
+        };
+        const C_MEALS = { 조식: '#f59e42', 중식: '#38bdf8', 석식: '#a78bfa', 합계: '#34d399' };
+
+        function linReg(ys) {
+            const nn = ys.length; if (nn < 2) return { slope: 0, intercept: ys[0] || 0 };
+            const xm = (nn - 1) / 2, ym = ys.reduce((a, b) => a + b, 0) / nn;
+            const num = ys.reduce((s, y, i) => s + (i - xm) * (y - ym), 0);
+            const den = ys.reduce((s, _, i) => s + (i - xm) ** 2, 0);
+            const slope = den ? num / den : 0;
+            return { slope, intercept: ym - slope * xm };
+        }
+        /* ======================================================
+           ★ 저조기 판단 (고정 공휴일 + 동적 검출)
+           - 설연휴 등 공휴일 직후 3일은 자동 저조기
+           - 기록값이 전체 평균의 60% 미만이면 저조기로 분류
+        ====================================================== */
+        function isLowSeason(dateStr, normalAvg) {
+            // 고정 저조기 패턴: 공휴일 직후 n일
+            const ht = getHolidayType(dateStr);
+            if (ht.type !== 'workday') return false; // 휴일 자체는 제외
+            const prevDay = new Date(dateStr + 'T00:00:00');
+            prevDay.setDate(prevDay.getDate() - 1);
+            const prevHt = getHolidayType(_toYMD(prevDay));
+            if (prevHt.type === 'holiday') return true; // 공휴일 다음날
+            return false;
+        }
+
+        // 전역 현재 끼니 선택
+        window._mkSel = window._mkSel || '중식';
+        window._trendSiteFilter = window._trendSiteFilter || [];
+
         function renderTrendReport() {
-            const recs = getRec(); const body = document.getElementById("trend-body");
-            /* ① 선택 지역 필터 */
+            const recs = getRec();
+            const body = document.getElementById("trend-body");
             const regSel = document.getElementById("trend-region-sel");
             const selRegion = regSel ? regSel.value : "ALL";
-            /* 지역에 속한 사업장명 추출 */
             const regionSites = selRegion === "ALL" ? null : new Set(D.filter(d => d["지역"] === selRegion).map(d => d["사업장명"]));
-            const filteredRecs = selRegion === "ALL" ? recs : recs.filter(r => regionSites && regionSites.has(r.siteName));
-            const recsToUse = filteredRecs;
-            /* 지역 라벨 표시 */
+            const recsToUse = selRegion === "ALL" ? recs : recs.filter(r => regionSites && regionSites.has(r.siteName));
             const regionLabel = selRegion === "ALL" ? "전체 지역" : selRegion;
-            if (!recsToUse.length) { body.innerHTML = `<div class="no-data-msg"><div style="font-size:48px;margin-bottom:16px">📭</div><div style="font-size:15px;font-weight:900;margin-bottom:8px">누적 데이터 없음</div><div style="font-size:12px;color:var(--dim)">${regionLabel} · 실적 기록 후 분석 리포트를 확인할 수 있습니다</div></div>`; return; }
+
+            if (!recsToUse.length) {
+                body.innerHTML = `<div class="no-data-msg"><div style="font-size:48px;margin-bottom:16px">📭</div><div style="font-size:15px;font-weight:900;margin-bottom:8px">누적 데이터 없음</div><div style="font-size:12px;color:var(--dim)">${regionLabel} · 실적 기록 후 분석 가능합니다</div></div>`;
+                return;
+            }
+
             const dates = [...new Set(recsToUse.map(r => r.date))].sort();
-            document.getElementById("trend-date-range").textContent = `[${regionLabel}] ${dates[0]} ~ ${dates[dates.length - 1]} · 총 ${dates.length}일 · ${recsToUse.length}건`;
+            document.getElementById("trend-date-range").textContent =
+                `[${regionLabel}] ${dates[0]} ~ ${dates[dates.length - 1]} · ${dates.length}일 · ${recsToUse.length}건`;
             const sites = [...new Set(recsToUse.map(r => r.siteName))];
 
-            // 🔹 식수 비율 자동 학습 (최근 14일 실적 기반)
-            let totalDI_all = 0, totalTO_all = 0, totalMidRatio_all = 0, totalJo_all = 0, countJo_all = 0;
-            recsToUse.slice(0, 14).forEach(r => {
-                const d = n(r.DI_중식), t = n(r.TO_중식), j = n(r.DI_조식) + n(r.TO_조식);
-                if (d + t > 0) { totalDI_all += d; totalTO_all += t; totalMidRatio_all += (d + t); }
-                if (j > 0) { totalJo_all += j; countJo_all++; }
+            // 사업장 필터 적용
+            const sfilt = window._trendSiteFilter || [];
+            const activeSites = sfilt.length ? sfilt.filter(s => sites.includes(s)) : sites;
+            const filtRecs = sfilt.length ? recsToUse.filter(r => sfilt.includes(r.siteName)) : recsToUse;
+
+            // 날짜별 집계 (끼니별)
+            const byDate = { 조식: {}, 중식: {}, 석식: {}, 야식: {} };
+            filtRecs.forEach(r => {
+                ['조식', '중식', '석식', '야식'].forEach(m => {
+                    byDate[m][r.date] = (byDate[m][r.date] || 0) + n(r['DI_' + m]) + n(r['TO_' + m]);
+                });
             });
-            const r_TO = totalMidRatio_all > 0 ? totalTO_all / totalMidRatio_all : 0.35;
-            const r_Jo = (totalMidRatio_all > 0 && totalJo_all > 0) ? (totalJo_all / countJo_all) / (totalMidRatio_all / 14) : 0.15;
 
-            let html = ''; const totalByDate = {};
-            recsToUse.forEach(r => { if (!totalByDate[r.date]) totalByDate[r.date] = 0; totalByDate[r.date] += r.DI_중식 + r.TO_중식; });
-            const dailyVals = Object.values(totalByDate); const avgDaily = dailyVals.reduce((a, b) => a + b, 0) / dailyVals.length; const maxDaily = Math.max(...dailyVals); const recentDates = dates.slice(-7); const recentAvg = recentDates.reduce((a, d) => a + (totalByDate[d] || 0), 0) / recentDates.length; const trend = ((recentAvg - avgDaily) / avgDaily * 100).toFixed(1); const trendClass = trend > 1 ? 'trend-up' : trend < -1 ? 'trend-down' : 'trend-flat'; const trendIcon = trend > 1 ? '↑' : trend < -1 ? '↓' : '→';
+            // 평일/저조기/주말 분류
+            const wdDates = dates.filter(d => getHolidayType(d).type === 'workday');
+            const weDates = dates.filter(d => { const t = getHolidayType(d).type; return t === 'weekend' || t === 'holiday'; });
+            const midVals_wd = wdDates.map(d => byDate['중식'][d] || 0).filter(v => v > 0);
+            const midAvgWd = midVals_wd.length ? midVals_wd.reduce((a, b) => a + b, 0) / midVals_wd.length : 0;
+            // 저조기: 평일 평균의 65% 미만인 평일 날짜
+            const lowDates = wdDates.filter(d => {
+                const v = byDate['중식'][d] || 0; return v > 0 && v < midAvgWd * 0.65;
+            });
+            const normalDates = wdDates.filter(d => !lowDates.includes(d) && (byDate['중식'][d] || 0) > 0);
 
-            html += `<div class="trend-section"><div class="trend-section-title">📊 ${regionLabel} 식수 KPI 요약</div><div class="kpi-row"><div class="kpi-box"><div class="kl">일평균 중식</div><div class="kv" style="color:var(--accent)">${Math.round(avgDaily).toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최고 중식</div><div class="kv" style="color:var(--success)">${maxDaily.toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최근 7일 추이</div><div class="kv ${trendClass}">${recentAvg.toFixed(0)}</div><div class="kt ${trendClass}">${trendIcon} ${Math.abs(trend)}%</div></div></div>${renderSparkline(dates, totalByDate, '중식 일별 추이')}</div>`;
+            // 끼니 선택 버튼 상태 전역 보존
+            const mk = window._mkSel || '중식';
+            const MK_COLOR = { 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6', 합계: '#34d399' };
+            const mkColor = MK_COLOR[mk] || '#38bdf8';
 
-            // 🔹 식수별 정밀 분해 섹션 추가
-            html += `<div class="trend-section">
+            // 끼니 값 가져오기 (합계 포함)
+            const getMkVal = (d) => mk === '합계'
+                ? (['조식', '중식', '석식', '야식'].reduce((s, m) => s + (byDate[m][d] || 0), 0))
+                : (byDate[mk]?.[d] || 0);
+
+            const normVals = normalDates.map(d => getMkVal(d)).filter(v => v > 0);
+            const lowVals = lowDates.map(d => getMkVal(d)).filter(v => v > 0);
+            const normAvg = normVals.length ? Math.round(normVals.reduce((a, b) => a + b, 0) / normVals.length) : 0;
+            const lowAvg = lowVals.length ? Math.round(lowVals.reduce((a, b) => a + b, 0) / lowVals.length) : 0;
+            const dropPct = normAvg > 0 ? Math.round((1 - lowAvg / normAvg) * 100) : 0;
+
+            // 차트 인스턴스 정리
+            if (window._apexCharts) { window._apexCharts.forEach(c => { try { c.destroy(); } catch (e) { } }); }
+            window._apexCharts = [];
+
+            // 공유 컨텍스트 저장
+            window._trCtx = {
+                filtRecs, dates, sites: activeSites, wdDates, lowDates, normalDates,
+                byDate, normAvg, lowAvg, dropPct, mk, mkColor, getMkVal, normVals, regionLabel
+            };
+
+            const tab = _trendActiveTab;
+            if (tab === 'trend') renderTabTrend(body);
+            else if (tab === 'daily') renderTabDaily(body);
+            else if (tab === 'sites') renderTabSites(body);
+            else if (tab === 'report') renderTabReport(body);
+        }
+
+        /* 끼니 버튼 클릭 */
+        window.setMealKey = function (mk) {
+            window._mkSel = mk;
+            document.querySelectorAll('.mk-btn').forEach(b => {
+                const MK_COLOR = { 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6', 합계: '#34d399' };
+                const active = b.dataset.mk === mk;
+                b.style.background = active ? (MK_COLOR[b.dataset.mk] + '28') : 'rgba(255,255,255,.02)';
+                b.style.color = active ? (MK_COLOR[b.dataset.mk]) : 'var(--muted)';
+                b.style.borderColor = active ? (MK_COLOR[b.dataset.mk] + '88') : 'var(--border)';
+            });
+            renderTrendReport();
+        };
+        window.toggleTrendSite = function (site) {
+            const arr = window._trendSiteFilter || [];
+            const idx = arr.indexOf(site);
+            window._trendSiteFilter = idx >= 0 ? arr.filter(s => s !== site) : [...arr, site];
+            renderTrendReport();
+        };
+        window.clearTrendSiteFilter = function () {
+            window._trendSiteFilter = [];
+            renderTrendReport();
+        };
+
+        function _toYMD(dt) { return dt.toISOString().slice(0, 10); }
+
+        /* 끼니 + 사업장 필터 패널 HTML */
+        function mkFilterHTML(mk, sites, siteFilter) {
+            const MK_COLOR = { 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6', 합계: '#34d399' };
+            const SC = ['#38bdf8', '#34d399', '#fb923c', '#f472b6', '#a78bfa', '#fbbf24', '#60a5fa'];
+            const mkBtns = ['조식', '중식', '석식', '야식', '합계'].map((m, i) => {
+                const a = m === mk; const c = MK_COLOR[m];
+                return `<button class="mk-btn" data-mk="${m}" onclick="setMealKey('${m}')" style="padding:3px 11px;border-radius:16px;border:1px solid ${a ? c + '88' : 'var(--border)'};background:${a ? c + '28' : 'rgba(255,255,255,.02)'};color:${a ? c : 'var(--muted)'};font-size:10px;font-weight:700;cursor:pointer;transition:all .15s">${m}</button>`;
+            }).join('');
+            const siteBtns = sites.map((s, i) => {
+                const a = siteFilter.includes(s); const c = SC[i % SC.length];
+                return `<button onclick="toggleTrendSite('${s}')" style="padding:3px 9px;border-radius:16px;border:1px solid ${a ? c + '88' : 'var(--border)'};background:${a ? c + '18' : 'rgba(255,255,255,.02)'};color:${a ? c : 'var(--muted)'};font-size:9px;cursor:pointer">${s}</button>`;
+            }).join('');
+            const clearBtn = siteFilter.length ? `<button onclick="clearTrendSiteFilter()" style="font-size:9px;padding:3px 8px;border-radius:16px;border:1px solid #f43f5e44;background:#f43f5e12;color:#f43f5e;cursor:pointer">✕ 초기화</button>` : '';
+            return `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:10px 14px;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--border)">
+                <span style="font-size:9px;color:var(--dim);white-space:nowrap">끼니</span>${mkBtns}
+                <span style="width:1px;height:18px;background:var(--border);margin:0 2px"></span>
+                <span style="font-size:9px;color:var(--dim);white-space:nowrap">사업장</span>${siteBtns}${clearBtn}
+            </div>`;
+        }
+
+        /* ─────────────── TAB 1: 추이 & 예측 ─────────────── */
+        function renderTabTrend(body) {
+            const { filtRecs, dates, sites, wdDates, lowDates, normalDates, byDate,
+                normAvg, lowAvg, dropPct, mk, mkColor, getMkVal, normVals, regionLabel } = window._trCtx;
+            const sfilt = window._trendSiteFilter || [];
+
+            // DI / TO 분리
+            const diByDate = {}, toByDate = {};
+            filtRecs.forEach(r => { diByDate[r.date] = (diByDate[r.date] || 0) + n(r['DI_' + mk === '합계' ? '중식' : mk]); toByDate[r.date] = (toByDate[r.date] || 0) + n(r['TO_' + mk === '합계' ? '중식' : mk]); });
+            const totalDI = Object.values(diByDate).reduce((a, b) => a + b, 0);
+            const totalTO = Object.values(toByDate).reduce((a, b) => a + b, 0);
+            const sumDITO = totalDI + totalTO || 1;
+            const diPct = Math.round(totalDI / sumDITO * 100), toPct = 100 - diPct;
+
+            // 조식 실측
+            const joVals = wdDates.map(d => byDate['조식']?.[d] || 0).filter(v => v > 0);
+            const joAvg = joVals.length ? Math.round(joVals.reduce((a, b) => a + b, 0) / joVals.length) : 0;
+
+            // 최근 7평일 vs 전체 평일 비교
+            const rec7wd = wdDates.filter(d => !lowDates.includes(d)).slice(-7).map(d => getMkVal(d)).filter(v => v > 0);
+            const r7avg = rec7wd.length ? Math.round(rec7wd.reduce((a, b) => a + b, 0) / rec7wd.length) : normAvg;
+            const trendPct = normAvg > 0 ? ((r7avg - normAvg) / normAvg * 100).toFixed(1) : 0;
+            const trendCls = trendPct > 0 ? '#34d399' : trendPct < 0 ? '#f87171' : '#fbbf24';
+
+            // 예측 (정상 평일만 회귀)
+            const wdValsFr = normalDates.map(d => getMkVal(d)).filter(v => v > 0);
+            const weValsFr = (window._trCtx.weDates || []).map(d => getMkVal(d)).filter(v => v > 0);
+            const { slope: wdSlope, intercept: wdInt } = linReg(wdValsFr);
+            const { slope: weSlope, intercept: weInt } = linReg(weValsFr.length >= 2 ? weValsFr : [0, 0]);
+            const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00');
+            const foreRows = [];
+            let wdN = wdValsFr.length, weN = Math.max(weValsFr.length, 1);
+            for (let i = 1; i <= 5; i++) {
+                const fd = new Date(lastDate); fd.setDate(fd.getDate() + i);
+                const ds = _toYMD(fd), ht = getHolidayType(ds);
+                const isOff = ht.type !== 'workday';
+                const fv = isOff ? Math.max(0, Math.round(weInt + weSlope * weN)) : Math.max(0, Math.round(wdInt + wdSlope * wdN));
+                if (isOff) weN++; else wdN++;
+                foreRows.push({ ds, fv, ht, isOff });
+            }
+
+            // 차트용 시계열 데이터 (과거 + 예측)
+            const allDates = [...dates, ...foreRows.map(r => r.ds)];
+            const histData = dates.map(d => getMkVal(d));
+            const foreData = [...new Array(dates.length).fill(null), ...foreRows.map(r => r.fv)];
+            foreData[dates.length - 1] = getMkVal(dates[dates.length - 1]);
+            const xLabels = allDates.map(d => {
+                const ht = getHolidayType(d).type;
+                const tag = ht === 'weekend' ? '🟡' : ht === 'holiday' ? '🔴' : lowDates.includes(d) ? '🟠' : '';
+                return d.slice(5) + (tag ? '\n' + tag : '');
+            });
+            const pointColors = dates.map(d => lowDates.includes(d) ? '#fbbf24' : mkColor);
+
+            body.innerHTML = `
+            <div style="padding:4px 0 16px">
+            ${mkFilterHTML(mk, sites, sfilt)}
+            <!-- KPI 낙폭 + 핵심 지표 -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div class="kpi-v2 accent"><div class="kv2-lbl">정상 평일 평균 (${mk})</div><div class="kv2-val" style="color:${mkColor}">${normAvg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${mk === '중식' ? `DI ${diPct}% · T/O ${toPct}%` : ''}</div></div>
+                    <div class="kpi-v2 warning"><div class="kv2-lbl">저조기 평균</div><div class="kv2-val" style="color:#fbbf24">${lowAvg > 0 ? lowAvg.toLocaleString() : '-'}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${lowDates.length}일 해당</div></div>
+                    <div class="kpi-v2 danger"><div class="kv2-lbl">저조기 낙폭</div><div class="kv2-val" style="color:#f87171">▼${dropPct}<span style="font-size:14px;opacity:.7">%</span></div><div class="kv2-sub">정상 대비</div></div>
+                    <div class="kpi-v2 ${trendPct > 0 ? 'success' : trendPct < 0 ? 'danger' : 'warning'}"><div class="kv2-lbl">최근 7일 추이 (평일)</div><div class="kv2-val" style="color:${trendCls}">${r7avg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${trendPct > 0 ? '↑' : '↓'} ${Math.abs(trendPct)}% vs 전체평균</div></div>
+                </div>
+                <!-- 낙폭 바 패널 -->
+                <div class="ch-panel" style="margin:0;padding:14px 16px">
+                    <div style="font-size:11px;font-weight:900;margin-bottom:10px">📉 정상 대비 저조기 낙폭</div>
+                    ${['중식', '합계', '석식', '조식'].map(m => {
+                const mv_n = normalDates.map(d => m === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, mx) => s + (byDate[mx]?.[d] || 0), 0) : (byDate[m]?.[d] || 0)).filter(v => v > 0);
+                const mv_l = lowDates.map(d => m === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, mx) => s + (byDate[mx]?.[d] || 0), 0) : (byDate[m]?.[d] || 0)).filter(v => v > 0);
+                const na = mv_n.length ? Math.round(mv_n.reduce((a, b) => a + b, 0) / mv_n.length) : 0;
+                const la = mv_l.length ? Math.round(mv_l.reduce((a, b) => a + b, 0) / mv_l.length) : 0;
+                const dp = na > 0 ? Math.round((1 - la / na) * 100) : 0;
+                const MC = { 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6', 합계: '#34d399' };
+                const c = MC[m] || '#38bdf8';
+                return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:var(--dim)">${m}</span><div style="display:flex;gap:8px;align-items:center"><span style="font-size:9px;color:var(--dim)">${la.toLocaleString()}→${na.toLocaleString()}</span><span style="font-size:11px;font-weight:800;color:#f43f5e">▼${dp}%</span></div></div><div style="background:rgba(255,255,255,.04);border-radius:99px;height:5px"><div style="height:100%;border-radius:99px;width:${100 - dp}%;background:linear-gradient(90deg,${c}33,${c})"></div></div></div>`;
+            }).join('')}
+                    ${lowDates.length > 0 ? `<div style="font-size:9px;color:var(--dim);margin-top:6px;line-height:1.5">🟠 저조기 = 정상 평일 평균의 65% 미만<br>저조기 날짜: ${lowDates.map(d => d.slice(5)).join(' · ')}</div>` : '<div style="font-size:9px;color:var(--dim)">저조기 데이터 없음</div>'}
+                </div>
+            </div>
+            <!-- 추이 + 예측 차트 -->
+            <div class="ch-panel">
+                <div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:var(--dim);font-weight:400">실선=실적 / 점선=예측 · 🟠저조기 / 🟡주말 / 🔴공휴일</span></div>
+                <div id="chartTrend" class="ch-apex"></div>
+            </div>
+            <!-- DI vs T/O -->
+            ${mk === '중식' || mk === '합계' ? `<div class="ch-panel">
+                <div class="ch-panel-title">📊 중식 D/I vs T/O 구성 (최근 14일)</div>
+                <div class="ch-panel-sub">D/I = 구내직접배식 · T/O = 테이크아웃</div>
+                <div id="chartDITO" class="ch-apex"></div>
+            </div>`: ''}
+            </div>`;
+
+            setTimeout(() => {
+                try {
+                    const c1 = new ApexCharts(document.getElementById('chartTrend'), {
+                        ...APEX_BASE,
+                        chart: { ...APEX_BASE.chart, type: 'line', height: 260 },
+                        series: [{ name: mk + ' 실적', type: 'area', data: [...histData, ...new Array(foreRows.length).fill(null)] }, { name: 'AI 예측', type: 'line', data: foreData }],
+                        stroke: { width: [2.5, 2.5], dashArray: [0, 6], curve: 'smooth' },
+                        fill: { type: ['gradient', 'solid'], gradient: { shade: 'dark', type: 'vertical', opacityFrom: .3, opacityTo: .01 } },
+                        colors: [mkColor, '#f43f5e'],
+                        markers: { size: [0, 5], colors: [mkColor, '#f43f5e'], strokeWidth: 2 },
+                        xaxis: { ...APEX_BASE.xaxis, categories: xLabels, tickAmount: Math.min(allDates.length, 16) },
+                        yaxis: { ...APEX_BASE.yaxis, min: 0, title: { text: '식수(명)', style: { color: '#64748b', fontSize: '10px' } } },
+                        annotations: { xaxis: [{ x: dates[dates.length - 1].slice(5), borderColor: '#f43f5e', strokeDashArray: 4, label: { text: '예측시작', style: { background: 'rgba(244,63,94,.2)', color: '#f43f5e', fontSize: '9px', fontWeight: 700 } } }], yaxis: [{ y: normAvg, borderColor: mkColor + '66', strokeDashArray: 3, label: { text: `정상평균 ${normAvg}`, style: { background: mkColor + '14', color: mkColor, fontSize: '9px' } } }, ...(lowAvg > 0 ? [{ y: lowAvg, borderColor: '#fbbf2488', strokeDashArray: 3, label: { text: `저조평균 ${lowAvg}`, style: { background: 'rgba(251,191,36,.1)', color: '#fbbf24', fontSize: '9px' } } }] : [])] },
+                        tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v != null ? v.toLocaleString() + '명' : '-' } },
+                        legend: { ...APEX_BASE.legend, position: 'top' },
+                    });
+                    c1.render(); window._apexCharts.push(c1);
+                } catch (e) { console.error(e); }
+
+                if (mk === '중식' || mk === '합계') {
+                    const d14 = dates.slice(-14);
+                    try {
+                        const c2 = new ApexCharts(document.getElementById('chartDITO'), {
+                            ...APEX_BASE,
+                            chart: { ...APEX_BASE.chart, type: 'bar', height: 180, stacked: true },
+                            series: [{ name: 'D/I', data: d14.map(d => diByDate[d] || 0) }, { name: 'T/O', data: d14.map(d => toByDate[d] || 0) }],
+                            colors: ['#38bdf8', '#fbbf24'],
+                            plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
+                            xaxis: { ...APEX_BASE.xaxis, categories: d14.map(d => { const ht = getHolidayType(d).type; return d.slice(5) + (ht !== 'workday' ? '\n🟡' : ''); }), tickAmount: 7 },
+                            yaxis: { ...APEX_BASE.yaxis, min: 0 },
+                            dataLabels: { enabled: false },
+                            tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
+                            legend: { ...APEX_BASE.legend, position: 'top' },
+                        });
+                        c2.render(); window._apexCharts.push(c2);
+                    } catch (e) { }
+                }
+            }, 60);
+        }
+
+        /* ─────────────── TAB 2: 요일별 분석 ─────────────── */
+        function renderTabDaily(body) {
+            const { dates, byDate, mk, mkColor, normalDates, wdDates } = window._trCtx;
+            const sfilt = window._trendSiteFilter || [];
+            const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+            const DOW = { 0: '일', 1: '월', 2: '화', 3: '수', 4: '목', 5: '금', 6: '토' };
+            const dayMap = {}; DAYS.forEach(d => { dayMap[d] = []; });
+            dates.forEach(d => {
+                const dow = DOW[new Date(d + 'T00:00:00').getDay()];
+                const v = mk === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, m) => s + (byDate[m]?.[d] || 0), 0) : (byDate[mk]?.[d] || 0);
+                if (v > 0) dayMap[dow].push(v);
+            });
+            const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+            const wdData = DAYS.slice(0, 5).map(d => avg(dayMap[d]));
+            const weData = DAYS.slice(5).map(d => avg(dayMap[d]));
+            const wdAvgLine = Math.round(wdData.filter(v => v > 0).reduce((a, b) => a + b, 0) / (wdData.filter(v => v > 0).length || 1));
+
+            // 끼니별 요일 데이터 (레이더용)
+            const radarData = DAYS.map(d => ({ day: d, ...Object.fromEntries(['조식', '중식', '석식'].map(m => [m, avg(dates.filter(d2 => DOW[new Date(d2 + 'T00:00:00').getDay()] === d).map(d2 => byDate[m]?.[d2] || 0).filter(v => v > 0))])) }));
+
+            body.innerHTML = `
+            <div style="padding:4px 0 16px">
+            ${mkFilterHTML(mk, window._trCtx.sites, sfilt)}
+            <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+                <div class="kpi-v2 accent" style="flex:1;min-width:100px"><div class="kv2-lbl">최다 ${mk} 요일</div><div class="kv2-val" style="color:${mkColor}">${DAYS[wdData.indexOf(Math.max(...wdData))] || '-'}요일</div><div class="kv2-sub">${Math.max(...wdData).toLocaleString()}식</div></div>
+                <div class="kpi-v2 warning" style="flex:1;min-width:100px"><div class="kv2-lbl">최저 ${mk} 요일</div><div class="kv2-val" style="color:#fbbf24">${DAYS[wdData.indexOf(Math.min(...wdData.filter(v => v > 0)))] || '-'}요일</div><div class="kv2-sub">${Math.min(...wdData.filter(v => v > 0)).toLocaleString()}식</div></div>
+                <div class="kpi-v2 success" style="flex:1;min-width:100px"><div class="kv2-lbl">요일 최대 편차</div><div class="kv2-val" style="color:#34d399">${(Math.max(...wdData) - Math.min(...wdData.filter(v => v > 0))).toLocaleString()}</div><div class="kv2-sub">최고-최저</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:3fr 2fr;gap:10px;margin-bottom:12px">
+                <div class="ch-panel" style="margin:0">
+                    <div class="ch-panel-title">📊 평일 요일별 ${mk}</div>
+                    <div class="ch-panel-sub">막대 색 = 최고(밝음) / 나머지(흐림)</div>
+                    <div id="chartDowWd" class="ch-apex"></div>
+                </div>
+                <div class="ch-panel" style="margin:0;border-color:rgba(56,189,248,.06)">
+                    <div class="ch-panel-title" style="color:var(--dim)">🌙 주말 ${mk}</div>
+                    <div class="ch-panel-sub">기준선 = 평일 평균 ${wdAvgLine.toLocaleString()}식</div>
+                    <div id="chartDowWe" class="ch-apex"></div>
+                </div>
+            </div>
+            <div class="ch-panel">
+                <div class="ch-panel-title">🕸️ 끼니별 요일 패턴 비교 (레이더)</div>
+                <div class="ch-panel-sub">면적 클수록 해당 요일 식수 高 · 토·일 포함</div>
+                <div id="chartRadar" class="ch-apex"></div>
+            </div>
+            </div>`;
+
+            setTimeout(() => {
+                const maxWd = Math.max(...wdData);
+                try {
+                    const c3 = new ApexCharts(document.getElementById('chartDowWd'), {
+                        ...APEX_BASE,
+                        chart: { ...APEX_BASE.chart, type: 'bar', height: 210 },
+                        series: [{ name: mk, data: wdData }],
+                        colors: wdData.map(v => v === maxWd ? mkColor : mkColor + '55'),
+                        plotOptions: { bar: { borderRadius: 5, distributed: true, columnWidth: '60%', dataLabels: { position: 'top' } } },
+                        dataLabels: { enabled: true, formatter: v => v > 0 ? v.toLocaleString() : '', style: { fontSize: '9px', colors: ['#e2e8f0'] }, offsetY: -16 },
+                        xaxis: { ...APEX_BASE.xaxis, categories: ['월', '화', '수', '목', '금'] },
+                        yaxis: { ...APEX_BASE.yaxis, min: 0 },
+                        annotations: { yaxis: [{ y: wdAvgLine, borderColor: mkColor + '66', strokeDashArray: 3, label: { text: `평균 ${wdAvgLine}`, style: { background: mkColor + '14', color: mkColor, fontSize: '9px' } } }] },
+                        legend: { show: false },
+                        tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
+                    }); c3.render(); window._apexCharts.push(c3);
+                } catch (e) { }
+                try {
+                    const c4 = new ApexCharts(document.getElementById('chartDowWe'), {
+                        ...APEX_BASE,
+                        chart: { ...APEX_BASE.chart, type: 'bar', height: 210 },
+                        series: [{ name: mk, data: weData }],
+                        colors: ['#334155'],
+                        plotOptions: { bar: { borderRadius: 5, distributed: true, columnWidth: '55%' } },
+                        dataLabels: { enabled: true, formatter: v => v > 0 ? v.toLocaleString() : '없음', style: { fontSize: '9px', colors: ['#64748b'] } },
+                        xaxis: { ...APEX_BASE.xaxis, categories: ['토', '일'] },
+                        yaxis: { ...APEX_BASE.yaxis, min: 0, max: Math.max(maxWd, 1) },
+                        annotations: { yaxis: [{ y: wdAvgLine, borderColor: mkColor + '55', strokeDashArray: 4, label: { text: '평일평균', style: { background: mkColor + '14', color: mkColor, fontSize: '9px' } } }] },
+                        legend: { show: false },
+                        tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명 (주말)' } },
+                    }); c4.render(); window._apexCharts.push(c4);
+                } catch (e) { }
+                try {
+                    const c5 = new ApexCharts(document.getElementById('chartRadar'), {
+                        ...APEX_BASE,
+                        chart: { ...APEX_BASE.chart, type: 'radar', height: 260 },
+                        series: [{ name: '조식', data: radarData.map(d => d['조식'] || 0) }, { name: '중식', data: radarData.map(d => d['중식'] || 0) }, { name: '석식', data: radarData.map(d => d['석식'] || 0) }],
+                        colors: ['#f97316', '#38bdf8', '#a78bfa'],
+                        stroke: { width: 2 }, fill: { opacity: .1 }, markers: { size: 3 },
+                        xaxis: { categories: DAYS },
+                        yaxis: { show: false },
+                        legend: { ...APEX_BASE.legend, position: 'top' },
+                        tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
+                    }); c5.render(); window._apexCharts.push(c5);
+                } catch (e) { }
+            }, 60);
+        }
+
+        /* ─────────────── TAB 3: 사업장 비교 ─────────────── */
+        function renderTabSites(body) {
+            const { filtRecs, dates, sites, normalDates, lowDates, byDate, mk, mkColor, normAvg, regionLabel } = window._trCtx;
+            const sfilt = window._trendSiteFilter || [];
+            const SC = ['#38bdf8', '#34d399', '#fb923c', '#f472b6', '#a78bfa', '#fbbf24', '#60a5fa'];
+
+            const getMkValSite = (recs, m) => recs.reduce((s, r) => s + n(r['DI_' + m]) + n(r['TO_' + m]), 0);
+            const siteData = sites.map((site, si) => {
+                const sr = filtRecs.filter(r => r.siteName === site);
+                const byD = {};
+                sr.forEach(r => { const v = mk === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, m) => s + n(r['DI_' + m]) + n(r['TO_' + m]), 0) : n(r['DI_' + mk]) + n(r['TO_' + mk]); byD[r.date] = (byD[r.date] || 0) + v; });
+                const wdV = normalDates.filter(d => (byD[d] || 0) > 0).map(d => byD[d]);
+                const wdA = wdV.length ? Math.round(wdV.reduce((a, b) => a + b, 0) / wdV.length) : 0;
+                const jo = getMkValSite(sr, '조식'), mi = getMkValSite(sr, '중식'), sk = getMkValSite(sr, '석식');
+                const { slope } = linReg(wdV.slice(-14));
+                return { site, byD, wdA, jo, mi, sk, total: jo + mi + sk, slope, color: SC[si % SC.length] };
+            }).sort((a, b) => b.wdA - a.wdA);
+
+            const overallAvg = Math.round(siteData.reduce((s, d) => s + d.wdA, 0) / (siteData.length || 1));
+
+            // 주간 비교 (공통 데이터 있는 주)
+            const weekMap = {};
+            dates.forEach(d => {
+                const dt = new Date(d + 'T00:00:00');
+                const wn = `${dt.getFullYear()}-W${String(Math.ceil((dt.getDate() + new Date(dt.getFullYear(), dt.getMonth(), 1).getDay()) / 7)).padStart(2, '0')}`;
+                if (!weekMap[wn]) weekMap[wn] = {};
+                sites.forEach(site => {
+                    const val = filtRecs.filter(r => r.siteName === site && r.date === d).reduce((s, r) => s + (mk === '합계' ? ['조식', '중식', '석식', '야식'].reduce((ss, m) => ss + n(r['DI_' + m]) + n(r['TO_' + m]), 0) : n(r['DI_' + mk]) + n(r['TO_' + mk])), 0);
+                    if (val > 0) weekMap[wn][site] = (weekMap[wn][site] || 0) + val;
+                });
+            });
+            const validWeeks = Object.entries(weekMap).filter(([, sv]) => sites.every(s => (sv[s] || 0) > 0)).slice(-5);
+
+            let wkTbl = '';
+            if (validWeeks.length > 0) {
+                wkTbl = `<div class="ch-panel" style="margin-top:0">
+                    <div class="ch-panel-title">📅 전 사업장 공통 주간 비교 (${mk})</div>
+                    <div class="ch-panel-sub">전 사업장 데이터 존재 주만 표시 · 주간 합계 기준</div>
+                    <div style="overflow-x:auto"><table class="week-cmp-tbl">
+                    <thead><tr><th style="text-align:left">사업장</th>${validWeeks.map(([w]) => `<th>${w.slice(5)}</th>`).join('')}<th>증감</th></tr></thead>
+                    <tbody>${siteData.map(sd => {
+                    const wkV = validWeeks.map(([, sv]) => sv[sd.site] || 0);
+                    const last2 = wkV.slice(-2);
+                    const chg = last2[0] > 0 ? ((last2[1] - last2[0]) / last2[0] * 100).toFixed(1) : 0;
+                    const cc = chg > 0 ? '#34d399' : chg < 0 ? '#f87171' : '#fbbf24';
+                    return `<tr><td style="color:${sd.color}">${sd.site}</td>${wkV.map((v, i) => { const prev = i > 0 ? wkV[i - 1] : v; const p = prev > 0 ? ((v - prev) / prev * 100).toFixed(0) : 0; const pc = p > 0 ? '#34d399' : p < 0 ? '#f87171' : 'var(--muted)'; return `<td>${v.toLocaleString()}<br><span style="font-size:9px;color:${pc}">${i > 0 && prev > 0 ? (p > 0 ? '+' : '') + p + '%' : ''}</span></td>` }).join('')}<td style="color:${cc};font-weight:900">${chg > 0 ? '↑' : '↓'} ${Math.abs(chg)}%</td></tr>`;
+                }).join('')}</tbody></table></div></div>`;
+            } else {
+                wkTbl = `<div class="ch-panel" style="margin-top:0"><div class="ch-panel-sub" style="padding:8px 0">⚠️ 전 사업장 공통 주간 데이터가 부족합니다</div></div>`;
+            }
+
+            body.innerHTML = `
+            <div style="padding:4px 0 16px">
+            ${mkFilterHTML(mk, sites, sfilt)}
+            <div class="ch-panel">
+                <div class="ch-panel-title">🏢 사업장별 평일 평균 ${mk} <span style="font-size:9px;color:var(--dim);font-weight:400">기준선=전체평균 ${overallAvg}식</span></div>
+                <div class="ch-panel-sub">▲초록=평균 상회 / ▼빨강=평균 하회 · 저조기 제외 기준</div>
+                <div id="chartSiteBar" class="ch-apex"></div>
+            </div>
+            ${wkTbl}
+            <div class="ch-panel">
+                <div class="ch-panel-title">📈 사업장별 최근 21일 추이</div>
+                <div id="chartSiteLine" class="ch-apex"></div>
+            </div>
+            </div>`;
+
+            setTimeout(() => {
+                try {
+                    const c6 = new ApexCharts(document.getElementById('chartSiteBar'), {
+                        ...APEX_BASE,
+                        chart: { ...APEX_BASE.chart, type: 'bar', height: Math.max(200, siteData.length * 44 + 60), offsetX: 0 },
+                        series: [{ name: '평일 평균', data: siteData.map(d => d.wdA) }],
+                        colors: siteData.map(d => d.wdA >= overallAvg ? '#34d399' : '#f87171'),
+                        plotOptions: { bar: { borderRadius: 6, horizontal: true, distributed: true, dataLabels: { position: 'right' } } },
+                        dataLabels: { enabled: true, formatter: v => v.toLocaleString() + '명', style: { fontSize: '10px', colors: ['#e2e8f0'] }, offsetX: 8 },
+                        xaxis: { ...APEX_BASE.xaxis, min: 0 },
+                        yaxis: { ...APEX_BASE.yaxis, labels: { style: { colors: siteData.map(d => d.color), fontSize: '11px', fontWeight: 700 } }, ...{ categories: siteData.map(d => d.site) } },
+                        annotations: { xaxis: [{ x: overallAvg, borderColor: '#38bdf866', strokeDashArray: 4, label: { text: `전체평균 ${overallAvg}`, style: { background: 'rgba(56,189,248,.1)', color: '#38bdf8', fontSize: '9px' } } }] },
+                        legend: { show: false },
+                        tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
+                    }); c6.render(); window._apexCharts.push(c6);
+                } catch (e) { }
+                const rd21 = dates.slice(-21);
+                try {
+                    const c7 = new ApexCharts(document.getElementById('chartSiteLine'), {
+                        ...APEX_BASE,
+                        chart: { ...APEX_BASE.chart, type: 'line', height: 220 },
+                        series: siteData.map(sd => ({ name: sd.site, data: rd21.map(d => { const v = sd.byD[d]; return v > 0 ? v : null; }) })),
+                        colors: siteData.map(d => d.color),
+                        stroke: { width: 2.5, curve: 'smooth' },
+                        markers: { size: 3, strokeWidth: 1 },
+                        xaxis: { ...APEX_BASE.xaxis, categories: rd21.map(d => d.slice(5)), tickAmount: 7 },
+                        yaxis: { ...APEX_BASE.yaxis, min: 0 },
+                        dataLabels: { enabled: false },
+                        legend: { ...APEX_BASE.legend, position: 'top' },
+                        tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v != null ? v.toLocaleString() + '명' : '-' } },
+                    }); c7.render(); window._apexCharts.push(c7);
+                } catch (e) { }
+            }, 60);
+        }
+
+        /* ─────────────── TAB 4: 운영 리포트 ─────────────── */
+        function renderTabReport(body) {
+            const { filtRecs, dates, sites, normalDates, lowDates, byDate, mk, mkColor, normAvg, regionLabel, getMkVal } = window._trCtx;
+            const sfilt = window._trendSiteFilter || [];
+            const wdValsFr = normalDates.map(d => getMkVal(d)).filter(v => v > 0);
+            const weVals = (window._trCtx.weDates || []).map(d => getMkVal(d)).filter(v => v > 0);
+            const { slope: wdS, intercept: wdI } = linReg(wdValsFr);
+            const { slope: weS, intercept: weI } = linReg(weVals.length >= 2 ? weVals : [0, 0]);
+            const wdAvg = wdValsFr.length ? wdValsFr.reduce((a, b) => a + b, 0) / wdValsFr.length : 0;
+            const weAvg = weVals.length ? weVals.reduce((a, b) => a + b, 0) / weVals.length : wdAvg * 0.4;
+            const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00');
+            const foreRows = []; let wdN = wdValsFr.length, weN = Math.max(weVals.length, 1);
+            for (let i = 1; i <= 7; i++) {
+                const fd = new Date(lastDate); fd.setDate(fd.getDate() + i);
+                const ds = _toYMD(fd), ht = getHolidayType(ds);
+                const isOff = ht.type !== 'workday';
+                const fv = isOff ? Math.max(0, Math.round(weI + weS * weN)) : Math.max(0, Math.round(wdI + wdS * wdN));
+                if (isOff) weN++; else wdN++;
+                foreRows.push({ ds, fv, ht, isOff });
+            }
+            const confText = wdValsFr.length >= 10 ? '높음 ✅' : wdValsFr.length >= 5 ? '중간 ⚠️' : '낮음 ❌';
+            const direction = wdS > 2 ? '📈 증가 추세' : wdS < -2 ? '📉 감소 추세' : '➡️ 안정적 유지';
+
+            body.innerHTML = `
+            <div style="padding:4px 0 16px">
+            ${mkFilterHTML(mk, sites, sfilt)}
+            <div class="ch-panel">
+                <div class="ch-panel-title">🔮 AI 예측 (향후 7일) <span style="font-size:9px;color:var(--dim);font-weight:400">신뢰도: ${confText} · 평일/주말 기준 분리</span></div>
+                <div id="chartForecast" class="ch-apex"></div>
+                <div style="overflow-x:auto;margin-top:14px">
+                <table class="week-cmp-tbl">
+                    <thead><tr><th style="text-align:left">예측일</th><th>구분</th><th>추정 ${mk}</th><th>기준 대비</th></tr></thead>
+                    <tbody>${foreRows.map(({ ds, fv, ht, isOff }) => {
+                const badge = isOff ? `<span style="background:rgba(248,113,113,.12);color:#f87171;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">${ht.label || '휴일'}</span>` : `<span style="background:rgba(56,189,248,.1);color:#38bdf8;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">평일</span>`;
+                const bAvg = isOff ? weAvg : wdAvg;
+                const chg = bAvg > 0 ? ((fv - bAvg) / bAvg * 100).toFixed(1) : 0;
+                const cc = chg > 0 ? '#34d399' : chg < 0 ? '#f87171' : '#fbbf24';
+                return `<tr${isOff ? ' style="opacity:.6"' : ''}><td>${ds.slice(5)}</td><td>${badge}</td><td style="color:var(--accent3);font-weight:900">${fv.toLocaleString()}식</td><td style="color:${cc};font-weight:800">${chg > 0 ? '+' : ''}${chg}%</td></tr>`;
+            }).join('')}</tbody>
+                </table></div>
+                <div style="margin-top:12px;padding:12px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:10px;font-size:11px;line-height:1.9">
+                    <strong style="color:var(--accent3)">📋 종합 진단 · ${regionLabel}</strong><br>
+                    ${direction} · 평일 변화율 <strong>${wdS > 0 ? '+' : ''}${wdS.toFixed(1)}</strong>식/일<br>
+                    <span style="color:var(--dim)">주말 변화율 ${weS > 0 ? '+' : ''}${weS.toFixed(1)}식/일 · 평일 ${wdValsFr.length}일 / 주말 ${weVals.length}일 데이터 기반</span>
+                </div>
+            </div>
+            <div class="ch-panel">
+                <div class="ch-panel-title">💡 운영 진단 가이드</div>
+                <div style="font-size:11px;line-height:1.9">
+                    <div style="margin-bottom:10px;padding:10px 12px;background:rgba(251,191,36,.06);border-left:3px solid #fbbf24;border-radius:0 8px 8px 0"><strong style="color:#fbbf24">CASE A · 회전율↑ 업무강도 보통 🟡</strong><br>공간·좌석 부족이 주 원인 — <span style="color:var(--accent)">T/O 비율 확대 우선 권장</span></div>
+                    <div style="margin-bottom:10px;padding:10px 12px;background:rgba(248,113,113,.06);border-left:3px solid #f87171;border-radius:0 8px 8px 0"><strong style="color:#f87171">CASE B · 회전율↑ 업무강도↑ 🔴</strong><br>공간 + 주방 인력 한계치 — <span style="color:var(--accent)">신규 충원 또는 품목수 축소 검토</span></div>
+                    <div style="padding:10px 12px;background:rgba(56,189,248,.06);border-left:3px solid #38bdf8;border-radius:0 8px 8px 0"><strong style="color:#38bdf8">산출 기준</strong><br>업무강도 = 총식수÷투입인원 · 🟢80미만 / 🟡95미만 / 🔴95이상<br>회전율(RI) = (DI중식+T/O)÷좌석수 · 🔴 3.5회이상 과부하</div>
+                </div>
+            </div>
+            </div>`;
+
+            setTimeout(() => {
+                const fLabels = foreRows.map(r => { const ht = r.ht.type; return r.ds.slice(5) + (ht === 'weekend' ? '\n🟡' : ht === 'holiday' ? '\n🔴' : ht === 'sandwich' ? '\n🟣' : ''); });
+                try {
+                    const c8 = new ApexCharts(document.getElementById('chartForecast'), {
+                        ...APEX_BASE,
+                        chart: { ...APEX_BASE.chart, type: 'bar', height: 200 },
+                        series: [{ name: '추정 ' + mk, data: foreRows.map(r => r.fv) }],
+                        colors: foreRows.map(r => r.isOff ? '#475569' : '#38bdf8'),
+                        plotOptions: { bar: { borderRadius: 6, distributed: true, columnWidth: '55%', dataLabels: { position: 'top' } } },
+                        dataLabels: { enabled: true, formatter: v => v.toLocaleString(), style: { fontSize: '9px', colors: ['#e2e8f0'] }, offsetY: -16 },
+                        xaxis: { ...APEX_BASE.xaxis, categories: fLabels },
+                        yaxis: { ...APEX_BASE.yaxis, min: 0 },
+                        annotations: { yaxis: [{ y: Math.round(wdAvg), borderColor: '#38bdf866', strokeDashArray: 4, label: { text: `평일평균 ${Math.round(wdAvg)}`, style: { background: 'rgba(56,189,248,.1)', color: '#38bdf8', fontSize: '9px' } } }, ...(weAvg > 0 ? [{ y: Math.round(weAvg), borderColor: '#fbbf2466', strokeDashArray: 4, label: { text: `주말평균 ${Math.round(weAvg)}`, style: { background: 'rgba(251,191,36,.1)', color: '#fbbf24', fontSize: '9px' } } }] : [])] },
+                        legend: { show: false },
+                        tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명(추정)' } },
+                    }); c8.render(); window._apexCharts.push(c8);
+                } catch (e) { }
+            }, 60);
+        }
+
+        window.renderAIForecast = function () { };  // 구 호환 stub
+        function renderSparkline() { return ''; } // 구 호환 stub
+
+        const dates = [...new Set(recsToUse.map(r => r.date))].sort();
+        document.getElementById("trend-date-range").textContent = `[${regionLabel}] ${dates[0]} ~ ${dates[dates.length - 1]} · 총 ${dates.length}일 · ${recsToUse.length}건`;
+        const sites = [...new Set(recsToUse.map(r => r.siteName))];
+
+        // 🔹 식수 비율 자동 학습 (최근 14일 실적 기반)
+        let totalDI_all = 0, totalTO_all = 0, totalMidRatio_all = 0, totalJo_all = 0, countJo_all = 0;
+        recsToUse.slice(0, 14).forEach(r => {
+            const d = n(r.DI_중식), t = n(r.TO_중식), j = n(r.DI_조식) + n(r.TO_조식);
+            if (d + t > 0) { totalDI_all += d; totalTO_all += t; totalMidRatio_all += (d + t); }
+            if (j > 0) { totalJo_all += j; countJo_all++; }
+        });
+        const r_TO = totalMidRatio_all > 0 ? totalTO_all / totalMidRatio_all : 0.35;
+        const r_Jo = (totalMidRatio_all > 0 && totalJo_all > 0) ? (totalJo_all / countJo_all) / (totalMidRatio_all / 14) : 0.15;
+
+        let html = ''; const totalByDate = {};
+        recsToUse.forEach(r => { if (!totalByDate[r.date]) totalByDate[r.date] = 0; totalByDate[r.date] += r.DI_중식 + r.TO_중식; });
+        const dailyVals = Object.values(totalByDate); const avgDaily = dailyVals.reduce((a, b) => a + b, 0) / dailyVals.length; const maxDaily = Math.max(...dailyVals); const recentDates = dates.slice(-7); const recentAvg = recentDates.reduce((a, d) => a + (totalByDate[d] || 0), 0) / recentDates.length; const trend = ((recentAvg - avgDaily) / avgDaily * 100).toFixed(1); const trendClass = trend > 1 ? 'trend-up' : trend < -1 ? 'trend-down' : 'trend-flat'; const trendIcon = trend > 1 ? '↑' : trend < -1 ? '↓' : '→';
+
+        html += `<div class="trend-section"><div class="trend-section-title">📊 ${regionLabel} 식수 KPI 요약</div><div class="kpi-row"><div class="kpi-box"><div class="kl">일평균 중식</div><div class="kv" style="color:var(--accent)">${Math.round(avgDaily).toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최고 중식</div><div class="kv" style="color:var(--success)">${maxDaily.toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최근 7일 추이</div><div class="kv ${trendClass}">${recentAvg.toFixed(0)}</div><div class="kt ${trendClass}">${trendIcon} ${Math.abs(trend)}%</div></div></div>${renderSparkline(dates, totalByDate, '중식 일별 추이')}</div>`;
+
+        // 🔹 식수별 정밀 분해 섹션 추가
+        html += `<div class="trend-section">
                 <div class="trend-section-title">📊 식수별 정밀 분해 (추정 포함)</div>
                 <div class="kpi-row">
                     <div class="kpi-box"><div class="kl">일평균 조식</div><div class="kv">${Math.round(avgDaily * r_Jo).toLocaleString()}</div><div class="kt">식 (비중 ${Math.round(r_Jo * 100)}%)</div></div>
@@ -2305,10 +3135,10 @@
                 <div style="font-size:10px;color:var(--dim);text-align:right;margin-top:4px">※ 최근 누적 실적 패턴 기반 자동 추정</div>
             </div>`;
 
-            html += `<div class="trend-section"><div class="trend-section-title">🏢 사업장별 추이 분석</div>`; sites.forEach(site => { const siteRecs = recsToUse.filter(r => r.siteName === site); const siteByDate = {}; siteRecs.forEach(r => { siteByDate[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); const siteVals = Object.values(siteByDate); if (!siteVals.length) return; const avg = siteVals.reduce((a, b) => a + b, 0) / siteVals.length; const rec7 = dates.slice(-7).reduce((a, d) => a + (siteByDate[d] || 0), 0) / 7; const t = ((rec7 - avg) / avg * 100).toFixed(1); const tc = t > 1 ? 'trend-up' : t < -1 ? 'trend-down' : 'trend-flat'; html += `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:900;color:var(--accent)">${site}</div><div style="display:flex;gap:8px;font-size:11px"><span>평균: <strong>${Math.round(avg)}</strong>식</span><span class="${tc}">${t > 1 ? '↑' : t < -1 ? '↓' : '→'} ${Math.abs(t)}%</span></div></div>${renderSparkline(dates, siteByDate, null, 60)}</div>`; }); html += '</div>'; html += `<div class="trend-section"><div class="trend-section-title">📉 식수 증감률 주간 비교</div><div class="tbl-wrap"><table class="data-table-mini"><thead><tr><th>사업장</th>${dates.slice(-5).map(d => `<th>${d.slice(5)}</th>`).join('')}<th>추세</th></tr></thead><tbody>`; sites.forEach(site => { const sr = recsToUse.filter(r => r.siteName === site); const sbd = {}; sr.forEach(r => { sbd[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); html += `<tr><td>${site}</td>${dates.slice(-5).map((d, i, arr) => { const v = sbd[d] || 0, prev = i > 0 ? (sbd[arr[i - 1]] || 0) : 0, ch = prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : 0, c = ch > 2 ? 'trend-up' : ch < -2 ? 'trend-down' : 'trend-flat'; return `<td>${v ? v.toLocaleString() : '-'}<br><span class="${c}" style="font-size:9px">${prev > 0 ? (ch > 0 ? '+' : '') + ch + '%' : ''}</span></td>`; }).join('')}<td class="${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? 'trend-up' : 'trend-down'}" style="font-size:13px">${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? '↑' : '↓'}</td></tr>`; }); html += '</tbody></table></div></div>'; html += `<div class="trend-section"><div class="trend-section-title">🔮 AI 추정 분석 (향후 7일)</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap"><span class="forecast-tag">📐 선형회귀 기반 추정</span><select id="ai-site-sel" onchange="renderAIForecast()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:12px;font-weight:700;outline:none"><option value="ALL">전체 합산</option>${sites.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div><div id="ai-forecast-body"></div></div>`;
-            body.innerHTML = html;
-            window._aiTrendDates = dates; window._aiTrendRecs = recsToUse; window._aiTrendSites = sites; window._aiTrendAvgDaily = avgDaily;
-            renderAIForecast();
+        html += `<div class="trend-section"><div class="trend-section-title">🏢 사업장별 추이 분석</div>`; sites.forEach(site => { const siteRecs = recsToUse.filter(r => r.siteName === site); const siteByDate = {}; siteRecs.forEach(r => { siteByDate[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); const siteVals = Object.values(siteByDate); if (!siteVals.length) return; const avg = siteVals.reduce((a, b) => a + b, 0) / siteVals.length; const rec7 = dates.slice(-7).reduce((a, d) => a + (siteByDate[d] || 0), 0) / 7; const t = ((rec7 - avg) / avg * 100).toFixed(1); const tc = t > 1 ? 'trend-up' : t < -1 ? 'trend-down' : 'trend-flat'; html += `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:900;color:var(--accent)">${site}</div><div style="display:flex;gap:8px;font-size:11px"><span>평균: <strong>${Math.round(avg)}</strong>식</span><span class="${tc}">${t > 1 ? '↑' : t < -1 ? '↓' : '→'} ${Math.abs(t)}%</span></div></div>${renderSparkline(dates, siteByDate, null, 60)}</div>`; }); html += '</div>'; html += `<div class="trend-section"><div class="trend-section-title">📉 식수 증감률 주간 비교</div><div class="tbl-wrap"><table class="data-table-mini"><thead><tr><th>사업장</th>${dates.slice(-5).map(d => `<th>${d.slice(5)}</th>`).join('')}<th>추세</th></tr></thead><tbody>`; sites.forEach(site => { const sr = recsToUse.filter(r => r.siteName === site); const sbd = {}; sr.forEach(r => { sbd[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); html += `<tr><td>${site}</td>${dates.slice(-5).map((d, i, arr) => { const v = sbd[d] || 0, prev = i > 0 ? (sbd[arr[i - 1]] || 0) : 0, ch = prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : 0, c = ch > 2 ? 'trend-up' : ch < -2 ? 'trend-down' : 'trend-flat'; return `<td>${v ? v.toLocaleString() : '-'}<br><span class="${c}" style="font-size:9px">${prev > 0 ? (ch > 0 ? '+' : '') + ch + '%' : ''}</span></td>`; }).join('')}<td class="${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? 'trend-up' : 'trend-down'}" style="font-size:13px">${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? '↑' : '↓'}</td></tr>`; }); html += '</tbody></table></div></div>'; html += `<div class="trend-section"><div class="trend-section-title">🔮 AI 추정 분석 (향후 7일)</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap"><span class="forecast-tag">📐 선형회귀 기반 추정</span><select id="ai-site-sel" onchange="renderAIForecast()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:12px;font-weight:700;outline:none"><option value="ALL">전체 합산</option>${sites.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div><div id="ai-forecast-body"></div></div>`;
+        body.innerHTML = html;
+        window._aiTrendDates = dates; window._aiTrendRecs = recsToUse; window._aiTrendSites = sites; window._aiTrendAvgDaily = avgDaily;
+        renderAIForecast();
         }
         window.renderAIForecast = function () {
             const sel = document.getElementById("ai-site-sel"); if (!sel) return;
@@ -2418,6 +3248,184 @@
             <span class="formula">→ 🟢 80미만 양호 · 🟡 95미만 주의 · 🔴 95이상 과부하(옵션: 품목수 축소 검토)</span><br/><br/>
             <strong>• 회전율(RI)</strong> = (중식 D/I 식수 + 할인된 TO식수) ÷ 좌석수<br/>
             <span class="formula">→ 🔴 3.5회 이상: 공간 과부하 (T/O 확대 집중)</span></div>`;
+
+
+            /* ── 📈 월간 식수 트렌드 차트 (실적데이터 기반) ── */
+            (function() {
+                const recs = (function(){ try{ return JSON.parse(localStorage.getItem('WS_REC')||'[]') }catch(e){ return [] } })();
+                const regionRecs = recs.filter(r => fd.some(d => d['사업장명'] === r.siteName));
+                if (regionRecs.length < 2) {
+                    h += `<div class="sec-title">📈 월간 식수 트렌드</div>
+                    <div style="padding:20px;text-align:center;color:var(--dim);font-size:12px;background:rgba(0,0,0,.2);border-radius:var(--r2);margin-bottom:14px">
+                        📭 누적 실적 데이터가 없습니다<br/><span style="font-size:10px;margin-top:4px;display:block">실적기록 버튼으로 데이터를 입력하면 트렌드가 표시됩니다</span>
+                    </div>`;
+                    return;
+                }
+
+                const dates = [...new Set(regionRecs.map(r => r.date))].sort();
+                const sites = [...new Set(regionRecs.map(r => r.siteName))];
+                const SITE_COLORS = ['#38bdf8','#34d399','#fb923c','#f472b6','#a78bfa','#fbbf24','#60a5fa','#4ade80'];
+
+                // 사업장별 날짜별 중식 집계
+                const siteData = {};
+                sites.forEach((s, si) => {
+                    siteData[s] = { color: SITE_COLORS[si % SITE_COLORS.length], vals: {} };
+                    regionRecs.filter(r => r.siteName === s).forEach(r => {
+                        siteData[s].vals[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0);
+                    });
+                });
+
+                // 전체 합산
+                const totalByDate = {};
+                dates.forEach(d => {
+                    totalByDate[d] = sites.reduce((acc, s) => acc + (siteData[s].vals[d] || 0), 0);
+                });
+
+                // SVG 차트 생성
+                const svgW = 520, svgH = 160, padL = 44, padR = 16, padT = 16, padB = 36;
+                const plotW = svgW - padL - padR, plotH = svgH - padT - padB;
+                const allVals = dates.map(d => totalByDate[d]).filter(v => v > 0);
+                const maxV = Math.max(...allVals) * 1.15 || 1;
+                const tx = i => padL + (i / Math.max(dates.length - 1, 1)) * plotW;
+                const ty = v => padT + (1 - v / maxV) * plotH;
+
+                // 선형 회귀로 예측선
+                const n = allVals.length;
+                let slope = 0, intercept = 0;
+                if (n >= 3) {
+                    const xs = allVals.map((_, i) => i);
+                    const xm = xs.reduce((a,b)=>a+b,0)/n, ym = allVals.reduce((a,b)=>a+b,0)/n;
+                    slope = xs.reduce((a,x,i)=>a+(x-xm)*(allVals[i]-ym),0) / xs.reduce((a,x)=>a+(x-xm)**2,0);
+                    intercept = ym - slope * xm;
+                }
+
+                // Y축 눈금
+                const yStep = maxV / 4;
+                const yGridLines = [1,2,3,4].map(i => ({ v: yStep*i, y: ty(yStep*i) }));
+
+                let svg = `<svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;height:${svgH}px;display:block;overflow:visible">
+                    <defs>
+                        <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#38bdf8" stop-opacity=".3"/>
+                            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>`;
+
+                // Y축 그리드
+                yGridLines.forEach(({v, y}) => {
+                    const lbl = v >= 10000 ? (v/10000).toFixed(1)+'만' : v >= 1000 ? (v/1000).toFixed(0)+'천' : Math.round(v);
+                    svg += `<line x1="${padL}" y1="${y}" x2="${svgW-padR}" y2="${y}" stroke="rgba(148,163,184,.07)" stroke-width="1"/>
+                    <text x="${padL-5}" y="${y+3}" font-size="8" fill="#475569" text-anchor="end">${lbl}</text>`;
+                });
+
+                // 합산 Area 영역
+                const areaPoints = dates.map((d,i) => `${tx(i)},${ty(totalByDate[d]||0)}`).join(' ');
+                const areaFill = areaPoints + ` ${tx(dates.length-1)},${padT+plotH} ${tx(0)},${padT+plotH}`;
+                svg += `<polygon points="${areaFill}" fill="url(#tg)" stroke="none" opacity=".5"/>`;
+
+                // 합산 라인
+                svg += `<polyline points="${areaPoints}" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>`;
+
+                // 사업장별 라인
+                sites.forEach(s => {
+                    const pts = dates.map((d,i) => {
+                        const v = siteData[s].vals[d];
+                        return v ? `${tx(i)},${ty(v)}` : null;
+                    }).filter(Boolean).join(' ');
+                    if (pts) {
+                        svg += `<polyline points="${pts}" fill="none" stroke="${siteData[s].color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,2" opacity=".8"/>`;
+                    }
+                });
+
+                // 예측선 (향후 3일)
+                if (n >= 3 && slope !== 0) {
+                    const extDates = 3;
+                    const forecastX = tx(dates.length - 1);
+                    const forecastEndX = forecastX + (plotW / Math.max(dates.length,1)) * extDates;
+                    const forecastStartY = ty(Math.max(0, intercept + slope * (n-1)));
+                    const forecastEndY = ty(Math.max(0, intercept + slope * (n + extDates - 1)));
+                    svg += `<line x1="${forecastX}" y1="${forecastStartY}" x2="${forecastEndX}" y2="${forecastEndY}" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="5,3" opacity=".7"/>
+                    <text x="${forecastEndX+3}" y="${forecastEndY+4}" font-size="9" fill="#a78bfa" opacity=".8">예측</text>`;
+                }
+
+                // 데이터 포인트 + 마지막 값 표시
+                dates.forEach((d, i) => {
+                    const v = totalByDate[d] || 0;
+                    if (!v) return;
+                    const cx = tx(i), cy = ty(v);
+                    const isLast = i === dates.length - 1;
+                    svg += `<circle cx="${cx}" cy="${cy}" r="${isLast?5:3}" fill="${isLast?'#38bdf8':'rgba(56,189,248,.5)'}" stroke="rgba(10,15,30,.8)" stroke-width="1.5"/>`;
+                    if (isLast) {
+                        const lbl = v >= 10000 ? (v/10000).toFixed(1)+'만' : v.toLocaleString();
+                        svg += `<text x="${cx}" y="${cy-9}" font-size="10" font-weight="900" fill="#38bdf8" text-anchor="middle">${lbl}</text>`;
+                    }
+                });
+
+                // X축 날짜 라벨 (최대 7개)
+                const labelStep = Math.ceil(dates.length / 7);
+                dates.forEach((d, i) => {
+                    if (i % labelStep === 0 || i === dates.length - 1) {
+                        svg += `<text x="${tx(i)}" y="${svgH-padB+14}" font-size="8" fill="#475569" text-anchor="middle">${d.slice(5)}</text>`;
+                    }
+                });
+
+                svg += `</svg>`;
+
+                // 범례
+                let legend = `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;padding:0 4px">
+                    <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:#38bdf8">
+                        <span style="width:20px;height:2.5px;background:#38bdf8;border-radius:2px;display:inline-block"></span>합계
+                    </div>`;
+                sites.forEach(s => {
+                    legend += `<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:${siteData[s].color}">
+                        <span style="width:16px;height:2px;background:${siteData[s].color};border-radius:2px;display:inline-block;opacity:.8"></span>${s}
+                    </div>`;
+                });
+                if (n >= 3) {
+                    legend += `<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#a78bfa">
+                        <span style="width:16px;height:2px;background:#a78bfa;border-radius:2px;display:inline-block;border-top:1px dashed #a78bfa"></span>예측
+                    </div>`;
+                }
+                legend += `</div>`;
+
+                // 트렌드 요약 KPI
+                const avgAll = allVals.reduce((a,b)=>a+b,0) / allVals.length;
+                const recent3 = allVals.slice(-3).reduce((a,b)=>a+b,0) / Math.min(3, allVals.length);
+                const trendPct = avgAll > 0 ? ((recent3 - avgAll) / avgAll * 100).toFixed(1) : 0;
+                const trendUp = parseFloat(trendPct) > 1;
+                const trendDown = parseFloat(trendPct) < -1;
+                const trendIcon = trendUp ? '📈' : trendDown ? '📉' : '➡️';
+                const trendColor = trendUp ? 'var(--success)' : trendDown ? 'var(--danger)' : 'var(--warning)';
+                const slopeDir = slope > 2 ? '증가 추세' : slope < -2 ? '감소 추세' : '안정 구간';
+
+                h += `<div class="sec-title">📈 월간 식수 트렌드 (중식 기준)</div>
+                <div style="background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:14px">
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
+                        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+                            <div style="font-size:9px;color:var(--dim);font-weight:700;margin-bottom:3px">기록 일수</div>
+                            <div style="font-size:18px;font-weight:900;color:var(--accent)">${dates.length}</div>
+                            <div style="font-size:9px;color:var(--dim)">일</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+                            <div style="font-size:9px;color:var(--dim);font-weight:700;margin-bottom:3px">일평균 중식</div>
+                            <div style="font-size:18px;font-weight:900;color:var(--success)">${Math.round(avgAll).toLocaleString()}</div>
+                            <div style="font-size:9px;color:var(--dim)">식</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
+                            <div style="font-size:9px;color:var(--dim);font-weight:700;margin-bottom:3px">최근 추이</div>
+                            <div style="font-size:18px;font-weight:900;color:${trendColor}">${trendIcon}</div>
+                            <div style="font-size:9px;color:${trendColor};font-weight:800">${trendPct > 0 ? '+' : ''}${trendPct}%</div>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;border-radius:8px">${svg}</div>
+                    ${legend}
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:8px 10px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:8px;font-size:10px">
+                        <span style="color:var(--accent3);font-weight:800">🔮 AI 진단</span>
+                        <span style="color:var(--dim)">${slopeDir} · ${n >= 10 ? '신뢰도 높음 ✅' : n >= 5 ? '신뢰도 중간 ⚠️' : '데이터 부족 ❌'}</span>
+                        <span style="color:var(--muted)">변화율 ${slope > 0 ? '+' : ''}${slope.toFixed(1)}식/일</span>
+                    </div>
+                </div>`;
+            })();
 
             ct.innerHTML = h;
             document.getElementById("ov").style.display = "flex";
