@@ -2117,7 +2117,7 @@
             btn.innerText = "접속 중..."; btn.disabled = true;
             try {
                 /* ★ GAS 응답: "Valid|TOKEN|ROLE|REGION|SITE" */
-                const r = await fetch(API + "?type=login&userId=" + encodeURIComponent(id) + "&pw=" + encodeURIComponent(pw));
+                const r = await fetch(API + "?type=login&userId=" + encodeURIComponent(id) + "&pw=" + encodeURIComponent(pw), { redirect: "follow" });
                 const t = await r.text();
                 if (t.startsWith("Valid")) {
                     const parts = t.split("|");
@@ -2153,7 +2153,7 @@
             try {
                 /* ★ tk에 role 정보도 함께 전달 (GAS가 필터링) */
                 const url = TK ? API + "?tk=" + TK : API + "?pw=" + encodeURIComponent(document.getElementById("loginPw").value);
-                const r = await fetch(url);
+                const r = await fetch(url, { redirect: "follow" });
                 const raw = await r.json();
                 if (raw.error) throw new Error(raw.error);
 
@@ -2382,7 +2382,7 @@
             const btn = event.target, msg = document.getElementById(`fm_${u}`);
             btn.disabled = true; btn.innerText = "저장 중...";
             try {
-                const r = await fetch(API, { method: "POST", body: JSON.stringify(p) });
+                const r = await fetch(API, { method: "POST", body: JSON.stringify(p), redirect: "follow" });
                 const t = await r.text();
                 msg.style.color = t.includes("Success") ? "var(--success)" : "var(--danger)";
                 msg.innerText = t.includes("Success") ? "✅ 저장 완료" : "❌ " + t;
@@ -2458,7 +2458,7 @@
             if (!TK) { return; } // 토큰 없으면 스킵
             _gasPerfLoading = true;
             try {
-                const r = await fetch(API + "?type=perf&tk=" + TK);
+                const r = await fetch(API + "?type=perf&tk=" + TK, { redirect: "follow" });
                 const d = await r.json();
                 if (d.perf && Array.isArray(d.perf) && d.perf.length > 0) {
                     _gasPerfCache = d.perf;
@@ -3249,184 +3249,6 @@
             <strong>• 회전율(RI)</strong> = (중식 D/I 식수 + 할인된 TO식수) ÷ 좌석수<br/>
             <span class="formula">→ 🔴 3.5회 이상: 공간 과부하 (T/O 확대 집중)</span></div>`;
 
-
-            /* ── 📈 월간 식수 트렌드 차트 (실적데이터 기반) ── */
-            (function() {
-                const recs = (function(){ try{ return JSON.parse(localStorage.getItem('WS_REC')||'[]') }catch(e){ return [] } })();
-                const regionRecs = recs.filter(r => fd.some(d => d['사업장명'] === r.siteName));
-                if (regionRecs.length < 2) {
-                    h += `<div class="sec-title">📈 월간 식수 트렌드</div>
-                    <div style="padding:20px;text-align:center;color:var(--dim);font-size:12px;background:rgba(0,0,0,.2);border-radius:var(--r2);margin-bottom:14px">
-                        📭 누적 실적 데이터가 없습니다<br/><span style="font-size:10px;margin-top:4px;display:block">실적기록 버튼으로 데이터를 입력하면 트렌드가 표시됩니다</span>
-                    </div>`;
-                    return;
-                }
-
-                const dates = [...new Set(regionRecs.map(r => r.date))].sort();
-                const sites = [...new Set(regionRecs.map(r => r.siteName))];
-                const SITE_COLORS = ['#38bdf8','#34d399','#fb923c','#f472b6','#a78bfa','#fbbf24','#60a5fa','#4ade80'];
-
-                // 사업장별 날짜별 중식 집계
-                const siteData = {};
-                sites.forEach((s, si) => {
-                    siteData[s] = { color: SITE_COLORS[si % SITE_COLORS.length], vals: {} };
-                    regionRecs.filter(r => r.siteName === s).forEach(r => {
-                        siteData[s].vals[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0);
-                    });
-                });
-
-                // 전체 합산
-                const totalByDate = {};
-                dates.forEach(d => {
-                    totalByDate[d] = sites.reduce((acc, s) => acc + (siteData[s].vals[d] || 0), 0);
-                });
-
-                // SVG 차트 생성
-                const svgW = 520, svgH = 160, padL = 44, padR = 16, padT = 16, padB = 36;
-                const plotW = svgW - padL - padR, plotH = svgH - padT - padB;
-                const allVals = dates.map(d => totalByDate[d]).filter(v => v > 0);
-                const maxV = Math.max(...allVals) * 1.15 || 1;
-                const tx = i => padL + (i / Math.max(dates.length - 1, 1)) * plotW;
-                const ty = v => padT + (1 - v / maxV) * plotH;
-
-                // 선형 회귀로 예측선
-                const n = allVals.length;
-                let slope = 0, intercept = 0;
-                if (n >= 3) {
-                    const xs = allVals.map((_, i) => i);
-                    const xm = xs.reduce((a,b)=>a+b,0)/n, ym = allVals.reduce((a,b)=>a+b,0)/n;
-                    slope = xs.reduce((a,x,i)=>a+(x-xm)*(allVals[i]-ym),0) / xs.reduce((a,x)=>a+(x-xm)**2,0);
-                    intercept = ym - slope * xm;
-                }
-
-                // Y축 눈금
-                const yStep = maxV / 4;
-                const yGridLines = [1,2,3,4].map(i => ({ v: yStep*i, y: ty(yStep*i) }));
-
-                let svg = `<svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;height:${svgH}px;display:block;overflow:visible">
-                    <defs>
-                        <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#38bdf8" stop-opacity=".3"/>
-                            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
-                        </linearGradient>
-                    </defs>`;
-
-                // Y축 그리드
-                yGridLines.forEach(({v, y}) => {
-                    const lbl = v >= 10000 ? (v/10000).toFixed(1)+'만' : v >= 1000 ? (v/1000).toFixed(0)+'천' : Math.round(v);
-                    svg += `<line x1="${padL}" y1="${y}" x2="${svgW-padR}" y2="${y}" stroke="rgba(148,163,184,.07)" stroke-width="1"/>
-                    <text x="${padL-5}" y="${y+3}" font-size="8" fill="#475569" text-anchor="end">${lbl}</text>`;
-                });
-
-                // 합산 Area 영역
-                const areaPoints = dates.map((d,i) => `${tx(i)},${ty(totalByDate[d]||0)}`).join(' ');
-                const areaFill = areaPoints + ` ${tx(dates.length-1)},${padT+plotH} ${tx(0)},${padT+plotH}`;
-                svg += `<polygon points="${areaFill}" fill="url(#tg)" stroke="none" opacity=".5"/>`;
-
-                // 합산 라인
-                svg += `<polyline points="${areaPoints}" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>`;
-
-                // 사업장별 라인
-                sites.forEach(s => {
-                    const pts = dates.map((d,i) => {
-                        const v = siteData[s].vals[d];
-                        return v ? `${tx(i)},${ty(v)}` : null;
-                    }).filter(Boolean).join(' ');
-                    if (pts) {
-                        svg += `<polyline points="${pts}" fill="none" stroke="${siteData[s].color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,2" opacity=".8"/>`;
-                    }
-                });
-
-                // 예측선 (향후 3일)
-                if (n >= 3 && slope !== 0) {
-                    const extDates = 3;
-                    const forecastX = tx(dates.length - 1);
-                    const forecastEndX = forecastX + (plotW / Math.max(dates.length,1)) * extDates;
-                    const forecastStartY = ty(Math.max(0, intercept + slope * (n-1)));
-                    const forecastEndY = ty(Math.max(0, intercept + slope * (n + extDates - 1)));
-                    svg += `<line x1="${forecastX}" y1="${forecastStartY}" x2="${forecastEndX}" y2="${forecastEndY}" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="5,3" opacity=".7"/>
-                    <text x="${forecastEndX+3}" y="${forecastEndY+4}" font-size="9" fill="#a78bfa" opacity=".8">예측</text>`;
-                }
-
-                // 데이터 포인트 + 마지막 값 표시
-                dates.forEach((d, i) => {
-                    const v = totalByDate[d] || 0;
-                    if (!v) return;
-                    const cx = tx(i), cy = ty(v);
-                    const isLast = i === dates.length - 1;
-                    svg += `<circle cx="${cx}" cy="${cy}" r="${isLast?5:3}" fill="${isLast?'#38bdf8':'rgba(56,189,248,.5)'}" stroke="rgba(10,15,30,.8)" stroke-width="1.5"/>`;
-                    if (isLast) {
-                        const lbl = v >= 10000 ? (v/10000).toFixed(1)+'만' : v.toLocaleString();
-                        svg += `<text x="${cx}" y="${cy-9}" font-size="10" font-weight="900" fill="#38bdf8" text-anchor="middle">${lbl}</text>`;
-                    }
-                });
-
-                // X축 날짜 라벨 (최대 7개)
-                const labelStep = Math.ceil(dates.length / 7);
-                dates.forEach((d, i) => {
-                    if (i % labelStep === 0 || i === dates.length - 1) {
-                        svg += `<text x="${tx(i)}" y="${svgH-padB+14}" font-size="8" fill="#475569" text-anchor="middle">${d.slice(5)}</text>`;
-                    }
-                });
-
-                svg += `</svg>`;
-
-                // 범례
-                let legend = `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;padding:0 4px">
-                    <div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:#38bdf8">
-                        <span style="width:20px;height:2.5px;background:#38bdf8;border-radius:2px;display:inline-block"></span>합계
-                    </div>`;
-                sites.forEach(s => {
-                    legend += `<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:${siteData[s].color}">
-                        <span style="width:16px;height:2px;background:${siteData[s].color};border-radius:2px;display:inline-block;opacity:.8"></span>${s}
-                    </div>`;
-                });
-                if (n >= 3) {
-                    legend += `<div style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#a78bfa">
-                        <span style="width:16px;height:2px;background:#a78bfa;border-radius:2px;display:inline-block;border-top:1px dashed #a78bfa"></span>예측
-                    </div>`;
-                }
-                legend += `</div>`;
-
-                // 트렌드 요약 KPI
-                const avgAll = allVals.reduce((a,b)=>a+b,0) / allVals.length;
-                const recent3 = allVals.slice(-3).reduce((a,b)=>a+b,0) / Math.min(3, allVals.length);
-                const trendPct = avgAll > 0 ? ((recent3 - avgAll) / avgAll * 100).toFixed(1) : 0;
-                const trendUp = parseFloat(trendPct) > 1;
-                const trendDown = parseFloat(trendPct) < -1;
-                const trendIcon = trendUp ? '📈' : trendDown ? '📉' : '➡️';
-                const trendColor = trendUp ? 'var(--success)' : trendDown ? 'var(--danger)' : 'var(--warning)';
-                const slopeDir = slope > 2 ? '증가 추세' : slope < -2 ? '감소 추세' : '안정 구간';
-
-                h += `<div class="sec-title">📈 월간 식수 트렌드 (중식 기준)</div>
-                <div style="background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:14px">
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">
-                        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
-                            <div style="font-size:9px;color:var(--dim);font-weight:700;margin-bottom:3px">기록 일수</div>
-                            <div style="font-size:18px;font-weight:900;color:var(--accent)">${dates.length}</div>
-                            <div style="font-size:9px;color:var(--dim)">일</div>
-                        </div>
-                        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
-                            <div style="font-size:9px;color:var(--dim);font-weight:700;margin-bottom:3px">일평균 중식</div>
-                            <div style="font-size:18px;font-weight:900;color:var(--success)">${Math.round(avgAll).toLocaleString()}</div>
-                            <div style="font-size:9px;color:var(--dim)">식</div>
-                        </div>
-                        <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center">
-                            <div style="font-size:9px;color:var(--dim);font-weight:700;margin-bottom:3px">최근 추이</div>
-                            <div style="font-size:18px;font-weight:900;color:${trendColor}">${trendIcon}</div>
-                            <div style="font-size:9px;color:${trendColor};font-weight:800">${trendPct > 0 ? '+' : ''}${trendPct}%</div>
-                        </div>
-                    </div>
-                    <div style="overflow-x:auto;border-radius:8px">${svg}</div>
-                    ${legend}
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:8px 10px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:8px;font-size:10px">
-                        <span style="color:var(--accent3);font-weight:800">🔮 AI 진단</span>
-                        <span style="color:var(--dim)">${slopeDir} · ${n >= 10 ? '신뢰도 높음 ✅' : n >= 5 ? '신뢰도 중간 ⚠️' : '데이터 부족 ❌'}</span>
-                        <span style="color:var(--muted)">변화율 ${slope > 0 ? '+' : ''}${slope.toFixed(1)}식/일</span>
-                    </div>
-                </div>`;
-            })();
-
             ct.innerHTML = h;
             document.getElementById("ov").style.display = "flex";
         };
@@ -3451,7 +3273,7 @@
             if (nw !== conf) { msg.style.color = "var(--danger)"; msg.textContent = "새 비밀번호가 일치하지 않습니다."; return; }
             msg.style.color = "var(--dim)"; msg.textContent = "변경 중...";
             try {
-                const r = await fetch(API, { method: "POST", body: JSON.stringify({ action: "changePw", userId: USER, currentPw: cur, newPw: nw }) });
+                const r = await fetch(API, { method: "POST", redirect: "follow", body: JSON.stringify({ action: "changePw", userId: USER, currentPw: cur, newPw: nw }) });
                 const d = await r.json();
                 if (d.ok) {
                     msg.style.color = "var(--success)"; msg.textContent = "✅ 비밀번호가 변경되었습니다!";
