@@ -1555,6 +1555,23 @@
             width: 100%;
             min-height: 10px
         }
+        .ch-apex-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .ch-apex-scroll .ch-apex {
+            min-width: 520px;
+        }
+        .ch-scroll-hint {
+            font-size: 9px;
+            color: var(--dim);
+            text-align: right;
+            margin-bottom: 4px;
+            display: none;
+        }
+        @media(max-width: 520px) {
+            .ch-scroll-hint { display: block; }
+        }
 
         /* ===== KPI 카드 고도화 ===== */
         .kpi-row-v2 {
@@ -2117,7 +2134,7 @@
             btn.innerText = "접속 중..."; btn.disabled = true;
             try {
                 /* ★ GAS 응답: "Valid|TOKEN|ROLE|REGION|SITE" */
-                const r = await fetch(API + "?type=login&userId=" + encodeURIComponent(id) + "&pw=" + encodeURIComponent(pw), { redirect: "follow" });
+                const r = await fetch(API + "?type=login&userId=" + encodeURIComponent(id) + "&pw=" + encodeURIComponent(pw));
                 const t = await r.text();
                 if (t.startsWith("Valid")) {
                     const parts = t.split("|");
@@ -2153,7 +2170,7 @@
             try {
                 /* ★ tk에 role 정보도 함께 전달 (GAS가 필터링) */
                 const url = TK ? API + "?tk=" + TK : API + "?pw=" + encodeURIComponent(document.getElementById("loginPw").value);
-                const r = await fetch(url, { redirect: "follow" });
+                const r = await fetch(url);
                 const raw = await r.json();
                 if (raw.error) throw new Error(raw.error);
 
@@ -2382,7 +2399,7 @@
             const btn = event.target, msg = document.getElementById(`fm_${u}`);
             btn.disabled = true; btn.innerText = "저장 중...";
             try {
-                const r = await fetch(API, { method: "POST", body: JSON.stringify(p), redirect: "follow" });
+                const r = await fetch(API, { method: "POST", body: JSON.stringify(p) });
                 const t = await r.text();
                 msg.style.color = t.includes("Success") ? "var(--success)" : "var(--danger)";
                 msg.innerText = t.includes("Success") ? "✅ 저장 완료" : "❌ " + t;
@@ -2458,7 +2475,7 @@
             if (!TK) { return; } // 토큰 없으면 스킵
             _gasPerfLoading = true;
             try {
-                const r = await fetch(API + "?type=perf&tk=" + TK, { redirect: "follow" });
+                const r = await fetch(API + "?type=perf&tk=" + TK);
                 const d = await r.json();
                 if (d.perf && Array.isArray(d.perf) && d.perf.length > 0) {
                     _gasPerfCache = d.perf;
@@ -2779,13 +2796,15 @@
             <!-- 추이 + 예측 차트 -->
             <div class="ch-panel">
                 <div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:var(--dim);font-weight:400">실선=실적 / 점선=예측 · 🟠저조기 / 🟡주말 / 🔴공휴일</span></div>
-                <div id="chartTrend" class="ch-apex"></div>
+                <div class="ch-scroll-hint">← 좌우 스크롤 →</div>
+                <div class="ch-apex-scroll"><div id="chartTrend" class="ch-apex"></div></div>
             </div>
             <!-- DI vs T/O -->
             ${mk === '중식' || mk === '합계' ? `<div class="ch-panel">
-                <div class="ch-panel-title">📊 중식 D/I vs T/O 구성 (최근 14일)</div>
-                <div class="ch-panel-sub">D/I = 구내직접배식 · T/O = 테이크아웃</div>
-                <div id="chartDITO" class="ch-apex"></div>
+                <div class="ch-panel-title">📊 D/I · T/O 일별 비중 추이 (최근 14일)</div>
+                <div class="ch-panel-sub">T/O 비율이 높을수록 좌석 회전 압박 ↑ · 공간 확장 or T/O 코너 증설 검토 신호</div>
+                <div class="ch-scroll-hint">← 좌우 스크롤 →</div>
+                <div class="ch-apex-scroll"><div id="chartDITO" class="ch-apex"></div></div>
             </div>`: ''}
             </div>`;
 
@@ -3104,7 +3123,42 @@
         window.renderAIForecast = function () { };  // 구 호환 stub
         function renderSparkline() { return ''; } // 구 호환 stub
 
+        const dates = [...new Set(recsToUse.map(r => r.date))].sort();
+        document.getElementById("trend-date-range").textContent = `[${regionLabel}] ${dates[0]} ~ ${dates[dates.length - 1]} · 총 ${dates.length}일 · ${recsToUse.length}건`;
+        const sites = [...new Set(recsToUse.map(r => r.siteName))];
 
+        // 🔹 식수 비율 자동 학습 (최근 14일 실적 기반)
+        let totalDI_all = 0, totalTO_all = 0, totalMidRatio_all = 0, totalJo_all = 0, countJo_all = 0;
+        recsToUse.slice(0, 14).forEach(r => {
+            const d = n(r.DI_중식), t = n(r.TO_중식), j = n(r.DI_조식) + n(r.TO_조식);
+            if (d + t > 0) { totalDI_all += d; totalTO_all += t; totalMidRatio_all += (d + t); }
+            if (j > 0) { totalJo_all += j; countJo_all++; }
+        });
+        const r_TO = totalMidRatio_all > 0 ? totalTO_all / totalMidRatio_all : 0.35;
+        const r_Jo = (totalMidRatio_all > 0 && totalJo_all > 0) ? (totalJo_all / countJo_all) / (totalMidRatio_all / 14) : 0.15;
+
+        let html = ''; const totalByDate = {};
+        recsToUse.forEach(r => { if (!totalByDate[r.date]) totalByDate[r.date] = 0; totalByDate[r.date] += r.DI_중식 + r.TO_중식; });
+        const dailyVals = Object.values(totalByDate); const avgDaily = dailyVals.reduce((a, b) => a + b, 0) / dailyVals.length; const maxDaily = Math.max(...dailyVals); const recentDates = dates.slice(-7); const recentAvg = recentDates.reduce((a, d) => a + (totalByDate[d] || 0), 0) / recentDates.length; const trend = ((recentAvg - avgDaily) / avgDaily * 100).toFixed(1); const trendClass = trend > 1 ? 'trend-up' : trend < -1 ? 'trend-down' : 'trend-flat'; const trendIcon = trend > 1 ? '↑' : trend < -1 ? '↓' : '→';
+
+        html += `<div class="trend-section"><div class="trend-section-title">📊 ${regionLabel} 식수 KPI 요약</div><div class="kpi-row"><div class="kpi-box"><div class="kl">일평균 중식</div><div class="kv" style="color:var(--accent)">${Math.round(avgDaily).toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최고 중식</div><div class="kv" style="color:var(--success)">${maxDaily.toLocaleString()}</div><div class="kt" style="color:var(--dim)">식</div></div><div class="kpi-box"><div class="kl">최근 7일 추이</div><div class="kv ${trendClass}">${recentAvg.toFixed(0)}</div><div class="kt ${trendClass}">${trendIcon} ${Math.abs(trend)}%</div></div></div>${renderSparkline(dates, totalByDate, '중식 일별 추이')}</div>`;
+
+        // 🔹 식수별 정밀 분해 섹션 추가
+        html += `<div class="trend-section">
+                <div class="trend-section-title">📊 식수별 정밀 분해 (추정 포함)</div>
+                <div class="kpi-row">
+                    <div class="kpi-box"><div class="kl">일평균 조식</div><div class="kv">${Math.round(avgDaily * r_Jo).toLocaleString()}</div><div class="kt">식 (비중 ${Math.round(r_Jo * 100)}%)</div></div>
+                    <div class="kpi-box"><div class="kl">중식 일반(DI)</div><div class="kv" style="color:var(--accent)">${Math.round(avgDaily * (1 - r_TO)).toLocaleString()}</div><div class="kt">식 (비중 ${Math.round((1 - r_TO) * 100)}%)</div></div>
+                    <div class="kpi-box"><div class="kl">중식 T/O</div><div class="kv" style="color:var(--warning)">${Math.round(avgDaily * r_TO).toLocaleString()}</div><div class="kt">식 (비중 ${Math.round(r_TO * 100)}%)</div></div>
+                </div>
+                <div style="font-size:10px;color:var(--dim);text-align:right;margin-top:4px">※ 최근 누적 실적 패턴 기반 자동 추정</div>
+            </div>`;
+
+        html += `<div class="trend-section"><div class="trend-section-title">🏢 사업장별 추이 분석</div>`; sites.forEach(site => { const siteRecs = recsToUse.filter(r => r.siteName === site); const siteByDate = {}; siteRecs.forEach(r => { siteByDate[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); const siteVals = Object.values(siteByDate); if (!siteVals.length) return; const avg = siteVals.reduce((a, b) => a + b, 0) / siteVals.length; const rec7 = dates.slice(-7).reduce((a, d) => a + (siteByDate[d] || 0), 0) / 7; const t = ((rec7 - avg) / avg * 100).toFixed(1); const tc = t > 1 ? 'trend-up' : t < -1 ? 'trend-down' : 'trend-flat'; html += `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:900;color:var(--accent)">${site}</div><div style="display:flex;gap:8px;font-size:11px"><span>평균: <strong>${Math.round(avg)}</strong>식</span><span class="${tc}">${t > 1 ? '↑' : t < -1 ? '↓' : '→'} ${Math.abs(t)}%</span></div></div>${renderSparkline(dates, siteByDate, null, 60)}</div>`; }); html += '</div>'; html += `<div class="trend-section"><div class="trend-section-title">📉 식수 증감률 주간 비교</div><div class="tbl-wrap"><table class="data-table-mini"><thead><tr><th>사업장</th>${dates.slice(-5).map(d => `<th>${d.slice(5)}</th>`).join('')}<th>추세</th></tr></thead><tbody>`; sites.forEach(site => { const sr = recsToUse.filter(r => r.siteName === site); const sbd = {}; sr.forEach(r => { sbd[r.date] = (r.DI_중식 || 0) + (r.TO_중식 || 0); }); html += `<tr><td>${site}</td>${dates.slice(-5).map((d, i, arr) => { const v = sbd[d] || 0, prev = i > 0 ? (sbd[arr[i - 1]] || 0) : 0, ch = prev > 0 ? ((v - prev) / prev * 100).toFixed(1) : 0, c = ch > 2 ? 'trend-up' : ch < -2 ? 'trend-down' : 'trend-flat'; return `<td>${v ? v.toLocaleString() : '-'}<br><span class="${c}" style="font-size:9px">${prev > 0 ? (ch > 0 ? '+' : '') + ch + '%' : ''}</span></td>`; }).join('')}<td class="${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? 'trend-up' : 'trend-down'}" style="font-size:13px">${((sbd[dates[dates.length - 1]] || 0) - (sbd[dates[dates.length - 2]] || 0)) > 0 ? '↑' : '↓'}</td></tr>`; }); html += '</tbody></table></div></div>'; html += `<div class="trend-section"><div class="trend-section-title">🔮 AI 추정 분석 (향후 7일)</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap"><span class="forecast-tag">📐 선형회귀 기반 추정</span><select id="ai-site-sel" onchange="renderAIForecast()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text);font-size:12px;font-weight:700;outline:none"><option value="ALL">전체 합산</option>${sites.map(s => `<option value="${s}">${s}</option>`).join('')}</select></div><div id="ai-forecast-body"></div></div>`;
+        body.innerHTML = html;
+        window._aiTrendDates = dates; window._aiTrendRecs = recsToUse; window._aiTrendSites = sites; window._aiTrendAvgDaily = avgDaily;
+        renderAIForecast();
+        }
         window.renderAIForecast = function () {
             const sel = document.getElementById("ai-site-sel"); if (!sel) return;
             const selSite = sel.value;
@@ -3238,7 +3292,7 @@
             if (nw !== conf) { msg.style.color = "var(--danger)"; msg.textContent = "새 비밀번호가 일치하지 않습니다."; return; }
             msg.style.color = "var(--dim)"; msg.textContent = "변경 중...";
             try {
-                const r = await fetch(API, { method: "POST", redirect: "follow", body: JSON.stringify({ action: "changePw", userId: USER, currentPw: cur, newPw: nw }) });
+                const r = await fetch(API, { method: "POST", body: JSON.stringify({ action: "changePw", userId: USER, currentPw: cur, newPw: nw }) });
                 const d = await r.json();
                 if (d.ok) {
                     msg.style.color = "var(--success)"; msg.textContent = "✅ 비밀번호가 변경되었습니다!";
