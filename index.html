@@ -2816,10 +2816,11 @@
             </div>
             <!-- 추이 + 예측 차트 -->
             <div class="ch-panel">
-                <div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:var(--dim);font-weight:400">🟠저조기 / 🟡주말 / 🔴공휴일</span></div>
+                <div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:var(--dim);font-weight:400">🟠저조기 / 🟡주말 / 🔴공휴일 · 차트 클릭 시 상세보기</span></div>
                 <div class="chart-scroll-wrap">
                     <div id="chartTrend" class="ch-apex" style="min-width:650px"></div>
                 </div>
+                <div id="chartTrendClickInfo" style="display:none;margin-top:10px;padding:12px;background:rgba(56,189,248,.04);border:1px solid rgba(56,189,248,.15);border-radius:10px;animation:slideIn .25s ease-out"></div>
             </div>
             <!-- DI vs T/O -->
             ${mk === '중식' || mk === '합계' ? `<div class="ch-panel">
@@ -2837,7 +2838,68 @@
                                 try {
                                     const c1 = new ApexCharts(entry.target, {
                                         ...APEX_BASE,
-                                        chart: { ...APEX_BASE.chart, type: 'line', height: 260 },
+                                        chart: {
+                                            ...APEX_BASE.chart, type: 'line', height: 260,
+                                            events: {
+                                                dataPointSelection: function (event, chartContext, config) {
+                                                    try {
+                                                        const idx = config.dataPointIndex;
+                                                        const clickDate = allDates[idx];
+                                                        if (!clickDate) return;
+                                                        const infoBox = document.getElementById('chartTrendClickInfo');
+                                                        if (!infoBox) return;
+                                                        const isForecast = idx >= dates.length;
+                                                        const dayType = getHolidayType(clickDate);
+                                                        const DOW_MAP = ['일', '월', '화', '수', '목', '금', '토'];
+                                                        const dayOfWeek = DOW_MAP[new Date(clickDate + 'T00:00:00').getDay()];
+                                                        const totalVal = getMkVal(clickDate);
+                                                        const foreVal = isForecast ? foreRows[idx - dates.length] : null;
+                                                        /* DI/TO 분리 계산 (중식일 경우) */
+                                                        let ditoHtml = '';
+                                                        if (mk === '중식' || mk === '합계') {
+                                                            const mkKey = mk === '합계' ? '중식' : mk;
+                                                            let diVal = 0, toVal = 0;
+                                                            filtRecs.filter(r => r.date === clickDate).forEach(r => {
+                                                                diVal += n(r['DI_' + mkKey]);
+                                                                toVal += n(r['TO_' + mkKey]);
+                                                            });
+                                                            if (diVal > 0 || toVal > 0) {
+                                                                const total = diVal + toVal || 1;
+                                                                ditoHtml = `<div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
+                                                                    <div style="padding:6px 10px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:8px;font-size:11px">
+                                                                        🔵 일반식(D/I): <strong style="color:#38bdf8">${diVal.toLocaleString()}명</strong>
+                                                                        <span style="color:var(--dim);font-size:9px;margin-left:4px">(${Math.round(diVal / total * 100)}%)</span>
+                                                                    </div>
+                                                                    <div style="padding:6px 10px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:8px;font-size:11px">
+                                                                        🟠 테이크아웃(T/O): <strong style="color:#fbbf24">${toVal.toLocaleString()}명</strong>
+                                                                        <span style="color:var(--dim);font-size:9px;margin-left:4px">(${Math.round(toVal / total * 100)}%)</span>
+                                                                    </div>
+                                                                </div>`;
+                                                            }
+                                                        }
+                                                        const typeBadge = dayType.type === 'weekend' ? '<span style="background:rgba(251,191,36,.15);color:#fbbf24;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">🟡 주말</span>'
+                                                            : dayType.type === 'holiday' ? '<span style="background:rgba(248,113,113,.12);color:#f87171;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">🔴 공휴일</span>'
+                                                                : lowDates.includes(clickDate) ? '<span style="background:rgba(251,191,36,.12);color:#fbbf24;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">🟠 저조기</span>'
+                                                                    : '<span style="background:rgba(56,189,248,.1);color:#38bdf8;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">평일</span>';
+                                                        infoBox.style.display = 'block';
+                                                        infoBox.innerHTML = `
+                                                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                                                                <div style="font-size:13px;font-weight:900">
+                                                                    📅 ${clickDate} (${dayOfWeek}요일) ${typeBadge}
+                                                                    ${isForecast ? '<span style="background:rgba(244,63,94,.12);color:#f43f5e;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800;margin-left:4px">AI예측</span>' : ''}
+                                                                </div>
+                                                                <button onclick="document.getElementById('chartTrendClickInfo').style.display='none'" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">✕</button>
+                                                            </div>
+                                                            <div style="font-size:12px;font-weight:800;color:${mkColor}">
+                                                                ${mk} 식수: ${isForecast ? (foreVal ? foreVal.fv.toLocaleString() : '-') : totalVal.toLocaleString()}명
+                                                                ${isForecast ? ' (추정값)' : ''}
+                                                            </div>
+                                                            ${ditoHtml}
+                                                        `;
+                                                    } catch (err) { console.warn('chart click error:', err); }
+                                                }
+                                            }
+                                        },
                                         series: [{ name: mk + ' 실적', type: 'area', data: [...histData, ...new Array(foreRows.length).fill(null)] }, { name: 'AI 예측', type: 'line', data: foreData }],
                                         stroke: { width: [2.5, 2.5], dashArray: [0, 6], curve: 'smooth' },
                                         fill: { type: ['gradient', 'solid'], gradient: { shade: 'dark', type: 'vertical', opacityFrom: .3, opacityTo: .01 } },
@@ -3121,9 +3183,39 @@
             const confText = wdValsFr.length >= 10 ? '높음 ✅' : wdValsFr.length >= 5 ? '중간 ⚠️' : '낮음 ❌';
             const direction = wdS > 2 ? '📈 증가 추세' : wdS < -2 ? '📉 감소 추세' : '➡️ 안정적 유지';
 
+            /* ★ DI/TO 분리 데이터 (Tab4 전용) */
+            const rptDiByDate = {}, rptToByDate = {};
+            const rptMeals = mk === '합계' ? ['조식', '중식', '석식', '야식'] : [mk];
+            filtRecs.forEach(r => {
+                rptMeals.forEach(m => {
+                    rptDiByDate[r.date] = (rptDiByDate[r.date] || 0) + n(r['DI_' + m]);
+                    rptToByDate[r.date] = (rptToByDate[r.date] || 0) + n(r['TO_' + m]);
+                });
+            });
+            const rptDates14 = dates.slice(-14);
+            const rptTotalDI = Object.values(rptDiByDate).reduce((a, b) => a + b, 0);
+            const rptTotalTO = Object.values(rptToByDate).reduce((a, b) => a + b, 0);
+            const rptSumAll = rptTotalDI + rptTotalTO || 1;
+            const rptDiPct = Math.round(rptTotalDI / rptSumAll * 100);
+            const rptToPct = 100 - rptDiPct;
+
             body.innerHTML = `
             <div style="padding:4px 0 16px">
             ${mkFilterHTML(mk, sites, sfilt)}
+            <!-- ★ 일반식 vs 테이크아웃 분리 차트 -->
+            <div class="ch-panel">
+                <div class="ch-panel-title">🍱 일반식(D/I) vs 테이크아웃(T/O) 분리 분석 <span style="font-size:9px;color:var(--dim);font-weight:400">${mk} 기준 · 최근 14일</span></div>
+                <div class="ch-panel-sub">일반식과 테이크아웃 식수를 분리하여 운영 구성을 분석합니다</div>
+                <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+                    <div class="kpi-v2 accent" style="flex:1;min-width:80px"><div class="kv2-lbl">일반식(D/I) 합계</div><div class="kv2-val" style="color:#38bdf8">${rptTotalDI.toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptDiPct}%</div></div>
+                    <div class="kpi-v2 warning" style="flex:1;min-width:80px"><div class="kv2-lbl">테이크아웃(T/O) 합계</div><div class="kv2-val" style="color:#fbbf24">${rptTotalTO.toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptToPct}%</div></div>
+                    <div class="kpi-v2 success" style="flex:1;min-width:80px"><div class="kv2-lbl">전체 합계</div><div class="kv2-val" style="color:#34d399">${(rptTotalDI + rptTotalTO).toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${dates.length}일 기준</div></div>
+                </div>
+                <div style="display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;flex-direction:column">
+                    <div style="width:100%"><div id="chartRptDITO" class="ch-apex"></div></div>
+                    <div style="width:100%;max-width:260px;margin:0 auto"><div id="chartRptDonut" class="ch-apex"></div></div>
+                </div>
+            </div>
             <div class="ch-panel">
                 <div class="ch-panel-title">🔮 AI 예측 (향후 7일) <span style="font-size:9px;color:var(--dim);font-weight:400">신뢰도: ${confText} · 평일/주말 기준 분리</span></div>
                 <div id="chartForecast" class="ch-apex"></div>
@@ -3135,7 +3227,13 @@
                 const bAvg = isOff ? weAvg : wdAvg;
                 const chg = bAvg > 0 ? ((fv - bAvg) / bAvg * 100).toFixed(1) : 0;
                 const cc = chg > 0 ? '#34d399' : chg < 0 ? '#f87171' : '#fbbf24';
-                return `<tr${isOff ? ' style="opacity:.6"' : ''}><td>${ds.slice(5)}</td><td>${badge}</td><td style="color:var(--accent3);font-weight:900">${fv.toLocaleString()}식</td><td style="color:${cc};font-weight:800">${chg > 0 ? '+' : ''}${chg}%</td></tr>`;
+                /* ★ 중식 예측은 DI/TO 비율로 분리 출력 */
+                const diRatio = rptSumAll > 0 ? rptTotalDI / rptSumAll : 0.7;
+                const toRatio = 1 - diRatio;
+                const estDI = Math.round(fv * diRatio);
+                const estTO = Math.round(fv * toRatio);
+                const ditoInfo = (mk === '중식' || mk === '합계') ? `<br><span style="font-size:9px;color:var(--dim)">일반식 ~${estDI.toLocaleString()} / T/O ~${estTO.toLocaleString()}</span>` : '';
+                return `<tr${isOff ? ' style="opacity:.6"' : ''}><td>${ds.slice(5)}</td><td>${badge}</td><td style="color:var(--accent3);font-weight:900">${fv.toLocaleString()}식${ditoInfo}</td><td style="color:${cc};font-weight:800">${chg > 0 ? '+' : ''}${chg}%</td></tr>`;
             }).join('')}</tbody>
                 </table></div>
                 <div style="margin-top:12px;padding:12px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:10px;font-size:11px;line-height:1.9">
@@ -3174,11 +3272,79 @@
             </div>`;
 
             setTimeout(() => {
+                /* ★ DI/TO 분리 차트 렌더링 */
+                try {
+                    const cDITO = new ApexCharts(document.getElementById('chartRptDITO'), {
+                        ...APEX_BASE,
+                        chart: { ...APEX_BASE.chart, type: 'bar', height: 220, stacked: true },
+                        series: [
+                            { name: '일반식(D/I)', data: rptDates14.map(d => rptDiByDate[d] || 0) },
+                            { name: '테이크아웃(T/O)', data: rptDates14.map(d => rptToByDate[d] || 0) }
+                        ],
+                        colors: ['#38bdf8', '#fbbf24'],
+                        plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
+                        xaxis: { ...APEX_BASE.xaxis, categories: rptDates14.map(d => { const ht = getHolidayType(d).type; return d.slice(5) + (ht !== 'workday' ? '\n' + (ht === 'weekend' ? '🟡' : '🔴') : ''); }) },
+                        yaxis: { ...APEX_BASE.yaxis, min: 0, labels: { ...APEX_BASE.yaxis.labels, formatter: v => v.toLocaleString() } },
+                        dataLabels: { enabled: true, style: { fontSize: '8px' }, formatter: v => v > 0 ? v.toLocaleString() : '' },
+                        tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
+                        legend: { ...APEX_BASE.legend, position: 'top' },
+                    }); cDITO.render(); window._apexCharts.push(cDITO);
+                } catch (e) { }
+                /* ★ DI/TO 비율 도넛 차트 */
+                try {
+                    const cDonut = new ApexCharts(document.getElementById('chartRptDonut'), {
+                        chart: { type: 'donut', height: 220, background: 'transparent' },
+                        series: [rptTotalDI, rptTotalTO],
+                        labels: ['일반식(D/I)', '테이크아웃(T/O)'],
+                        colors: ['#38bdf8', '#fbbf24'],
+                        theme: { mode: 'dark' },
+                        plotOptions: { pie: { donut: { size: '60%', labels: { show: true, name: { show: true, fontSize: '11px', color: '#94a3b8' }, value: { show: true, fontSize: '16px', fontWeight: 900, color: '#f1f5f9', formatter: v => Number(v).toLocaleString() + '식' }, total: { show: true, label: '전체', fontSize: '10px', color: '#64748b', formatter: w => w.globals.seriesTotals.reduce((a, b) => a + b, 0).toLocaleString() + '식' } } } } },
+                        dataLabels: { enabled: false },
+                        legend: { show: false },
+                        stroke: { width: 2, colors: ['#0a0f1e'] },
+                        tooltip: { theme: 'dark', y: { formatter: v => v.toLocaleString() + '명' } },
+                    }); cDonut.render(); window._apexCharts.push(cDonut);
+                } catch (e) { }
+
                 const fLabels = foreRows.map(r => { const ht = r.ht.type; return r.ds.slice(5) + (ht === 'weekend' ? '\n🟡' : ht === 'holiday' ? '\n🔴' : ht === 'sandwich' ? '\n🟣' : ''); });
                 try {
                     const c8 = new ApexCharts(document.getElementById('chartForecast'), {
                         ...APEX_BASE,
-                        chart: { ...APEX_BASE.chart, type: 'bar', height: 200 },
+                        chart: {
+                            ...APEX_BASE.chart, type: 'bar', height: 200,
+                            events: {
+                                dataPointSelection: function (event, chartContext, config) {
+                                    try {
+                                        const idx = config.dataPointIndex;
+                                        const fr = foreRows[idx];
+                                        if (!fr) return;
+                                        /* ★ AI예측 차트 클릭 시 하단에 날짜 + DI/TO 분리 정보 표시 */
+                                        const DOW_MAP = ['일', '월', '화', '수', '목', '금', '토'];
+                                        const dayOfWeek = DOW_MAP[new Date(fr.ds + 'T00:00:00').getDay()];
+                                        const diRatio = rptSumAll > 0 ? rptTotalDI / rptSumAll : 0.7;
+                                        const toRatio = 1 - diRatio;
+                                        const estDI = Math.round(fr.fv * diRatio);
+                                        const estTO = Math.round(fr.fv * toRatio);
+                                        let infoEl = document.getElementById('rptForecastClickInfo');
+                                        if (!infoEl) {
+                                            infoEl = document.createElement('div');
+                                            infoEl.id = 'rptForecastClickInfo';
+                                            infoEl.style.cssText = 'margin-top:10px;padding:12px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:10px;animation:slideIn .25s ease-out';
+                                            document.getElementById('chartForecast').parentNode.insertBefore(infoEl, document.getElementById('chartForecast').nextSibling);
+                                        }
+                                        const badge = fr.isOff ? `<span style="background:rgba(248,113,113,.12);color:#f87171;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">${fr.ht.label || '휴일'}</span>` : `<span style="background:rgba(56,189,248,.1);color:#38bdf8;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">평일</span>`;
+                                        let ditoDetail = '';
+                                        if (mk === '중식' || mk === '합계') {
+                                            ditoDetail = `<div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap">
+                                                <div style="padding:5px 8px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:6px;font-size:10px">🔵 일반식(D/I): <strong style="color:#38bdf8">~${estDI.toLocaleString()}명</strong></div>
+                                                <div style="padding:5px 8px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);border-radius:6px;font-size:10px">🟠 T/O: <strong style="color:#fbbf24">~${estTO.toLocaleString()}명</strong></div>
+                                            </div>`;
+                                        }
+                                        infoEl.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:12px;font-weight:900">📅 ${fr.ds} (${dayOfWeek}요일) ${badge} <span style="background:rgba(244,63,94,.12);color:#f43f5e;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800;margin-left:3px">AI예측</span></div><button onclick="this.parentNode.parentNode.remove()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px">✕</button></div><div style="font-size:12px;font-weight:800;color:var(--accent3);margin-top:4px">추정 ${mk}: ${fr.fv.toLocaleString()}명</div>${ditoDetail}`;
+                                    } catch (err) { }
+                                }
+                            }
+                        },
                         series: [{ name: '추정 ' + mk, data: foreRows.map(r => r.fv) }],
                         colors: foreRows.map(r => r.isOff ? '#475569' : '#38bdf8'),
                         plotOptions: { bar: { borderRadius: 6, distributed: true, columnWidth: '55%', dataLabels: { position: 'top' } } },
