@@ -1,0 +1,2395 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0f1e" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Samsung Welstory Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.46.0/dist/apexcharts.min.js"></script>
+    <style>
+        :root {
+            --bg: #0a0f1e;
+            --surface: #111827;
+            --card: rgba(17, 24, 39, .85);
+            --card-hover: rgba(23, 32, 52, .9);
+            --border: rgba(148, 163, 184, .08);
+            --border-hover: rgba(56, 189, 248, .2);
+            --accent: #38bdf8;
+            --accent2: #818cf8;
+            --accent3: #a78bfa;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --text: #f1f5f9;
+            --muted: #64748b;
+            --dim: #475569;
+            --r: 16px;
+            --r2: 12px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, .4);
+            --glow: 0 0 20px rgba(56, 189, 248, .08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', 'Malgun Gothic', sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden
+        }
+
+        input,
+        textarea,
+        select,
+        button {
+            font-family: inherit;
+            user-select: auto !important;
+            -webkit-user-select: auto !important
+        }
+
+        /* ===== LOGIN ===== */
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000
+        }
+
+        .login-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 30%, rgba(56, 189, 248, .06), transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(129, 140, 248, .04), transparent 50%)
+        }
+
+        .login-card {
+            position: relative;
+            background: linear-gradient(145deg, rgba(17, 24, 39, .9), rgba(15, 23, 42, .95));
+            padding: 48px 32px 36px;
+            border-radius: 28px;
+            border: 1px solid rgba(148, 163, 184, .06);
+            width: 88%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .5), var(--glow)
+        }
+
+        .login-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 14px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 8px 24px rgba(56, 189, 248, .2)
+        }
+
+        .login-card h2 {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -.5px;
+            margin-bottom: 6px;
+            background: linear-gradient(90deg, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .login-card p {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 28px;
+            line-height: 1.5
+        }
+
+        .login-field {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, .03);
+            border: 1.5px solid rgba(148, 163, 184, .1);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            height: 50px;
+            padding: 0 16px;
+            transition: all .3s
+        }
+
+        .login-field:focus-within {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, .04);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, .08)
+        }
+
+        .login-field input {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            outline: none
+        }
+
+        .login-field input::placeholder {
+            color: var(--dim);
+            font-weight: 600
+        }
+
+        .domain-tag {
+            color: var(--accent);
+            font-size: 11px;
+            font-weight: 800;
+            opacity: .7;
+            flex-shrink: 0;
+            white-space: nowrap
+        }
+
+        #loginPw {
+            width: 100%;
+            height: 50px;
+            padding: 0 16px;
+            background: rgba(255, 255, 255, .03);
+            border: 1.5px solid rgba(148, 163, 184, .1);
+            border-radius: 14px;
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            outline: none;
+            transition: all .3s
+        }
+
+        #loginPw:focus {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, .04);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, .08)
+        }
+
+        #loginPw::placeholder {
+            color: var(--dim);
+            font-weight: 600
+        }
+
+        .login-btn {
+            width: 100%;
+            height: 50px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            font-weight: 900;
+            font-size: 15px;
+            cursor: pointer;
+            letter-spacing: -.3px;
+            box-shadow: 0 4px 16px rgba(56, 189, 248, .25);
+            transition: all .2s
+        }
+
+        .login-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(56, 189, 248, .35)
+        }
+
+        .login-btn:disabled {
+            opacity: .4;
+            transform: none;
+            cursor: not-allowed
+        }
+
+        #login-error {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 14px;
+            font-weight: 700;
+            display: none;
+            line-height: 1.5;
+            background: rgba(248, 113, 113, .06);
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(248, 113, 113, .1);
+            width: 100%;
+            text-align: left
+        }
+
+        /* ===== SPLASH ===== */
+        #splash {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000
+        }
+
+        .sp-ring {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, .06);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            animation: spin .7s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* ===== DASHBOARD ===== */
+        #dashboard {
+            display: none;
+            opacity: 0;
+            flex-direction: column;
+            width: 100%;
+            overflow-y: auto;
+            transition: opacity .4s
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(10, 15, 30, .92);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(20px) saturate(1.2);
+            padding: env(safe-area-inset-top, 12px) 20px 14px
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            gap: 8px;
+            min-width: 0
+        }
+
+        .header-top>div:first-child {
+            min-width: 0;
+            flex: 1 1 0;
+            overflow: hidden
+        }
+
+        .header-top h1 {
+            font-size: clamp(12px, 3.8vw, 18px);
+            font-weight: 900;
+            letter-spacing: -.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        #lastUpdate {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-top: 3px
+        }
+
+        #role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            margin-top: 4px;
+            border: 1px solid
+        }
+
+        .hdr-btns {
+            display: flex;
+            gap: 6px
+        }
+
+        .hdr-btn {
+            height: 34px;
+            padding: 0 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .03);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: 4px
+        }
+
+        .hdr-btn:hover {
+            border-color: var(--accent);
+            background: rgba(56, 189, 248, .06)
+        }
+
+        .hdr-btn.accent {
+            border-color: rgba(56, 189, 248, .2);
+            color: var(--accent)
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 2px
+        }
+
+        .filter-row::-webkit-scrollbar {
+            display: none
+        }
+
+        .chip {
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1.5px solid rgba(148, 163, 184, .1);
+            background: rgba(255, 255, 255, .02);
+            color: var(--dim);
+            font-weight: 800;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all .25s
+        }
+
+        .chip:hover {
+            border-color: rgba(56, 189, 248, .3);
+            color: var(--text)
+        }
+
+        .chip.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 2px 12px rgba(56, 189, 248, .2)
+        }
+
+        main {
+            padding: 16px;
+            display: grid;
+            gap: 14px;
+            max-width: 580px;
+            margin: 0 auto;
+            width: 100%
+        }
+
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: border-color .3s
+        }
+
+        .card:hover {
+            border-color: var(--border-hover)
+        }
+
+        .card-inner {
+            padding: 20px
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px
+        }
+
+        .region-tag {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            opacity: .8
+        }
+
+        .site-name {
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: -.5px;
+            line-height: 1.2
+        }
+
+        .total-badge {
+            text-align: right
+        }
+
+        .total-badge .label {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 3px
+        }
+
+        .total-badge .val {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--success)
+        }
+
+        @keyframes blink {
+            0% { opacity: 1 }
+            50% { opacity: .2 }
+            100% { opacity: 1 }
+        }
+
+        .led-red {
+            display: inline-block;
+            font-size: 11px;
+            margin-left: 6px;
+            animation: blink 1s infinite;
+            text-shadow: 0 0 8px rgba(248, 113, 113, .8)
+        }
+
+        .alert-banner {
+            background: rgba(248, 113, 113, .12);
+            border-bottom: 1px solid rgba(248, 113, 113, .2);
+            color: var(--danger);
+            font-size: 11px;
+            font-weight: 900;
+            padding: 7px 16px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            white-space: nowrap
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 18s linear infinite
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(100vw) }
+            100% { transform: translateX(-100%) }
+        }
+
+        .alert-banner.warn {
+            background: rgba(251, 191, 36, .08);
+            border-bottom-color: rgba(251, 191, 36, .2);
+            color: var(--warning)
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px
+        }
+
+        .sbox {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: var(--r2);
+            padding: 12px 8px;
+            text-align: center;
+            position: relative;
+            transition: border-color .2s
+        }
+
+        .sbox:hover { border-color: rgba(255, 255, 255, .12) }
+
+        .sbox .lb {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: block
+        }
+
+        .sbox .vl {
+            font-size: 16px;
+            font-weight: 900;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block
+        }
+
+        .edit-sm {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            opacity: .3;
+            transition: opacity .2s;
+            padding: 2px
+        }
+
+        .edit-sm:hover { opacity: 1 }
+
+        .staff-panel {
+            background: linear-gradient(135deg, rgba(56, 189, 248, .04), rgba(129, 140, 248, .03));
+            border: 1px solid rgba(56, 189, 248, .08);
+            border-radius: var(--r2);
+            padding: 12px;
+            margin-bottom: 14px;
+            position: relative
+        }
+
+        .staff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            text-align: center;
+            gap: 4px
+        }
+
+        .staff-grid .lb {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: 700;
+            margin-bottom: 3px
+        }
+
+        .staff-grid .vl { font-size: 16px; font-weight: 900 }
+
+        .edit-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all .2s
+        }
+
+        .edit-icon:hover {
+            background: rgba(56, 189, 248, .1);
+            border-color: var(--accent)
+        }
+
+        .monthly-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0 12px;
+            padding: 7px 12px;
+            background: rgba(255, 255, 255, .02);
+            border-radius: 10px;
+            border: 1px dashed var(--border);
+        }
+
+        .mb-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--dim);
+            white-space: nowrap;
+        }
+
+        .mb-val { color: var(--text) }
+
+        .mb-pct {
+            font-weight: 900;
+            font-size: 10px;
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        .mb-pct.up { color: var(--success); background: rgba(52, 211, 153, .1) }
+        .mb-pct.down { color: var(--danger); background: rgba(248, 113, 113, .1) }
+        .mb-split { color: var(--border); font-size: 10px }
+
+        .tbl-wrap {
+            background: rgba(0, 0, 0, .25);
+            border-radius: var(--r2);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-bottom: 14px
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 12px }
+
+        th {
+            padding: 10px 8px;
+            text-align: right;
+            color: var(--dim);
+            font-weight: 700;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .01)
+        }
+
+        td {
+            padding: 9px 8px;
+            text-align: right;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            font-weight: 700
+        }
+
+        td:first-child, th:first-child { text-align: left }
+        td:first-child { color: var(--accent); font-weight: 800 }
+
+        .row-sum td {
+            background: rgba(52, 211, 153, .04);
+            font-weight: 900;
+            color: var(--success) !important
+        }
+
+        .btn-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px
+        }
+
+        .mbtn {
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .02);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .mbtn:hover {
+            border-color: rgba(255, 255, 255, .15);
+            background: rgba(255, 255, 255, .05)
+        }
+
+        .mbtn.pri {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            border: none;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, .15)
+        }
+
+        .mbtn.pri:hover { box-shadow: 0 4px 16px rgba(56, 189, 248, .25) }
+
+        .ipanel {
+            display: none;
+            margin-top: 14px;
+            padding: 18px;
+            background: rgba(10, 15, 30, .7);
+            border: 1px solid var(--border);
+            border-radius: var(--r2);
+            animation: slideIn .25s ease-out;
+            overflow: hidden;
+            max-width: 100%;
+            box-sizing: border-box
+        }
+
+        .ipanel.show { display: block }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-6px) }
+            to { opacity: 1; transform: translateY(0) }
+        }
+
+        .sec-title {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--accent);
+            margin: 18px 0 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            letter-spacing: .3px
+        }
+
+        .sec-title:first-child { margin-top: 0 }
+
+        .fg {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px
+        }
+
+        .fg.c4 { grid-template-columns: 1fr 1fr 1fr 1fr }
+
+        @media(max-width:400px) {
+            .fg.c4 { grid-template-columns: 1fr 1fr }
+        }
+
+        .ff { display: flex; flex-direction: column; gap: 3px }
+        .ff label { font-size: 10px; color: var(--dim); font-weight: 700 }
+
+        .ff input,
+        .ff textarea {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 10px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            outline: none;
+            transition: border-color .2s;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            min-width: 0
+        }
+
+        .ff input:focus, .ff textarea:focus { border-color: var(--accent) }
+        .ff textarea { resize: none; height: 56px }
+
+        .sv-btn {
+            width: 100%;
+            height: 42px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: -.2px
+        }
+
+        .sv-btn.green {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(52, 211, 153, .2)
+        }
+
+        .sv-btn.blue {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(56, 189, 248, .15)
+        }
+
+        .sv-btn:disabled { opacity: .4 }
+
+        .sv-msg {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 8px;
+            font-weight: 800
+        }
+
+        .ov {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 15, 30, .85);
+            backdrop-filter: blur(12px);
+            z-index: 1500;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 16px
+        }
+
+        .ov-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 540px;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .5)
+        }
+
+        .ov-hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px
+        }
+
+        .ov-hdr h3 { font-size: 16px; font-weight: 900; letter-spacing: -.3px }
+
+        .cls-btn {
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .cls-btn:hover { border-color: var(--accent); color: var(--accent) }
+
+        .ch-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px }
+
+        .ch-name {
+            width: 48px;
+            text-align: right;
+            font-size: 11px;
+            font-weight: 800;
+            flex-shrink: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--muted)
+        }
+
+        .ch-track {
+            flex: 1;
+            height: 24px;
+            background: rgba(255, 255, 255, .03);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative
+        }
+
+        .ch-fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 10px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .4);
+            min-width: 28px;
+            transition: width .6s ease-out
+        }
+
+        .ch-dual { display: flex; gap: 3px; margin-bottom: 3px }
+        .ch-dual .ch-track { height: 18px }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 900
+        }
+
+        .note-box {
+            background: linear-gradient(135deg, rgba(56, 189, 248, .03), rgba(129, 140, 248, .02));
+            border: 1px solid rgba(56, 189, 248, .08);
+            border-radius: var(--r2);
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.8
+        }
+
+        .note-box strong { color: var(--accent) }
+        .note-box .formula { color: var(--dim); margin-left: 14px; display: block }
+
+        .cal-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 15, 30, .92);
+            backdrop-filter: blur(16px);
+            z-index: 1600;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 16px
+        }
+
+        .cal-modal.show { display: flex }
+
+        .cal-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .6)
+        }
+
+        .cal-hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px
+        }
+
+        .cal-hdr h3 { font-size: 15px; font-weight: 900 }
+
+        .cal-nav { display: flex; align-items: center; gap: 12px }
+
+        .cal-nav button {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s
+        }
+
+        .cal-nav button:hover { border-color: var(--accent); color: var(--accent) }
+
+        .cal-nav .mon-lbl {
+            font-size: 13px;
+            font-weight: 900;
+            min-width: 80px;
+            text-align: center
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-bottom: 16px
+        }
+
+        .cal-dow {
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--dim);
+            padding: 4px 0
+        }
+
+        .cal-day {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 800;
+            transition: all .2s;
+            position: relative;
+            gap: 1px
+        }
+
+        .cal-day:hover { background: rgba(56, 189, 248, .08) }
+
+        .cal-day.has-data::after {
+            content: '';
+            width: 5px;
+            height: 5px;
+            background: var(--accent);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 3px
+        }
+
+        .cal-day.today {
+            background: rgba(56, 189, 248, .1);
+            border: 1px solid rgba(56, 189, 248, .3)
+        }
+
+        .cal-day.selected {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff
+        }
+
+        .cal-day.other-month { opacity: .25 }
+
+        .cal-detail {
+            background: rgba(0, 0, 0, .3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 8px;
+            animation: slideIn .2s ease-out
+        }
+
+        .cal-detail .dt-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 12px
+        }
+
+        .cal-meal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px
+        }
+
+        .cal-meal-box {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center
+        }
+
+        .cal-meal-box .mlb { font-size: 9px; color: var(--dim); font-weight: 700; margin-bottom: 4px }
+        .cal-meal-box .mval { font-size: 16px; font-weight: 900 }
+        .cal-meal-box .msub { font-size: 9px; color: var(--muted); margin-top: 2px }
+
+        .emotion-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 22px;
+            padding: 2px 6px;
+            transition: transform .2s;
+            display: inline-block
+        }
+
+        .emotion-btn:hover { transform: scale(1.25) }
+
+        .precise-title {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--accent2);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .meal-staff-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 10px
+        }
+
+        .meal-staff-cell {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center
+        }
+
+        .meal-staff-cell .mc-lb { font-size: 9px; color: var(--dim); font-weight: 700; margin-bottom: 4px }
+
+        .meal-staff-cell input {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 15px;
+            font-weight: 900;
+            text-align: center;
+            outline: none
+        }
+
+        .intensity-meter { display: flex; align-items: center; gap: 8px; margin-top: 8px }
+
+        .intensity-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, .05);
+            border-radius: 4px;
+            overflow: hidden
+        }
+
+        .intensity-fill { height: 100%; border-radius: 4px; transition: width .5s ease, background .5s }
+
+        .sbox-auto {
+            border-color: rgba(52, 211, 153, .25) !important;
+            background: rgba(52, 211, 153, .03) !important
+        }
+
+        .auto-dot {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            display: block;
+            box-shadow: 0 0 6px rgba(52, 211, 153, .5)
+        }
+
+        .trend-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 15, 30, .95);
+            backdrop-filter: blur(20px);
+            z-index: 1700;
+            display: none;
+            flex-direction: column
+        }
+
+        .trend-modal.show { display: flex }
+
+        .trend-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(17, 24, 39, .9);
+            flex-shrink: 0
+        }
+
+        .trend-body { flex: 1; overflow-y: auto; padding: 20px 24px }
+
+        .trend-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r2);
+            padding: 18px;
+            margin-bottom: 16px
+        }
+
+        .trend-section-title {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 14px;
+            letter-spacing: .3px
+        }
+
+        .sparkline-wrap { position: relative; overflow: hidden; border-radius: 8px }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px
+        }
+
+        .kpi-box {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center
+        }
+
+        .kpi-box .kl { font-size: 9px; color: var(--dim); font-weight: 700; margin-bottom: 4px }
+        .kpi-box .kv { font-size: 18px; font-weight: 900 }
+        .kpi-box .kt { font-size: 10px; font-weight: 700; margin-top: 2px }
+
+        .forecast-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            background: rgba(167, 139, 250, .1);
+            color: var(--accent3);
+            border: 1px solid rgba(167, 139, 250, .2)
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 8px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            background: rgba(17, 24, 39, .9);
+            flex-shrink: 0
+        }
+
+        .report-btn {
+            flex: 1;
+            height: 44px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .report-btn.pri { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff }
+        .report-btn.sec { background: rgba(255, 255, 255, .04); border: 1px solid var(--border); color: var(--text) }
+
+        .data-table-mini { width: 100%; border-collapse: collapse; font-size: 11px }
+
+        .data-table-mini th {
+            padding: 6px 8px;
+            text-align: center;
+            color: var(--dim);
+            font-size: 9px;
+            font-weight: 800;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .01)
+        }
+
+        .data-table-mini td {
+            padding: 6px 8px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            font-weight: 700;
+            font-size: 11px
+        }
+
+        .data-table-mini td:first-child { text-align: left; color: var(--accent); font-weight: 800 }
+
+        .trend-up { color: var(--success) }
+        .trend-down { color: var(--danger) }
+        .trend-flat { color: var(--warning) }
+
+        .no-data-msg { text-align: center; padding: 30px; color: var(--dim); font-size: 13px }
+
+        .goal-input {
+            width: 100%;
+            background: rgba(56, 189, 248, .06);
+            border: 1.5px solid var(--accent);
+            border-radius: 6px;
+            padding: 4px 6px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 900;
+            text-align: center;
+            outline: none;
+            margin-top: 2px
+        }
+
+        .tr-tab {
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s;
+            white-space: nowrap;
+            margin-bottom: -1px
+        }
+
+        .tr-tab:hover { color: var(--text) }
+        .tr-tab.active { color: var(--accent); border-bottom-color: var(--accent) }
+
+        .ch-panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            overflow: hidden
+        }
+
+        .ch-panel-title {
+            font-size: 13px;
+            font-weight: 900;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .ch-panel-sub { font-size: 10px; color: var(--dim); margin-bottom: 14px; font-weight: 700 }
+        .ch-apex { width: 100%; min-height: 10px }
+
+        .kpi-row-v2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 14px
+        }
+
+        @media(min-width:480px) {
+            .kpi-row-v2 { grid-template-columns: repeat(4, 1fr) }
+        }
+
+        .kpi-v2 {
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 10px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .kpi-v2::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            border-radius: 12px 12px 0 0
+        }
+
+        .kpi-v2.accent::before { background: var(--accent) }
+        .kpi-v2.success::before { background: var(--success) }
+        .kpi-v2.warning::before { background: var(--warning) }
+        .kpi-v2.danger::before { background: var(--danger) }
+
+        .kpi-v2 .kv2-lbl { font-size: 9px; color: var(--dim); font-weight: 800; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px }
+        .kpi-v2 .kv2-val { font-size: 20px; font-weight: 900; line-height: 1.1 }
+        .kpi-v2 .kv2-sub { font-size: 9px; color: var(--dim); margin-top: 3px; font-weight: 700 }
+
+        .kpi-v2 .kv2-badge {
+            display: inline-block;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 800;
+            margin-left: 4px;
+            vertical-align: middle
+        }
+
+        .week-cmp-tbl { width: 100%; border-collapse: collapse; font-size: 11px }
+
+        .week-cmp-tbl th {
+            padding: 7px 8px;
+            text-align: center;
+            color: var(--dim);
+            font-size: 9px;
+            font-weight: 800;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, .01)
+        }
+
+        .week-cmp-tbl td {
+            padding: 7px 8px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, .03);
+            font-weight: 700
+        }
+
+        .week-cmp-tbl td:first-child { text-align: left; color: var(--accent); font-weight: 800 }
+
+        .site-bar-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 8px }
+
+        .site-bar-name {
+            font-size: 11px;
+            font-weight: 800;
+            min-width: 60px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .site-bar-track {
+            flex: 1;
+            height: 20px;
+            background: rgba(255, 255, 255, .04);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative
+        }
+
+        .site-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 6px;
+            font-size: 9px;
+            font-weight: 800;
+            color: #fff;
+            transition: width .6s ease;
+            min-width: 28px
+        }
+
+        .site-bar-avg { position: absolute; top: 0; bottom: 0; width: 1.5px; background: rgba(255, 255, 255, .25) }
+        .site-bar-meta { font-size: 9px; color: var(--dim); min-width: 50px; text-align: right; white-space: nowrap }
+
+        .dow-chip { display: inline-flex; gap: 3px; flex-wrap: wrap; margin-bottom: 10px }
+
+        .dow-chip button {
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, .02);
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .dow-chip button.active { background: var(--accent); color: #fff; border-color: transparent }
+
+        .chart-scroll-wrap {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+        }
+
+        .chart-scroll-wrap::-webkit-scrollbar { height: 4px; }
+        .chart-scroll-wrap::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+    </style>
+
+
+<body>
+    <!-- LOGIN -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-bg"></div>
+        <div class="login-card">
+            <div class="login-logo">🏢</div>
+            <h2>Welstory Dashboard</h2>
+            <p>Samsung Welstory 운영 현황 관리 시스템<br />인가된 관계자만 접근 가능합니다</p>
+            <div class="login-field">
+                <input type="text" id="loginId" placeholder="싱글 아이디" autocomplete="off">
+                <div class="domain-tag">@samsung.com</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:flex-end;margin:-4px 0 10px;gap:6px">
+                <span id="save-id-label" style="font-size:11px;color:var(--dim);font-weight:600"></span>
+                <button id="save-id-btn" onclick="toggleSaveId()"
+                    style="padding:4px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;transition:all .2s;line-height:1.4">아이디
+                    저장</button>
+            </div>
+            <input type="password" id="loginPw" placeholder="비밀번호">
+            <button class="login-btn" onclick="doLogin()">로그인</button>
+            <div id="login-error"></div>
+        </div>
+    </div>
+
+    <!-- SPLASH -->
+    <div id="splash">
+        <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:24px;letter-spacing:-.5px">Welstory
+            Dashboard</div>
+        <div class="sp-ring"></div>
+        <div style="margin-top:20px;font-size:13px;color:var(--dim)">데이터를 불러오는 중...</div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard">
+        <header>
+            <div class="header-top">
+                <div>
+                    <h1 id="main-title">Welstory 사업장 현황</h1>
+                    <div id="lastUpdate"></div>
+                    <div id="role-badge"></div>
+                </div>
+                <div class="hdr-btns">
+                    <button id="rpt-btn" class="hdr-btn accent" style="display:none" onclick="openReport()">📊
+                        리포트</button>
+                    <button id="trend-btn" class="hdr-btn" onclick="openTrendReport()" title="추이 분석 리포트">📈</button>
+                    <button class="hdr-btn" onclick="openCal()" title="데일리 식수 열람">📅</button>
+                    <button class="hdr-btn" onclick="location.reload()">↻</button>
+                    <button class="hdr-btn" onclick="openPwChange()" title="비밀번호 변경">🔑</button>
+                </div>
+            </div>
+            <div class="filter-row" id="chips"></div>
+        </header>
+        <main id="grid"></main>
+    </div>
+
+    <!-- REPORT OVERLAY -->
+    <div id="ov" class="ov" onclick="this.style.display='none'">
+        <div class="ov-box" id="ov-ct" onclick="event.stopPropagation()"></div>
+    </div>
+
+    <!-- 데일리 캘린더 모달 -->
+    <div id="cal-modal" class="cal-modal" onclick="this.classList.remove('show')">
+        <div class="cal-box" onclick="event.stopPropagation()">
+            <div class="cal-hdr">
+                <h3>📅 데일리 식수 열람</h3>
+                <button class="cls-btn"
+                    onclick="document.getElementById('cal-modal').classList.remove('show')">닫기</button>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <div class="cal-nav">
+                    <button onclick="calPrev()">‹</button>
+                    <div class="cal-nav">
+                        <div class="mon-lbl" id="cal-month-lbl"></div>
+                    </div>
+                    <button onclick="calNext()">›</button>
+                </div>
+                <select id="cal-site-sel" onchange="renderCal()"
+                    style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:12px;font-weight:700;outline:none">
+                    <option value="ALL">전체 사업장</option>
+                </select>
+            </div>
+            <div class="cal-grid" id="cal-days"></div>
+            <div id="cal-detail"></div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 변경 모달 -->
+    <div id="pw-modal"
+        style="display:none;position:fixed;inset:0;background:rgba(10,15,30,.92);backdrop-filter:blur(16px);z-index:1800;justify-content:center;align-items:center;padding:16px"
+        onclick="this.style.display='none'">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.5)"
+            onclick="event.stopPropagation()">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                <div style="font-size:16px;font-weight:900;letter-spacing:-.3px">🔑 비밀번호 변경</div>
+                <button class="cls-btn" onclick="document.getElementById('pw-modal').style.display='none'">닫기</button>
+            </div>
+            <div
+                style="font-size:11px;color:var(--dim);margin-bottom:16px;line-height:1.6;background:rgba(56,189,248,.04);padding:10px 14px;border-radius:10px;border:1px solid rgba(56,189,248,.08)">
+                ℹ️ 개인 비밀번호를 설정하면 마스터 비밀번호 대신 사용됩니다.<br />최소 4자 이상 입력해 주세요.
+            </div>
+            <div class="ff" style="margin-bottom:10px"><label>현재 비밀번호</label><input type="password" id="pw-cur"
+                    placeholder="현재 비밀번호 입력"
+                    style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:#fff;font-size:13px;font-weight:700;outline:none;width:100%;transition:border-color .2s"
+                    onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div class="ff" style="margin-bottom:10px"><label>새 비밀번호</label><input type="password" id="pw-new"
+                    placeholder="새 비밀번호 (4자 이상)"
+                    style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:#fff;font-size:13px;font-weight:700;outline:none;width:100%;transition:border-color .2s"
+                    onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div class="ff" style="margin-bottom:16px"><label>새 비밀번호 확인</label><input type="password" id="pw-confirm"
+                    placeholder="새 비밀번호 재입력"
+                    style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:#fff;font-size:13px;font-weight:700;outline:none;width:100%;transition:border-color .2s"
+                    onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <button onclick="submitPwChange()"
+                style="width:100%;height:44px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:900;font-size:14px;cursor:pointer;transition:all .2s"
+                onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">변경 완료</button>
+            <div id="pw-msg" style="text-align:center;font-size:12px;font-weight:800;margin-top:10px;min-height:18px">
+            </div>
+        </div>
+    </div>
+
+    <!-- 추이 분석 리포트 모달 -->
+    <div id="trend-modal" class="trend-modal">
+        <div class="trend-header">
+            <div>
+                <div
+                    style="font-size:18px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+                    📈 정밀 분석 리포트</div>
+                <div style="font-size:11px;color:var(--dim);margin-top:3px" id="trend-date-range"></div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+                <select id="trend-region-sel" onchange="renderTrendReport()"
+                    style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:12px;font-weight:700;outline:none;max-width:130px">
+                    <option value="ALL">전체 지역</option>
+                </select>
+                <span class="forecast-tag">✨ AI 추정 포함</span>
+                <button class="cls-btn" onclick="closeTrend()">닫기</button>
+            </div>
+        </div>
+        <div id="trend-tab-nav"
+            style="display:flex;gap:6px;padding:0 20px 0;border-bottom:1px solid var(--border);background:rgba(10,15,30,.8);flex-wrap:wrap;">
+            <button class="tr-tab active" data-tab="trend" onclick="switchTrendTab('trend')">📈 추이 & 예측</button>
+            <button class="tr-tab" data-tab="daily" onclick="switchTrendTab('daily')">📊 요일별 분석</button>
+            <button class="tr-tab" data-tab="sites" onclick="switchTrendTab('sites')">🏢 사업장 비교</button>
+            <button class="tr-tab" data-tab="report" onclick="switchTrendTab('report')">💡 운영 리포트</button>
+        </div>
+        <div class="trend-body" id="trend-body"></div>
+        <div class="report-actions" id="trend-actions">
+            <button id="export-btn" class="report-btn pri" onclick="exportReport()">📥 리포트 추출 (HTML)</button>
+            <button id="sync-btn" class="report-btn sec" onclick="refreshTrendFromGAS()" title="서버의 모든 과거 실적과 동기화합니다">📡
+                서버 동기화</button>
+            <button id="copy-btn" class="report-btn sec" onclick="copyReportText()">📋 텍스트 복사</button>
+            <button class="report-btn sec" onclick="closeTrend()">✕ 닫기</button>
+        </div>
+    </div>
+
+
+    <script>
+        /* =====================================================
+           ★ 전역 상수 & 권한 변수
+        ===================================================== */
+        const API = "https://script.google.com/macros/s/AKfycbxwJIGmBlO-bNYlwGpibBmP4cyBDYvGbpP9hWTxSabgNBGdUL5Ap24v1XqHVtscKgyk/exec";
+
+        const RM = {
+            "a": "사업장명", "b": "지역",
+            "c1": "영양사", "c2": "조리사", "c3": "웰프로_주", "c4": "웰프로_야",
+            "d1": "좌석수", "d2": "코너수", "d3": "TO_코너수",
+            "e1": "DI_조식", "e2": "DI_중식", "e3": "DI_석식", "e4": "DI_야식",
+            "f1": "TO_조식", "f2": "TO_중식", "f3": "TO_석식", "f4": "TO_야식",
+            "e5": "DI_조식(주말)", "e6": "DI_중식(주말)", "e7": "DI_석식(주말)", "e8": "DI_야식(주말)",
+            "f5": "TO_조식(주말)", "f6": "TO_중식(주말)", "f7": "TO_석식(주말)", "f8": "TO_야식(주말)",
+            "g1": "회전율(중식_T/O포함)", "g2": "회전율(중식_T/O제외)",
+            "h1": "도전매출", "h2": "도전영업이익", "h3": "목표재료비",
+            "m1": "금월_평균중식", "m2": "전월대비", "m3": "조업일수"
+        };
+        function deobf(arr) { return arr.map(row => { const o = {}; Object.keys(row).forEach(k => { o[RM[k] || k] = row[k] }); return o }); }
+
+        let D = [], USER = null, TK = null, REG = "ALL";
+        let USER_ROLE = 'C';
+        let USER_REGION = '';
+        let USER_SITE = '';
+        let OV = JSON.parse(sessionStorage.getItem("OV") || "{}");
+
+        let _gasPerfCache = null;
+        let _gasPerfLoading = false;
+        let _gasPerfLoaded = false;
+
+        function so() { sessionStorage.setItem("OV", JSON.stringify(OV)); }
+        function n(v) { if (v == null) return 0; const t = String(v).trim(); if (!t || t === "-") return 0; const x = parseFloat(t.replace(/[^0-9.-]/g, '')); return isFinite(x) ? x : 0; }
+        function f(v) { const x = n(v); return x === 0 ? "-" : x.toLocaleString(); }
+        function rc(v) { return v >= 3.5 ? "var(--danger)" : v >= 2.5 ? "var(--warning)" : "var(--success)"; }
+        function ov(sn, k, fb) { return (OV[sn] && OV[sn][k] != null) ? Number(OV[sn][k]) : fb; }
+        function gSt(d) { const sn = d["사업장명"]; return ov(sn, "영양사", n(d["영양사"])) + ov(sn, "조리사", n(d["조리사"])) + ov(sn, "웰프로_주", n(d["웰프로_주"])) + ov(sn, "웰프로_야", n(d["웰프로_야"])); }
+        function gMS(sn, m) { const o = OV[sn]; if (o && o[m + "_평일"] > 0) return Number(o[m + "_평일"]); const d = D.find(x => x["사업장명"] === sn); return d ? gSt(d) : 1; }
+        function gSeats(d) { return ov(d["사업장명"], "좌석수", n(d["좌석수"])); }
+        function inten(d) { const st = gSt(d) || 1, tm = ["조식", "중식", "석식", "야식"].reduce((a, m) => a + n(d["DI_" + m]) + n(d["TO_" + m]), 0); return { s: tm / st, tm, st }; }
+        function iLb(s) { if (s >= 95) return { t: "과부하", e: "🔴", c: "var(--danger)", b: "rgba(248,113,113,.1)" }; if (s >= 80) return { t: "주의", e: "🟡", c: "var(--warning)", b: "rgba(251,191,36,.1)" }; return { t: "양호", e: "🟢", c: "var(--success)", b: "rgba(52,211,153,.1)" }; }
+
+        /* =====================================================
+           ★ 권한별 UI 제어
+        ===================================================== */
+        const ROLE_LABEL = { M: "마스터", A: "지역장", B: "PM", C: "담당자", S: "스탭" };
+        const ROLE_COLOR = { M: "#f87171", A: "#fbbf24", B: "#38bdf8", C: "#34d399", S: "#818cf8" };
+
+        function applyRoleUI() {
+            const titleEl = document.getElementById("main-title");
+            if (USER_ROLE === "M") titleEl.textContent = "전체 사업장 현황";
+            else if (USER_ROLE === "A" || USER_ROLE === "B") titleEl.textContent = `${USER_REGION} 사업장 현황`;
+            else titleEl.textContent = USER_SITE || "내 사업장 현황";
+
+            const badge = document.getElementById("role-badge");
+            const col = ROLE_COLOR[USER_ROLE] || "#64748b";
+            const lbl = ROLE_LABEL[USER_ROLE] || USER_ROLE;
+            badge.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:800;margin-top:4px;border:1px solid ${col}40;color:${col};background:${col}12`;
+            badge.textContent = `● ${lbl}`;
+
+            const canReport = ["M", "A", "B"].includes(USER_ROLE);
+            const canExport = ["M", "A"].includes(USER_ROLE);
+
+            document.getElementById("trend-btn").style.display = canReport ? "flex" : "none";
+            document.getElementById("export-btn").style.display = canExport ? "flex" : "none";
+            document.getElementById("copy-btn").style.display = canExport ? "flex" : "none";
+        }
+
+        /* =====================================================
+           ★ 공휴일 / 징검다리 판단
+        ===================================================== */
+        const KOR_HOLIDAYS_BY_YEAR = {
+            2026: [
+                "2026-01-01",
+                "2026-02-16", "2026-02-17", "2026-02-18",
+                "2026-03-01", "2026-03-02",
+                "2026-05-05",
+                "2026-05-24", "2026-05-25",
+                "2026-06-03",
+                "2026-06-06",
+                "2026-08-15", "2026-08-17",
+                "2026-09-24", "2026-09-25", "2026-09-26",
+                "2026-10-03", "2026-10-05",
+                "2026-10-09",
+                "2026-12-25"
+            ]
+        };
+
+        function _toYMD(d) {
+            const x = (d instanceof Date) ? d : new Date(d);
+            if (isNaN(x.getTime())) return "";
+            return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+        }
+        function _isWeekend(ymd) { const d = new Date(ymd + "T00:00:00"); return (d.getDay() === 0 || d.getDay() === 6); }
+        function _isHoliday(ymd) { const y = Number(String(ymd).slice(0,4)); return (KOR_HOLIDAYS_BY_YEAR[y]||[]).includes(ymd); }
+        function getHolidayType(ymd) {
+            if (!ymd) return { type: "workday", label: "평일" };
+            if (_isWeekend(ymd)) return { type: "weekend", label: "주말" };
+            if (_isHoliday(ymd)) return { type: "holiday", label: "공휴일" };
+            const d = new Date(ymd + "T00:00:00");
+            const prev = new Date(d); prev.setDate(d.getDate()-1);
+            const next = new Date(d); next.setDate(d.getDate()+1);
+            const isOff = s => _isWeekend(s) || _isHoliday(s);
+            if (isOff(_toYMD(prev)) && isOff(_toYMD(next))) return { type: "sandwich", label: "징검다리" };
+            return { type: "workday", label: "평일" };
+        }
+
+        /* =====================================================
+           ★ 알림 트리거
+        ===================================================== */
+        function getAlertStatus(sn) {
+            const recs = getRec().filter(r => r.siteName === sn).sort((a, b) => a.date > b.date ? -1 : 1);
+            const d = D.find(x => x["사업장명"] === sn);
+            let trigger = false, level = "warn", msg = "";
+
+            if (!trigger && recs.length >= 3) {
+                const todayStr = recs[0].date;
+                const dayInfo = getHolidayType(todayStr);
+                const vals = recs.slice(1, 6).map(r => (r.DI_중식 || 0) + (r.TO_중식 || 0));
+                const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+                const today = (recs[0].DI_중식 || 0) + (recs[0].TO_중식 || 0);
+                if (avg > 0) {
+                    const chg = (today - avg) / avg * 100;
+                    if (Math.abs(chg) >= 15) {
+                        trigger = true;
+                        level = chg > 0 ? "warn" : "danger";
+                        msg = chg > 0
+                            ? `📈 중식 급증 감지 (+${chg.toFixed(0)}%) — 식재료 발주 점검 요망`
+                            : `📉 중식 급감 감지 (${chg.toFixed(0)}%) — 원인 분석 필요`;
+                        if (chg < 0 && (dayInfo.type === "sandwich" || dayInfo.type === "holiday" || dayInfo.type === "weekend")) {
+                            level = "warn";
+                            const tag = dayInfo.type === "sandwich" ? "징검다리" : dayInfo.label;
+                            msg = `📉 중식 감소 감지 (${chg.toFixed(0)}%) — ${tag} 영향 추정`;
+                        }
+                    }
+                }
+            }
+            return { trigger, level, msg };
+        }
+
+        /* =====================================================
+           ★ LOGIN
+        ===================================================== */
+        window.doLogin = async function () {
+            const err = document.getElementById("login-error"); err.style.display = "none";
+            const id = document.getElementById("loginId").value.trim(), pw = document.getElementById("loginPw").value, btn = document.querySelector(".login-btn");
+            if (!id || !pw) { err.innerText = "아이디와 비밀번호를 입력하세요."; err.style.display = "block"; return; }
+            btn.innerText = "접속 중..."; btn.disabled = true;
+            try {
+                const r = await fetch(API + "?type=login&userId=" + encodeURIComponent(id) + "&pw=" + encodeURIComponent(pw), { redirect: "follow" });
+                const t = await r.text();
+                if (t.startsWith("Valid")) {
+                    const parts = t.split("|");
+                    USER = id; TK = parts[1] || null;
+                    USER_ROLE = parts[2] || "C";
+                    USER_REGION = parts[3] || "";
+                    USER_SITE = parts[4] || "";
+                    try {
+                        sessionStorage.setItem("WS", id);
+                        if (TK) sessionStorage.setItem("WTK", TK);
+                        sessionStorage.setItem("WR", USER_ROLE);
+                        sessionStorage.setItem("WRG", USER_REGION);
+                        sessionStorage.setItem("WST", USER_SITE);
+                    } catch (e) { }
+                    document.getElementById("login-overlay").style.display = "none";
+                    applyRoleUI();
+                    init();
+                    setTimeout(() => initSecurity(id), 500);
+                } else {
+                    err.innerText = t === "NoPermission" ? "등록되지 않은 계정입니다." : "비밀번호가 올바르지 않습니다.";
+                    err.style.display = "block";
+                }
+            } catch (e) { err.innerText = "통신 오류: " + e.message; err.style.display = "block"; }
+            btn.innerText = "로그인"; btn.disabled = false;
+        };
+
+        /* =====================================================
+           ★ DATA LOAD
+        ===================================================== */
+        async function init() {
+            const sp = document.getElementById("splash"), db = document.getElementById("dashboard");
+            const cachedData = localStorage.getItem("WS_D_CACHE");
+            if (cachedData) {
+                try {
+                    D = JSON.parse(cachedData);
+                    const now = new Date();
+                    document.getElementById("lastUpdate").innerText = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")} 캐시 로드됨`;
+                    sp.style.display = "none";
+                    db.style.display = "flex";
+                    db.style.opacity = "1";
+                    chips(); render();
+                } catch (e) { }
+            } else {
+                sp.style.display = "flex";
+            }
+
+            try {
+                const url = TK ? API + "?tk=" + TK : API + "?pw=" + encodeURIComponent(document.getElementById("loginPw").value);
+                const r = await fetch(url, { redirect: "follow" });
+                const raw = await r.json();
+                if (raw.error) throw new Error(raw.error);
+
+                if (raw.data) {
+                    D = deobf(raw.data);
+                    if (!USER_ROLE || USER_ROLE === "C") { USER_ROLE = raw.role || "C"; USER_REGION = raw.region || ""; USER_SITE = raw.site || ""; }
+                } else {
+                    D = deobf(raw || []);
+                }
+                localStorage.setItem("WS_D_CACHE", JSON.stringify(D));
+                applyRoleUI();
+                chips(); render();
+                const now = new Date();
+                document.getElementById("lastUpdate").innerText = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")} 업데이트`;
+                sp.style.opacity = "0";
+                setTimeout(() => { sp.style.display = "none"; db.style.display = "flex"; db.style.opacity = "1"; }, 400);
+            } catch (e) {
+                if (!D.length) {
+                    sp.style.display = "none"; db.style.display = "flex"; db.style.opacity = "1";
+                    document.getElementById("grid").innerHTML = `<div style="padding:50px 20px;text-align:center"><div style="font-size:36px;margin-bottom:16px">⚠️</div><p style="color:var(--muted);font-size:14px;margin-bottom:20px">${e.message}</p><button class="sv-btn blue" style="width:auto;padding:0 32px" onclick="location.reload()">다시 시도</button></div>`;
+                }
+            }
+        }
+
+        /* =====================================================
+           ★ CHIPS & RENDER
+        ===================================================== */
+        function chips() {
+            const rg = [...new Set(D.map(d => d["지역"]))].filter(Boolean);
+            const showChips = ["M", "A", "B"].includes(USER_ROLE);
+            document.getElementById("chips").innerHTML = showChips
+                ? [{ v: "ALL", l: "전체" }, ...rg.map(r => ({ v: r, l: r }))].map(c => `<button class="chip ${REG === c.v ? " active" : ""}" onclick="setR('${c.v}')">${c.l}</button>`).join("")
+                : "";
+        }
+        window.setR = function (r) { REG = r; chips(); render(); };
+
+        function render() {
+            const g = document.getElementById("grid");
+            const fd = D.filter(d => REG === "ALL" || d["지역"] === REG);
+            const canReport = ["M", "A", "B"].includes(USER_ROLE);
+            document.getElementById("rpt-btn").style.display = (canReport && REG !== "ALL") ? "flex" : "none";
+
+            g.innerHTML = fd.map((d, i) => {
+                const sn = d["사업장명"], rg = d["지역"], u = sn.replace(/[^a-zA-Z0-9가-힣]/g, '') + '_' + i;
+                const gS = m => n(d["DI_" + m]) + n(d["TO_" + m]);
+                const st = gSt(d);
+                const seats = n(d["좌석수"]);
+                const seats_v = seats || 1;
+                const diMid = n(d["DI_중식"]);
+                const toMid = n(d["TO_중식"]);
+                const corners = n(d["코너수"]) || 1;
+                const toCorners_v = n(d["TO_코너수"]) || corners || 1;
+
+                const ri_raw = n(d["회전율(중식_T/O포함)"]);
+                const re_raw = n(d["회전율(중식_T/O제외)"]);
+                const re = re_raw > 0 ? re_raw : (diMid / seats_v);
+                const ri = ri_raw > 0 ? ri_raw : ((diMid + (toMid / toCorners_v)) / seats_v);
+                const reAuto = re_raw === 0 && seats_v > 0 && diMid > 0, riAuto = ri_raw === 0 && seats_v > 0 && (diMid + toMid) > 0;
+                const o = OV[sn] || {}, meals = ["조식", "중식", "석식", "야식"];
+                let gR = ''; meals.forEach(m => { const di = n(d["DI_" + m]), to = n(d["TO_" + m]), tot = di + to, ms = gMS(sn, m), ps = (tot / ms).toFixed(1); gR += `<tr><td>${m}</td><td>${f(di)}</td><td>${f(to)}</td><td>${f(tot)}</td><td>${ms}</td><td style="color:var(--accent);font-weight:900">${ps}</td></tr>`; });
+                const rS = D.filter(x => x["지역"] === rg), mxL = Math.max(...rS.map(x => n(x["DI_중식"]) + n(x["TO_중식"])));
+                let cB = ''; if (rS.length > 1) { cB = `<div class="sec-title">📊 ${rg} 중식 비교</div>`; rS.forEach(r => { const l = n(r["DI_중식"]) + n(r["TO_중식"]), p = mxL > 0 ? (l / mxL * 100) : 0, c = r["사업장명"] === sn; cB += `<div class="ch-bar"><div class="ch-name" style="${c ? 'color:var(--accent)' : ''}">${r["사업장명"]}</div><div class="ch-track"><div class="ch-fill" style="width:${p}%;background:${c ? 'linear-gradient(90deg,var(--accent),var(--accent2))' : 'rgba(100,116,139,.4)'}">${f(l)}</div></div></div>`; }); }
+                const eF = meals.map(m => `<div class="ff"><label>${m} 평일</label><input type="number" id="ov_${u}_${m}_평일" value="${o[m + '_평일'] || ''}" placeholder="${st}"></div><div class="ff"><label>${m} 주말</label><input type="number" id="ov_${u}_${m}_주말" value="${o[m + '_주말'] || ''}" placeholder="${st}"></div>`).join('');
+
+                const alert = getAlertStatus(sn);
+                let alertBanner = '', ledDot = '';
+                if (alert.trigger) {
+                    if (["M", "A"].includes(USER_ROLE)) {
+                        ledDot = `<span class="led-red" title="${alert.msg}">🔴</span>`;
+                    } else {
+                        const bCls = alert.level === "danger" ? "" : "warn";
+                        alertBanner = `<div class="alert-banner ${bCls}"><div class="marquee-content">${alert.msg}</div></div>`;
+                    }
+                }
+
+                const mAvg = n(d["금월_평균중식"]), mMom = n(d["전월대비"]);
+                const momClass = mMom > 0 ? "up" : (mMom < 0 ? "down" : "");
+                const momIcon = mMom > 0 ? "↑" : (mMom < 0 ? "↓" : "→");
+                const canEdit = ["M", "A", "B"].includes(USER_ROLE);
+
+                return `<div class="card">
+            ${alertBanner}
+            <div class="card-inner">
+            <div class="card-header">
+                <div>
+                    <div class="region-tag">${rg}</div>
+                    <div class="site-name">${sn} ${ledDot} <button class="emotion-btn" onclick="openCalForSite('${sn}')" title="데일리 식수 열람">📆</button></div>
+                    <div class="monthly-bar">
+                        <div class="mb-item"><span>📊 금월 평균</span><span class="mb-val">${mAvg > 0 ? f(mAvg) + '식' : '-'}</span></div>
+                        <div class="mb-split">|</div>
+                        <div class="mb-item"><span>전월대비</span><span class="mb-pct ${momClass}">${momIcon} ${Math.abs(mMom)}%</span></div>
+                    </div>
+                </div>
+                <div class="total-badge"><div class="label">투입인원</div><div class="val">${st}<span style="font-size:12px;font-weight:700;opacity:.6">명</span></div></div>
+            </div>
+            <div class="stats-row">
+                <div class="sbox">${canEdit ? `<button class="edit-sm" onclick="tp('${u}','seat')">✏️</button>` : ''}<span class="lb">좌석 / 코너</span><span class="vl" style="font-size:14px;letter-spacing:-.5px">${f(seats)}<span style="color:var(--dim);font-size:11px;font-weight:600"> / </span>${f(corners)}</span>${(reAuto || riAuto) ? `<span style="font-size:8px;color:var(--success);display:block;margin-top:2px;font-weight:800">회전율 자동산출 기준</span>` : ''}</div>
+                <div class="sbox${reAuto ? ' sbox-auto' : ''}"><span class="lb">회전율 D/I</span><span class="vl" style="color:${rc(re)}">${re.toFixed(1)}</span>${reAuto ? `<span class="auto-dot" title="좌석수 기준 자동산출"></span>` : ''}</div>
+                <div class="sbox${riAuto ? ' sbox-auto' : ''}"><span class="lb">회전율 T/O포함</span><span class="vl" style="color:${rc(ri)}">${ri.toFixed(1)}</span>${riAuto ? `<span class="auto-dot" title="좌석수 기준 자동산출"></span>` : ''}</div>
+            </div>
+            ${canEdit ? `<div id="p_seat_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">✏️ 좌석·코너 수정</div><div class="fg"><div class="ff"><label>좌석수</label><input type="number" id="ov_${u}_좌석수" value="${o['좌석수'] || ''}" placeholder="${n(d['좌석수'])}"></div><div class="ff"><label>코너수</label><input type="number" id="ov_${u}_코너수" value="${o['코너수'] || ''}" placeholder="${n(d['코너수'])}"></div><div class="ff"><label>TO_코너수</label><input type="number" id="ov_${u}_TO_코너수" value="${o['TO_코너수'] || ''}" placeholder="${n(d['TO_코너수']) || n(d['코너수'])}"></div></div><button class="sv-btn blue" onclick="svSeat('${u}','${sn}')">적용</button></div>` : ''}
+            <div class="staff-panel">
+                ${canEdit ? `<div class="edit-icon" onclick="tp('${u}','edit')">✏️</div>` : ''}
+                <div style="font-size:10px;color:var(--dim);font-weight:700;margin-bottom:8px">근무 인원</div>
+                <div class="staff-grid">
+                    <div><div class="lb">영양사 / 조리사</div><div class="vl">${ov(sn, "영양사", n(d["영양사"]))} / ${ov(sn, "조리사", n(d["조리사"]))}</div></div>
+                    <div><div class="lb">웰프로 주 / 야</div><div class="vl">${ov(sn, "웰프로_주", n(d["웰프로_주"]))} / ${ov(sn, "웰프로_야", n(d["웰프로_야"]))}</div></div>
+                </div>
+            </div>
+            ${canEdit ? `<div id="p_edit_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">✏️ 인력 수정</div><div style="font-size:10px;color:var(--dim);margin-bottom:8px">기본 인원</div>
+                <div class="fg c4"><div class="ff"><label>영양사</label><input type="number" id="ov_${u}_영양사" value="${o['영양사'] || ''}" placeholder="${n(d['영양사'])}"></div><div class="ff"><label>조리사</label><input type="number" id="ov_${u}_조리사" value="${o['조리사'] || ''}" placeholder="${n(d['조리사'])}"></div><div class="ff"><label>웰(주)</label><input type="number" id="ov_${u}_웰프로_주" value="${o['웰프로_주'] || ''}" placeholder="${n(d['웰프로_주'])}"></div><div class="ff"><label>웰(야)</label><input type="number" id="ov_${u}_웰프로_야" value="${o['웰프로_야'] || ''}" placeholder="${n(d['웰프로_야'])}"></div></div>
+                <div style="font-size:10px;color:var(--dim);margin:4px 0 8px">끼니별 투입인원</div><div class="fg">${eF}</div>
+                <div class="precise-title">🎯 업무강도 보정 데이터</div>
+                <div class="meal-staff-grid">${meals.map(m => `<div class="meal-staff-cell"><div class="mc-lb">${m}실투입</div><input type="number" id="ov_${u}_${m}_실투입" value="${o[m + '_실투입'] || ''}" placeholder="${gMS(sn, m)}" onchange="updateIntensity('${u}','${sn}')"></div>`).join('')}</div>
+                <div class="intensity-meter" id="im_${u}">
+                    <span style="font-size:10px;color:var(--dim);font-weight:700;min-width:52px">업무강도</span>
+                    <div class="intensity-bar"><div class="intensity-fill" id="ib_${u}" style="width:0%;background:var(--success)"></div></div>
+                    <span id="iv_${u}" style="font-size:11px;font-weight:900;min-width:36px;text-align:right">-</span>
+                </div>
+                <button class="sv-btn blue" style="margin-top:10px" onclick="svEdit('${u}','${sn}')">적용 (재계산)</button>
+                <div id="ov_msg_${u}" class="sv-msg"></div>
+            </div>`: ''}
+            <div class="tbl-wrap"><table><thead><tr><th>구분</th><th>조식</th><th>중식</th><th>석식</th><th>야식</th></tr></thead><tbody>
+                <tr><td>D/I</td><td>${f(d["DI_조식"])}</td><td>${f(d["DI_중식"])}</td><td>${f(d["DI_석식"])}</td><td>${f(d["DI_야식"])}</td></tr>
+                <tr><td>T/O</td><td>${f(d["TO_조식"])}</td><td>${f(d["TO_중식"])}</td><td>${f(d["TO_석식"])}</td><td>${f(d["TO_야식"])}</td></tr>
+                <tr class="row-sum"><td>합계</td><td>${f(gS("조식"))}</td><td>${f(gS("중식"))}</td><td>${f(gS("석식"))}</td><td>${f(gS("야식"))}</td></tr>
+            </tbody></table></div>
+            <div class="btn-row">
+                <button class="mbtn pri" onclick="tp('${u}','perf')">📝 실적기록</button>
+                <button class="mbtn" onclick="tp('${u}','wknd')">📅 주말현황</button>
+                <button class="mbtn" onclick="tp('${u}','goal')">🎯 도전목표</button>
+            </div>
+            <div id="p_perf_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">📝 실적 기록</div>
+                <div class="fg"><div class="ff"><label>날짜 <span id="fmode_${u}" style="font-size:9px;color:var(--warning);font-weight:800"></span></label><input type="date" id="fd_${u}" value="${new Date().toISOString().slice(0, 10)}" onchange="loadPastRec('${u}','${sn}',this.value)"></div><div class="ff"><label>사업장</label><input value="${sn}" disabled style="opacity:.5"></div></div>
+                <div style="font-size:10px;color:var(--dim);font-weight:700;margin:4px 0">D/I</div>
+                <div class="fg c4"><div class="ff"><label>조</label><input type="number" id="fd1_${u}"></div><div class="ff"><label>중</label><input type="number" id="fd2_${u}"></div><div class="ff"><label>석</label><input type="number" id="fd3_${u}"></div><div class="ff"><label>야</label><input type="number" id="fd4_${u}"></div></div>
+                <div style="font-size:10px;color:var(--dim);font-weight:700;margin:4px 0">T/O</div>
+                <div class="fg c4"><div class="ff"><label>조</label><input type="number" id="ft1_${u}"></div><div class="ff"><label>중</label><input type="number" id="ft2_${u}"></div><div class="ff"><label>석</label><input type="number" id="ft3_${u}"></div><div class="ff"><label>야</label><input type="number" id="ft4_${u}"></div></div>
+                <div class="fg"><div class="ff"><label>도전매출</label><input type="number" id="fsl_${u}"></div><div class="ff"><label>재료비</label><input type="number" id="fmt_${u}"></div></div>
+                <div class="ff" style="margin-bottom:8px"><label>식사 특이</label><textarea id="fn1_${u}"></textarea></div>
+                <div class="ff" style="margin-bottom:12px"><label>기타 특이</label><textarea id="fn2_${u}"></textarea></div>
+                <button class="sv-btn green" onclick="svRec('${u}','${sn}','${rg}')">💾 저장</button>
+                <div id="fm_${u}" class="sv-msg"></div>
+            </div>
+            <div id="p_wknd_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">📅 주말 식수</div>
+                <div class="tbl-wrap"><table><thead><tr><th>구분</th><th>조식</th><th>중식</th><th>석식</th><th>야식</th></tr></thead><tbody>
+                    <tr><td>D/I</td><td>${f(d["DI_조식(주말)"])}</td><td>${f(d["DI_중식(주말)"])}</td><td>${f(d["DI_석식(주말)"])}</td><td>${f(d["DI_야식(주말)"])}</td></tr>
+                    <tr><td>T/O</td><td>${f(d["TO_조식(주말)"])}</td><td>${f(d["TO_중식(주말)"])}</td><td>${f(d["TO_석식(주말)"])}</td><td>${f(d["TO_야식(주말)"])}</td></tr>
+                </tbody></table></div>
+            </div>
+            <div id="p_goal_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">🎯 도전 목표</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+                    <div class="sbox" style="cursor:pointer" onclick="toggleGoalEdit('${u}')"><span class="lb">도전매출 ✏️</span><span class="vl" style="color:var(--accent)" id="gv_매출_${u}">${f(d["도전매출"])}</span><input type="number" id="gi_매출_${u}" class="goal-input" style="display:none" value="${n(d['도전매출']) || ''}" placeholder="0" onchange="saveGoal('${u}','${sn}','매출',this.value)"></div>
+                    <div class="sbox" style="cursor:pointer" onclick="toggleGoalEdit('${u}')"><span class="lb">영업이익 ✏️</span><span class="vl" style="color:var(--success)" id="gv_이익_${u}">${f(d["도전영업이익"])}</span><input type="number" id="gi_이익_${u}" class="goal-input" style="display:none" value="${n(d['도전영업이익']) || ''}" placeholder="0" onchange="saveGoal('${u}','${sn}','이익',this.value)"></div>
+                    <div class="sbox" style="cursor:pointer" onclick="toggleGoalEdit('${u}')"><span class="lb">목표재료비 ✏️</span><span class="vl" style="color:var(--warning)" id="gv_재료_${u}">${f(d["목표재료비"])}</span><input type="number" id="gi_재료_${u}" class="goal-input" style="display:none" value="${n(d['목표재료비']) || ''}" placeholder="0" onchange="saveGoal('${u}','${sn}','재료',this.value)"></div>
+                </div>
+                <div id="goal-edit-hint-${u}" style="font-size:10px;color:var(--dim);text-align:center;margin-bottom:10px">📝 수치 터치 시 직접 수정 가능</div>
+                <div class="sec-title">🍽️ 인시당 식수</div>
+                <div class="tbl-wrap"><table><thead><tr><th>끼니</th><th>D/I</th><th>T/O</th><th>합계</th><th>투입</th><th>인시당</th></tr></thead><tbody>${gR}</tbody></table></div>
+                ${cB}
+                <div class="note-box"><strong>📝 계산</strong><br/>• 인시당 = (D/I+T/O) ÷ 끼니별 투입인원<br/><span class="formula">✏️ 미설정시 총인원 ${st}명 적용</span><br/>• 자동 회전율 = 중식 식수 ÷ 좌석수 (원본값 없을 때)<br/><span class="formula">🟢 초록 테두리 + 점 = 자동 산출 값</span></div>
+            </div>
+            </div>
+        </div>`;
+            }).join("");
+        }
+
+        /* =====================================================
+           공통 유틸
+        ===================================================== */
+        window.tp = function (u, t) { ['perf', 'wknd', 'goal', 'edit', 'seat'].forEach(p => { const e = document.getElementById(`p_${p}_${u}`); if (e) { if (p === t) e.classList.toggle('show'); else e.classList.remove('show'); } }); };
+        window.svSeat = function (u, sn) { OV[sn] = OV[sn] || {};['좌석수', '코너수', 'TO_코너수'].forEach(k => { const v = document.getElementById(`ov_${u}_${k}`).value; if (v) OV[sn][k] = Number(v); else delete OV[sn][k]; }); so(); render(); };
+        window.svEdit = function (u, sn) { OV[sn] = OV[sn] || {};['영양사', '조리사', '웰프로_주', '웰프로_야'].forEach(k => { const v = document.getElementById(`ov_${u}_${k}`).value; if (v) OV[sn][k] = Number(v); else delete OV[sn][k]; });["조식", "중식", "석식", "야식"].forEach(m => { ["평일", "주말", "실투입"].forEach(t => { const el = document.getElementById(`ov_${u}_${m}_${t}`); if (!el) return; const v = el.value; if (v) OV[sn][m + '_' + t] = Number(v); else delete OV[sn][m + '_' + t]; }); }); so(); render(); };
+        window.svRec = function (u, sn, rg) { };
+        window.toggleGoalEdit = function (u) { const keys = ['매출', '이익', '재료']; const hint = document.getElementById(`goal-edit-hint-${u}`); const isEditing = document.getElementById(`gi_매출_${u}`).style.display !== 'none'; keys.forEach(k => { const inp = document.getElementById(`gi_${k}_${u}`); const val = document.getElementById(`gv_${k}_${u}`); if (inp && val) { inp.style.display = isEditing ? 'none' : 'block'; val.style.display = isEditing ? 'block' : 'none'; } }); if (hint) hint.textContent = isEditing ? '📝 수치 터치 시 직접 수정 가능' : '✅ 수정 중 — 값 입력 후 다른 곳 터치'; };
+        window.saveGoal = function (u, sn, key, val) { OV[sn] = OV[sn] || {}; const km = { '매출': 'goal_매출', '이익': 'goal_이익', '재료': 'goal_재료' }, cm = { '매출': 'var(--accent)', '이익': 'var(--success)', '재료': 'var(--warning)' }; if (val) { OV[sn][km[key]] = Number(val); const el = document.getElementById(`gv_${key}_${u}`); if (el) { el.style.color = cm[key]; el.textContent = Number(val).toLocaleString(); } } else { delete OV[sn][km[key]]; } so(); };
+        window.updateIntensity = function (u, sn) { const d = D.find(x => x["사업장명"] === sn); if (!d) return; const meals = ["조식", "중식", "석식", "야식"]; let totalFood = 0, totalStaff = 0; meals.forEach(m => { const food = n(d["DI_" + m]) + n(d["TO_" + m]); totalFood += food; const el = document.getElementById(`ov_${u}_${m}_실투입`); const st = el && el.value ? Number(el.value) : gMS(sn, m); totalStaff += st; }); const avg = totalStaff > 0 ? totalFood / (totalStaff / meals.length) : 0; const pct = Math.min(avg / 130 * 100, 100); const col = avg >= 95 ? "var(--danger)" : avg >= 80 ? "var(--warning)" : "var(--success)"; const ib = document.getElementById(`ib_${u}`), iv = document.getElementById(`iv_${u}`); if (ib) { ib.style.width = pct + "%"; ib.style.background = col; } if (iv) { iv.style.color = col; iv.textContent = avg.toFixed(1) + "식/인"; } };
+
+        /* ===== 누적 데이터 (localStorage) ===== */
+        function getRec() { try { return JSON.parse(localStorage.getItem("WS_REC") || "[]") } catch (e) { return [] } }
+        function saveRec(arr) { localStorage.setItem("WS_REC", JSON.stringify(arr)); }
+        function addRec(rec) { const arr = getRec(); const idx = arr.findIndex(r => r.date === rec.date && r.siteName === rec.siteName); if (idx >= 0) arr[idx] = rec; else arr.push(rec); arr.sort((a, b) => a.date > b.date ? -1 : 1); saveRec(arr); }
+
+        window.loadPastRec = function (u, sn, dateVal) {
+            const today = new Date().toISOString().slice(0, 10);
+            const modeEl = document.getElementById(`fmode_${u}`);
+            const recs = getRec();
+            const past = recs.find(r => r.date === dateVal && r.siteName === sn);
+            if (past) {
+                ['fd1', 'fd2', 'fd3', 'fd4'].forEach((id, i) => { const el = document.getElementById(`${id}_${u}`); if (el) el.value = past[['DI_조식', 'DI_중식', 'DI_석식', 'DI_야식'][i]] || ''; });
+                ['ft1', 'ft2', 'ft3', 'ft4'].forEach((id, i) => { const el = document.getElementById(`${id}_${u}`); if (el) el.value = past[['TO_조식', 'TO_중식', 'TO_석식', 'TO_야식'][i]] || ''; });
+                const fsl = document.getElementById(`fsl_${u}`); if (fsl) fsl.value = past.도전매출 || '';
+                const fmt = document.getElementById(`fmt_${u}`); if (fmt) fmt.value = past.재료비 || '';
+                const fn1 = document.getElementById(`fn1_${u}`); if (fn1) fn1.value = past.식사특이사항 || '';
+                const fn2 = document.getElementById(`fn2_${u}`); if (fn2) fn2.value = past.기타특이사항 || '';
+                if (modeEl) { modeEl.textContent = '✏️ 수정 모드'; modeEl.style.color = 'var(--warning)'; }
+            } else {
+                ['fd1', 'fd2', 'fd3', 'fd4', 'ft1', 'ft2', 'ft3', 'ft4', 'fsl', 'fmt'].forEach(id => { const el = document.getElementById(`${id}_${u}`); if (el) el.value = ''; });
+                ['fn1', 'fn2'].forEach(id => { const el = document.getElementById(`${id}_${u}`); if (el) el.value = ''; });
+                if (modeEl) { modeEl.textContent = dateVal === today ? '' : '신규 입력'; modeEl.style.color = 'var(--success)'; }
+            }
+        };
+
+        window.svRec = async function (u, sn, rg) {
+            const p = {
+                tk: TK,
+                date: document.getElementById(`fd_${u}`).value, siteName: sn, region: rg,
+                DI_조식: Number(document.getElementById(`fd1_${u}`).value || 0), DI_중식: Number(document.getElementById(`fd2_${u}`).value || 0),
+                DI_석식: Number(document.getElementById(`fd3_${u}`).value || 0), DI_야식: Number(document.getElementById(`fd4_${u}`).value || 0),
+                TO_조식: Number(document.getElementById(`ft1_${u}`).value || 0), TO_중식: Number(document.getElementById(`ft2_${u}`).value || 0),
+                TO_석식: Number(document.getElementById(`ft3_${u}`).value || 0), TO_야식: Number(document.getElementById(`ft4_${u}`).value || 0),
+                도전매출: Number(document.getElementById(`fsl_${u}`).value || 0), 재료비: Number(document.getElementById(`fmt_${u}`).value || 0),
+                식사특이사항: document.getElementById(`fn1_${u}`).value || "", 기타특이사항: document.getElementById(`fn2_${u}`).value || ""
+            };
+            addRec(p);
+            const btn = event.target, msg = document.getElementById(`fm_${u}`);
+            btn.disabled = true; btn.innerText = "저장 중...";
+            try {
+                const r = await fetch(API, { method: "POST", body: JSON.stringify(p), redirect: "follow" });
+                const t = await r.text();
+                msg.style.color = t.includes("Success") ? "var(--success)" : "var(--danger)";
+                msg.innerText = t.includes("Success") ? "✅ 저장 완료" : "❌ " + t;
+            } catch (e) { msg.style.color = "var(--warning)"; msg.innerText = "⚠️ 서버 오류 (로컬 저장 완료)"; }
+            finally { btn.disabled = false; btn.innerText = "💾 저장"; }
+            const msgEl = document.getElementById(`fm_${u}`);
+            if (msgEl && msgEl.innerText.startsWith("✅")) {
+                setTimeout(() => {
+                    ['fd1', 'fd2', 'fd3', 'fd4', 'ft1', 'ft2', 'ft3', 'ft4', 'fsl', 'fmt'].forEach(id => { const el = document.getElementById(`${id}_${u}`); if (el) el.value = ''; });
+                    ['fn1', 'fn2'].forEach(id => { const el = document.getElementById(`${id}_${u}`); if (el) el.value = ''; });
+                    const modeEl = document.getElementById(`fmode_${u}`); if (modeEl) modeEl.textContent = '';
+                    if (msgEl) msgEl.innerText = '';
+                }, 2000);
+            }
+        };
+
+        /* ===== 캘린더 ===== */
+        let calYear = new Date().getFullYear(), calMonth = new Date().getMonth(), calSel = null;
+        window.openCal = function () { populateSiteSel(); renderCal(); document.getElementById("cal-modal").classList.add("show"); };
+        window.openCalForSite = function (sn) { populateSiteSel(); document.getElementById("cal-site-sel").value = sn; renderCal(); document.getElementById("cal-modal").classList.add("show"); };
+        function populateSiteSel() { const sel = document.getElementById("cal-site-sel"); const sites = [...new Set(D.map(d => d["사업장명"]).filter(Boolean))]; sel.innerHTML = '<option value="ALL">전체 사업장</option>' + sites.map(s => `<option value="${s}">${s}</option>`).join(""); }
+        window.renderCal = function () { const lbl = document.getElementById("cal-month-lbl"); lbl.textContent = `${calYear}년 ${calMonth + 1}월`; const recs = getRec(); const siteSel = document.getElementById("cal-site-sel").value; const filtered = recs.filter(r => siteSel === "ALL" || r.siteName === siteSel); const dateDates = new Set(filtered.map(r => r.date)); const first = new Date(calYear, calMonth, 1), last = new Date(calYear, calMonth + 1, 0), today = new Date().toISOString().slice(0, 10); let html = ['일', '월', '화', '수', '목', '금', '토'].map(d => `<div class="cal-dow">${d}</div>`).join(""); const startDow = first.getDay(), prevLast = new Date(calYear, calMonth, 0).getDate(); for (let i = startDow - 1; i >= 0; i--)html += `<div class="cal-day other-month" style="cursor:default">${prevLast - i}</div>`; for (let d = 1; d <= last.getDate(); d++) { const ds = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`, hasData = dateDates.has(ds), isTod = ds === today, isSel = ds === calSel; html += `<div class="cal-day ${hasData ? 'has-data' : ''} ${isTod ? 'today' : ''} ${isSel ? 'selected' : ''}" onclick="selectCalDay('${ds}')">${d}</div>`; } const remaining = 42 - startDow - last.getDate(); for (let i = 1; i <= remaining; i++)html += `<div class="cal-day other-month" style="cursor:default">${i}</div>`; document.getElementById("cal-days").innerHTML = html; if (calSel) showCalDetail(calSel, filtered); };
+        window.calPrev = function () { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCal(); };
+        window.calNext = function () { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCal(); };
+        window.selectCalDay = function (ds) { calSel = ds; const siteSel = document.getElementById("cal-site-sel").value; const recs = getRec().filter(r => r.date === ds && (siteSel === "ALL" || r.siteName === siteSel)); renderCal(); showCalDetail(ds, recs.length ? recs : getRec().filter(r => r.date === ds)); };
+        function showCalDetail(ds, recs) { const dayRecs = recs.filter ? recs.filter(r => r.date === ds) : []; const det = document.getElementById("cal-detail"); const siteSel = document.getElementById("cal-site-sel").value; const activeSites = siteSel === "ALL" ? [...new Set(D.map(d => d["사업장명"]).filter(Boolean))] : [siteSel]; let h = `<div class="cal-detail"><div class="dt-title">📅 ${ds} 식수 현황</div>`; activeSites.forEach(site => { const rec = dayRecs.find(r => r.siteName === site); const di_jo = rec ? rec.DI_조식 : 0, di_ju = rec ? rec.DI_중식 : 0, di_sk = rec ? rec.DI_석식 : 0, di_ya = rec ? rec.DI_야식 : 0, to_jo = rec ? rec.TO_조식 : 0, to_ju = rec ? rec.TO_중식 : 0, to_sk = rec ? rec.TO_석식 : 0, to_ya = rec ? rec.TO_야식 : 0; const totalDI = di_jo + di_ju + di_sk + di_ya, totalTO = to_jo + to_ju + to_sk + to_ya, hasData = !!rec; const statusTag = hasData ? `<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(52,211,153,.1);color:var(--success);font-weight:800">● 기록됨</span>` : `<span style="font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(100,116,139,.1);color:var(--dim);font-weight:800">○ 미기록</span>`; h += `<div style="margin-bottom:12px;padding:10px;background:rgba(0,0,0,.2);border-radius:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:900;color:var(--accent)">🏢 ${site}</div><button onclick="jumpToPerf('${site}','${ds}');event.stopPropagation();" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff;padding:4px 8px;border-radius:8px;font-size:11px;cursor:pointer;">✏️ 수정</button>${statusTag}</div><div class="cal-meal-grid"><div class="cal-meal-box"><div class="mlb">조식</div><div class="mval" style="${!hasData ? 'opacity:.35' : ''}">${(di_jo + to_jo) || '-'}</div><div class="msub">D/I:${di_jo} T/O:${to_jo}</div></div><div class="cal-meal-box"><div class="mlb">중식</div><div class="mval" style="color:var(--accent);${!hasData ? 'opacity:.35' : ''}">${(di_ju + to_ju) || '-'}</div><div class="msub">D/I:${di_ju} T/O:${to_ju}</div></div><div class="cal-meal-box"><div class="mlb">석식</div><div class="mval" style="${!hasData ? 'opacity:.35' : ''}">${(di_sk + to_sk) || '-'}</div><div class="msub">D/I:${di_sk} T/O:${to_sk}</div></div><div class="cal-meal-box"><div class="mlb">야식</div><div class="mval" style="${!hasData ? 'opacity:.35' : ''}">${(di_ya + to_ya) || '-'}</div><div class="msub">D/I:${di_ya} T/O:${to_ya}</div></div></div><div style="display:flex;gap:8px;font-size:11px;padding:8px;background:rgba(0,0,0,.2);border-radius:8px;margin-top:4px;flex-wrap:wrap"><span>총 D/I: <strong style="color:var(--accent)">${totalDI || '-'}</strong></span><span>총 T/O: <strong style="color:var(--warning)">${totalTO || '-'}</strong></span><span>합계: <strong style="color:${hasData ? 'var(--success)' : 'var(--dim)'}">${(totalDI + totalTO) || '-'}</strong></span>${rec && rec.도전매출 > 0 ? `<span>매출: <strong>${Number(rec.도전매출).toLocaleString()}원</strong></span>` : ''}</div>${rec && (rec.식사특이사항 || rec.기타특이사항) ? `<div style="font-size:10px;color:var(--dim);margin-top:6px;padding:6px 8px;background:rgba(255,255,255,.02);border-radius:6px">${rec.식사특이사항 ? `📝 ${rec.식사특이사항}` : ''}${(rec.식사특이사항 && rec.기타특이사항) ? '<br>' : ''}${rec.기타특이사항 ? `📌 ${rec.기타특이사항}` : ''}</div>` : ''}</div>`; }); h += '</div>'; det.innerHTML = h; }
+
+        window.jumpToPerf = function (siteName, dateStr) {
+            try { document.getElementById('cal-modal').classList.remove('show'); } catch (e) { }
+            const meta = D.find(x => x["사업장명"] === siteName);
+            if (meta && meta["지역"] && REG !== meta["지역"]) setR(meta["지역"]);
+            setTimeout(() => {
+                const els = Array.from(document.querySelectorAll(".site-name"));
+                const hit = els.find(e => (e.textContent || "").trim().startsWith(siteName));
+                if (!hit) return;
+                const card = hit.closest(".card"); if (!card) return;
+                const dateInput = card.querySelector('input[type="date"][id^="fd_"]'); if (!dateInput) return;
+                const u = dateInput.id.slice(3);
+                try { tp(u, "perf"); } catch (e) { }
+                dateInput.value = dateStr;
+                try { loadPastRec(u, siteName, dateStr); } catch (e) { }
+                card.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 80);
+        };
+
+        /* =====================================================
+           ★ GAS 실적 데이터 로드
+        ===================================================== */
+        async function loadPerfFromGAS() {
+            if (_gasPerfLoading) return;
+            if (_gasPerfLoaded && _gasPerfCache) return;
+            if (!TK) return;
+            _gasPerfLoading = true;
+            try {
+                const r = await fetch(API + "?type=perf&tk=" + TK, { redirect: "follow" });
+                const d = await r.json();
+                if (d.perf && Array.isArray(d.perf) && d.perf.length > 0) {
+                    _gasPerfCache = d.perf;
+                    let localRecs = getRec();
+                    d.perf.forEach(gasRec => {
+                        const idx = localRecs.findIndex(r => r.date === gasRec.date && r.siteName === gasRec.siteName);
+                        if (idx >= 0) localRecs[idx] = { ...localRecs[idx], ...gasRec };
+                        else localRecs.push(gasRec);
+                    });
+                    localRecs.sort((a, b) => a.date > b.date ? -1 : 1);
+                    saveRec(localRecs);
+                    _gasPerfLoaded = true;
+                }
+            } catch (e) {
+                console.warn("GAS 실적 로드 실패:", e.message);
+            } finally {
+                _gasPerfLoading = false;
+            }
+        }
+
+        /* ===== 추이 분석 리포트 ===== */
+        window.openTrendReport = async function () {
+            document.getElementById("trend-modal").classList.add("show");
+            const body = document.getElementById("trend-body");
+            if (!_gasPerfLoaded) {
+                body.innerHTML = `<div style="text-align:center;padding:60px 20px"><div style="font-size:32px;margin-bottom:16px">📡</div><div style="font-weight:900;margin-bottom:8px">서버 데이터 동기화 중...</div><div style="font-size:12px;color:var(--dim)">GAS에서 누적 실적 데이터를 불러오고 있습니다</div></div>`;
+            }
+            await loadPerfFromGAS();
+            const regSel = document.getElementById("trend-region-sel");
+            if (regSel) {
+                const regions = [...new Set(D.map(d => d["지역"]).filter(Boolean))];
+                const cur = regSel.value;
+                regSel.innerHTML = '<option value="ALL">전체 지역</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join("");
+                if (regions.includes(cur)) regSel.value = cur;
+                if ((!cur || cur === "ALL") && REG && REG !== "ALL" && regions.includes(REG)) regSel.value = REG;
+            }
+            renderTrendReport();
+        };
+
+        window.refreshTrendFromGAS = async function () {
+            _gasPerfLoaded = false; _gasPerfCache = null;
+            document.getElementById("trend-body").innerHTML = `<div style="text-align:center;padding:60px">📡 재동기화 중...</div>`;
+            await loadPerfFromGAS();
+            renderTrendReport();
+        };
+
+        window.closeTrend = function () {
+            document.getElementById("trend-modal").classList.remove("show");
+            if (window._apexCharts) { window._apexCharts.forEach(c => { try { c.destroy(); } catch (e) { } }); window._apexCharts = []; }
+        };
+
+        let _trendActiveTab = 'trend';
+        window.switchTrendTab = function (tab) {
+            _trendActiveTab = tab;
+            document.querySelectorAll('.tr-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            renderTrendReport();
+        };
+
+        const APEX_BASE = {
+            chart: { background: 'transparent', toolbar: { show: false }, animations: { enabled: true, easing: 'easeinout', speed: 600 } },
+            theme: { mode: 'dark' },
+            grid: { borderColor: 'rgba(148,163,184,.08)', strokeDashArray: 3 },
+            tooltip: { theme: 'dark', style: { fontSize: '12px' } },
+            xaxis: { labels: { style: { colors: '#64748b', fontSize: '10px', fontWeight: 700 } }, axisBorder: { show: false }, axisTicks: { show: false } },
+            yaxis: { labels: { style: { colors: '#64748b', fontSize: '10px' } } },
+            legend: { labels: { colors: '#94a3b8' }, fontSize: '11px' },
+        };
+
+        function linReg(ys) {
+            const nn = ys.length; if (nn < 2) return { slope: 0, intercept: ys[0] || 0 };
+            const xm = (nn - 1) / 2, ym = ys.reduce((a, b) => a + b, 0) / nn;
+            const num = ys.reduce((s, y, i) => s + (i - xm) * (y - ym), 0);
+            const den = ys.reduce((s, _, i) => s + (i - xm) ** 2, 0);
+            const slope = den ? num / den : 0;
+            return { slope, intercept: ym - slope * xm };
+        }
+
+        function isLowSeason(dateStr) {
+            const ht = getHolidayType(dateStr);
+            if (ht.type !== 'workday') return false;
+            const prevDay = new Date(dateStr + 'T00:00:00');
+            prevDay.setDate(prevDay.getDate() - 1);
+            return getHolidayType(_toYMD(prevDay)).type === 'holiday';
+        }
+
+        window._mkSel = window._mkSel || '중식';
+        window._trendSiteFilter = window._trendSiteFilter || [];
+
+        function renderTrendReport() {
+            const recs = getRec();
+            const body = document.getElementById("trend-body");
+            const regSel = document.getElementById("trend-region-sel");
+            const selRegion = regSel ? regSel.value : "ALL";
+            const regionSites = selRegion === "ALL" ? null : new Set(D.filter(d => d["지역"] === selRegion).map(d => d["사업장명"]));
+            const recsToUse = selRegion === "ALL" ? recs : recs.filter(r => regionSites && regionSites.has(r.siteName));
+            const regionLabel = selRegion === "ALL" ? "전체 지역" : selRegion;
+
+            if (!recsToUse.length) {
+                body.innerHTML = `<div class="no-data-msg"><div style="font-size:48px;margin-bottom:16px">📭</div><div style="font-size:15px;font-weight:900;margin-bottom:8px">누적 데이터 없음</div><div style="font-size:12px;color:var(--dim)">${regionLabel} · 실적 기록 후 분석 가능합니다</div></div>`;
+                return;
+            }
+
+            const dates = [...new Set(recsToUse.map(r => r.date))].sort();
+            document.getElementById("trend-date-range").textContent = `[${regionLabel}] ${dates[0]} ~ ${dates[dates.length-1]} · ${dates.length}일 · ${recsToUse.length}건`;
+            const sites = [...new Set(recsToUse.map(r => r.siteName))];
+            const sfilt = window._trendSiteFilter || [];
+            const activeSites = sfilt.length ? sfilt.filter(s => sites.includes(s)) : sites;
+            const filtRecs = sfilt.length ? recsToUse.filter(r => sfilt.includes(r.siteName)) : recsToUse;
+
+            const byDate = { 조식: {}, 중식: {}, 석식: {}, 야식: {} };
+            filtRecs.forEach(r => {
+                ['조식', '중식', '석식', '야식'].forEach(m => {
+                    byDate[m][r.date] = (byDate[m][r.date] || 0) + n(r['DI_' + m]) + n(r['TO_' + m]);
+                });
+            });
+
+            const wdDates = dates.filter(d => getHolidayType(d).type === 'workday');
+            const weDates = dates.filter(d => { const t = getHolidayType(d).type; return t === 'weekend' || t === 'holiday'; });
+            const midVals_wd = wdDates.map(d => byDate['중식'][d] || 0).filter(v => v > 0);
+            const midAvgWd = midVals_wd.length ? midVals_wd.reduce((a, b) => a + b, 0) / midVals_wd.length : 0;
+            const lowDates = wdDates.filter(d => { const v = byDate['중식'][d] || 0; return v > 0 && v < midAvgWd * 0.65; });
+            const normalDates = wdDates.filter(d => !lowDates.includes(d) && (byDate['중식'][d] || 0) > 0);
+
+            const mk = window._mkSel || '중식';
+            const MK_COLOR = { 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6', 합계: '#34d399' };
+            const mkColor = MK_COLOR[mk] || '#38bdf8';
+            const getMkVal = (d) => mk === '합계'
+                ? (['조식', '중식', '석식', '야식'].reduce((s, m) => s + (byDate[m][d] || 0), 0))
+                : (byDate[mk]?.[d] || 0);
+
+            const normVals = normalDates.map(d => getMkVal(d)).filter(v => v > 0);
+            const lowVals = lowDates.map(d => getMkVal(d)).filter(v => v > 0);
+            const normAvg = normVals.length ? Math.round(normVals.reduce((a, b) => a + b, 0) / normVals.length) : 0;
+            const lowAvg = lowVals.length ? Math.round(lowVals.reduce((a, b) => a + b, 0) / lowVals.length) : 0;
+            const dropPct = normAvg > 0 ? Math.round((1 - lowAvg / normAvg) * 100) : 0;
+
+            if (window._apexCharts) { window._apexCharts.forEach(c => { try { c.destroy(); } catch (e) { } }); }
+            window._apexCharts = [];
+
+            window._trCtx = { filtRecs, dates, sites: activeSites, wdDates, lowDates, weDates, normalDates, byDate, normAvg, lowAvg, dropPct, mk, mkColor, getMkVal, normVals, regionLabel };
+
+            const tab = _trendActiveTab;
+            if (tab === 'trend') renderTabTrend(body);
+            else if (tab === 'daily') renderTabDaily(body);
+            else if (tab === 'sites') renderTabSites(body);
+            else if (tab === 'report') renderTabReport(body);
+        }
+
+        window.setMealKey = function (mk) {
+            window._mkSel = mk;
+            document.querySelectorAll('.mk-btn').forEach(b => {
+                const MK_COLOR = { 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6', 합계: '#34d399' };
+                const active = b.dataset.mk === mk;
+                b.style.background = active ? (MK_COLOR[b.dataset.mk] + '28') : 'rgba(255,255,255,.02)';
+                b.style.color = active ? (MK_COLOR[b.dataset.mk]) : 'var(--muted)';
+                b.style.borderColor = active ? (MK_COLOR[b.dataset.mk] + '88') : 'var(--border)';
+            });
+            renderTrendReport();
+        };
+
+        window.toggleTrendSite = function (site) {
+            const arr = window._trendSiteFilter || [];
+            const idx = arr.indexOf(site);
+            window._trendSiteFilter = idx >= 0 ? arr.filter(s => s !== site) : [...arr, site];
+            renderTrendReport();
+        };
+
+        window.clearTrendSiteFilter = function () { window._trendSiteFilter = []; renderTrendReport(); };
+
+        function mkFilterHTML(mk, sites, siteFilter) {
+            const MK_COLOR = { 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6', 합계: '#34d399' };
+            const SC = ['#38bdf8', '#34d399', '#fb923c', '#f472b6', '#a78bfa', '#fbbf24', '#60a5fa'];
+            const mkBtns = ['조식', '중식', '석식', '야식', '합계'].map((m) => {
+                const a = m === mk, c = MK_COLOR[m];
+                return `<button class="mk-btn" data-mk="${m}" onclick="setMealKey('${m}')" style="padding:3px 11px;border-radius:16px;border:1px solid ${a ? c+'88' : 'var(--border)'};background:${a ? c+'28' : 'rgba(255,255,255,.02)'};color:${a ? c : 'var(--muted)'};font-size:10px;font-weight:700;cursor:pointer;transition:all .15s">${m}</button>`;
+            }).join('');
+            const siteBtns = sites.map((s, i) => {
+                const a = siteFilter.includes(s), c = SC[i % SC.length];
+                return `<button onclick="toggleTrendSite('${s}')" style="padding:3px 9px;border-radius:16px;border:1px solid ${a ? c+'88' : 'var(--border)'};background:${a ? c+'18' : 'rgba(255,255,255,.02)'};color:${a ? c : 'var(--muted)'};font-size:9px;cursor:pointer">${s}</button>`;
+            }).join('');
+            const clearBtn = siteFilter.length ? `<button onclick="clearTrendSiteFilter()" style="font-size:9px;padding:3px 8px;border-radius:16px;border:1px solid #f43f5e44;background:#f43f5e12;color:#f43f5e;cursor:pointer">✕ 초기화</button>` : '';
+            return `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:10px 14px;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid var(--border)">
+                <span style="font-size:9px;color:var(--dim);white-space:nowrap">끼니</span>${mkBtns}
+                <span style="width:1px;height:18px;background:var(--border);margin:0 2px"></span>
+                <span style="font-size:9px;color:var(--dim);white-space:nowrap">사업장</span>${siteBtns}${clearBtn}
+            </div>`;
+        }
+
+        /* 탭 렌더링 함수들은 원본과 동일하게 유지 */
+        function renderTabTrend(body) { const { filtRecs, dates, sites, wdDates, lowDates, normalDates, byDate, normAvg, lowAvg, dropPct, mk, mkColor, getMkVal, normVals, regionLabel } = window._trCtx; const sfilt = window._trendSiteFilter || []; const diByDate = {}, toByDate = {}; const diKey = 'DI_' + (mk === '합계' ? '중식' : mk); const toKey = 'TO_' + (mk === '합계' ? '중식' : mk); filtRecs.forEach(r => { diByDate[r.date] = (diByDate[r.date] || 0) + n(r[diKey]); toByDate[r.date] = (toByDate[r.date] || 0) + n(r[toKey]); }); const totalDI = Object.values(diByDate).reduce((a, b) => a + b, 0); const totalTO = Object.values(toByDate).reduce((a, b) => a + b, 0); const sumDITO = totalDI + totalTO || 1; const diPct = Math.round(totalDI / sumDITO * 100), toPct = 100 - diPct; const joVals = wdDates.map(d => byDate['조식']?.[d] || 0).filter(v => v > 0); const joAvg = joVals.length ? Math.round(joVals.reduce((a, b) => a + b, 0) / joVals.length) : 0; const rec7wd = wdDates.filter(d => !lowDates.includes(d)).slice(-7).map(d => getMkVal(d)).filter(v => v > 0); const r7avg = rec7wd.length ? Math.round(rec7wd.reduce((a, b) => a + b, 0) / rec7wd.length) : normAvg; const trendPct = normAvg > 0 ? ((r7avg - normAvg) / normAvg * 100).toFixed(1) : 0; const trendCls = trendPct > 0 ? '#34d399' : trendPct < 0 ? '#f87171' : '#fbbf24'; const wdValsFr = normalDates.map(d => getMkVal(d)).filter(v => v > 0); const weValsFr = (window._trCtx.weDates || []).map(d => getMkVal(d)).filter(v => v > 0); const { slope: wdSlope, intercept: wdInt } = linReg(wdValsFr); const { slope: weSlope, intercept: weInt } = linReg(weValsFr.length >= 2 ? weValsFr : [0, 0]); const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00'); const foreRows = []; let wdN = wdValsFr.length, weN = Math.max(weValsFr.length, 1); for (let i = 1; i <= 5; i++) { const fd = new Date(lastDate); fd.setDate(fd.getDate() + i); const ds = _toYMD(fd), ht = getHolidayType(ds); const isOff = ht.type !== 'workday'; const fv = isOff ? Math.max(0, Math.round(weInt + weSlope * weN)) : Math.max(0, Math.round(wdInt + wdSlope * wdN)); if (isOff) weN++; else wdN++; foreRows.push({ ds, fv, ht, isOff }); } const allDates = [...dates, ...foreRows.map(r => r.ds)]; const histData = dates.map(d => getMkVal(d)); const foreData = [...new Array(dates.length).fill(null), ...foreRows.map(r => r.fv)]; foreData[dates.length - 1] = getMkVal(dates[dates.length - 1]); const xLabels = allDates.map(d => { const ht = getHolidayType(d).type; const tag = ht === 'weekend' ? '🟡' : ht === 'holiday' ? '🔴' : lowDates.includes(d) ? '🟠' : ''; return d.slice(5) + (tag ? '\n' + tag : ''); }); body.innerHTML = `<div style="padding:4px 0 16px">${mkFilterHTML(mk, sites, sfilt)}<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="kpi-v2 accent"><div class="kv2-lbl">정상 평일 평균 (${mk})</div><div class="kv2-val" style="color:${mkColor}">${normAvg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${mk === '중식' ? `DI ${diPct}% · T/O ${toPct}%` : ''}</div></div><div class="kpi-v2 warning"><div class="kv2-lbl">저조기 평균</div><div class="kv2-val" style="color:#fbbf24">${lowAvg > 0 ? lowAvg.toLocaleString() : '-'}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${lowDates.length}일 해당</div></div><div class="kpi-v2 danger"><div class="kv2-lbl">저조기 낙폭</div><div class="kv2-val" style="color:#f87171">▼${dropPct}<span style="font-size:14px;opacity:.7">%</span></div><div class="kv2-sub">정상 대비</div></div><div class="kpi-v2 ${trendPct > 0 ? 'success' : trendPct < 0 ? 'danger' : 'warning'}"><div class="kv2-lbl">최근 7일 추이 (평일)</div><div class="kv2-val" style="color:${trendCls}">${r7avg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${trendPct > 0 ? '↑' : '↓'} ${Math.abs(trendPct)}% vs 전체평균</div></div></div><div class="ch-panel" style="margin:0;padding:14px 16px"><div style="font-size:11px;font-weight:900;margin-bottom:10px">📉 정상 대비 저조기 낙폭</div>${['중식','합계','석식','조식'].map(m => { const mv_n = normalDates.map(d => m==='합계' ? ['조식','중식','석식','야식'].reduce((s,mx)=>s+(byDate[mx]?.[d]||0),0) : (byDate[m]?.[d]||0)).filter(v=>v>0); const mv_l = lowDates.map(d => m==='합계' ? ['조식','중식','석식','야식'].reduce((s,mx)=>s+(byDate[mx]?.[d]||0),0) : (byDate[m]?.[d]||0)).filter(v=>v>0); const na=mv_n.length?Math.round(mv_n.reduce((a,b)=>a+b,0)/mv_n.length):0; const la=mv_l.length?Math.round(mv_l.reduce((a,b)=>a+b,0)/mv_l.length):0; const dp=na>0?Math.round((1-la/na)*100):0; const MC={조식:'#f97316',중식:'#38bdf8',석식:'#a78bfa',야식:'#f472b6',합계:'#34d399'}; const c=MC[m]||'#38bdf8'; return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:var(--dim)">${m}</span><div style="display:flex;gap:8px;align-items:center"><span style="font-size:9px;color:var(--dim)">${la.toLocaleString()}→${na.toLocaleString()}</span><span style="font-size:11px;font-weight:800;color:#f43f5e">▼${dp}%</span></div></div><div style="background:rgba(255,255,255,.04);border-radius:99px;height:5px"><div style="height:100%;border-radius:99px;width:${100-dp}%;background:linear-gradient(90deg,${c}33,${c})"></div></div></div>`; }).join('')}${lowDates.length>0?`<div style="font-size:9px;color:var(--dim);margin-top:6px;line-height:1.5">🟠 저조기 = 정상 평일 평균의 65% 미만<br>저조기 날짜: ${lowDates.map(d=>d.slice(5)).join(' · ')}</div>`:'<div style="font-size:9px;color:var(--dim)">저조기 데이터 없음</div>'}</div></div><div class="ch-panel"><div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:var(--dim);font-weight:400">🟠저조기 / 🟡주말 / 🔴공휴일</span></div><div class="chart-scroll-wrap"><div id="chartTrend" class="ch-apex" style="min-width:650px"></div></div><div id="chartTrendClickInfo" style="display:none;margin-top:10px;padding:12px;background:rgba(56,189,248,.04);border:1px solid rgba(56,189,248,.15);border-radius:10px"></div></div>${mk==='중식'||mk==='합계'?`<div class="ch-panel"><div class="ch-panel-title">📊 D/I · T/O 일별 비중 추이 (최근 14일)</div><div class="ch-panel-sub">T/O 비율이 높을수록 좌석 회전 압박 ↑</div><div id="chartDITO" class="ch-apex"></div></div>`:''}</div>`; setTimeout(()=>{ const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){if(e.target.id==='chartTrend'){try{const c1=new ApexCharts(e.target,{...APEX_BASE,chart:{...APEX_BASE.chart,type:'line',height:260},series:[{name:mk+' 실적',type:'area',data:[...histData,...new Array(foreRows.length).fill(null)]},{name:'AI 예측',type:'line',data:foreData}],stroke:{width:[2.5,2.5],dashArray:[0,6],curve:'smooth'},fill:{type:['gradient','solid'],gradient:{shade:'dark',type:'vertical',opacityFrom:.3,opacityTo:.01}},colors:[mkColor,'#f43f5e'],markers:{size:[4,5],colors:[mkColor,'#f43f5e'],strokeWidth:2},xaxis:{...APEX_BASE.xaxis,categories:xLabels,labels:{...APEX_BASE.xaxis.labels,rotate:0,minHeight:40,formatter:(val,ts,opts)=>{if(!val)return'';const idx=opts?opts.i:-1;if(idx%3===0||idx===xLabels.length-1)return val;return '';}}},yaxis:{...APEX_BASE.yaxis,min:0,labels:{...APEX_BASE.yaxis.labels,formatter:v=>v.toLocaleString()}},annotations:{xaxis:[{x:dates[dates.length-1].slice(5),borderColor:'#f43f5e',strokeDashArray:4,label:{text:'예측시작',position:'top',textAnchor:'start',orientation:'horizontal',style:{background:'rgba(244,63,94,.9)',color:'#fff',fontSize:'10px',fontWeight:900}}}],yaxis:[{y:normAvg,borderColor:mkColor+'cc',strokeDashArray:0,label:{text:`정상평균 ${normAvg}`,position:'right',textAnchor:'end',orientation:'horizontal',style:{background:mkColor,color:'#fff',fontSize:'10px',fontWeight:900}}},...(lowAvg>0?[{y:lowAvg,borderColor:'#fbbf24cc',strokeDashArray:0,label:{text:`저조평균 ${lowAvg}`,position:'right',textAnchor:'end',orientation:'horizontal',style:{background:'#fbbf24',color:'#000',fontSize:'10px',fontWeight:900}}}]:[])]},tooltip:{...APEX_BASE.tooltip,y:{formatter:v=>v!=null?v.toLocaleString()+'명':'-'}},legend:{show:false}});c1.render();window._apexCharts.push(c1);}catch(e){}}else if(e.target.id==='chartDITO'){const d14=dates.slice(-14);try{const c2=new ApexCharts(e.target,{...APEX_BASE,chart:{...APEX_BASE.chart,type:'bar',height:180,stacked:true},series:[{name:'D/I',data:d14.map(d=>diByDate[d]||0)},{name:'T/O',data:d14.map(d=>toByDate[d]||0)}],colors:['#38bdf8','#fbbf24'],plotOptions:{bar:{borderRadius:3,columnWidth:'60%'}},xaxis:{...APEX_BASE.xaxis,categories:d14.map(d=>{const ht=getHolidayType(d).type;return d.slice(5)+(ht!=='workday'?'\n'+(ht==='weekend'?'🟡':'🔴'):'');})},yaxis:{...APEX_BASE.yaxis,min:0,labels:{...APEX_BASE.yaxis.labels,formatter:v=>v.toLocaleString()}},dataLabels:{enabled:true,style:{fontSize:'9px'},formatter:v=>v>0?v.toLocaleString():''},tooltip:{...APEX_BASE.tooltip,y:{formatter:v=>v.toLocaleString()+'명'}},legend:{...APEX_BASE.legend,position:'top'}});c2.render();window._apexCharts.push(c2);}catch(e){}};obs.unobserve(e.target);}});},{threshold:0.1});const t1=document.getElementById('chartTrend');if(t1)obs.observe(t1);if(mk==='중식'||mk==='합계'){const t2=document.getElementById('chartDITO');if(t2)obs.observe(t2);}},100); }
+        function renderTabDaily(body) { const {dates,byDate,mk,mkColor,normalDates,wdDates}=window._trCtx; const sfilt=window._trendSiteFilter||[]; const DAYS=['월','화','수','목','금','토','일']; const DOW={0:'일',1:'월',2:'화',3:'수',4:'목',5:'금',6:'토'}; const dayMap={};DAYS.forEach(d=>{dayMap[d]=[];}); dates.forEach(d=>{const dow=DOW[new Date(d+'T00:00:00').getDay()];const v=mk==='합계'?['조식','중식','석식','야식'].reduce((s,m)=>s+(byDate[m]?.[d]||0),0):(byDate[mk]?.[d]||0);if(v>0)dayMap[dow].push(v);}); const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):0; const wdData=DAYS.slice(0,5).map(d=>avg(dayMap[d]));const weData=DAYS.slice(5).map(d=>avg(dayMap[d]));const wdAvgLine=Math.round(wdData.filter(v=>v>0).reduce((a,b)=>a+b,0)/(wdData.filter(v=>v>0).length||1)); const radarData=DAYS.map(d=>({day:d,...Object.fromEntries(['조식','중식','석식'].map(m=>[m,avg(dates.filter(d2=>DOW[new Date(d2+'T00:00:00').getDay()]===d).map(d2=>byDate[m]?.[d2]||0).filter(v=>v>0))]))})); body.innerHTML=`<div style="padding:4px 0 16px">${mkFilterHTML(mk,window._trCtx.sites,sfilt)}<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"><div class="kpi-v2 accent" style="flex:1;min-width:100px"><div class="kv2-lbl">최다 ${mk} 요일</div><div class="kv2-val" style="color:${mkColor}">${DAYS[wdData.indexOf(Math.max(...wdData))]||'-'}요일</div><div class="kv2-sub">${Math.max(...wdData).toLocaleString()}식</div></div><div class="kpi-v2 warning" style="flex:1;min-width:100px"><div class="kv2-lbl">최저 ${mk} 요일</div><div class="kv2-val" style="color:#fbbf24">${DAYS[wdData.indexOf(Math.min(...wdData.filter(v=>v>0)))]||'-'}요일</div><div class="kv2-sub">${Math.min(...wdData.filter(v=>v>0)).toLocaleString()}식</div></div><div class="kpi-v2 success" style="flex:1;min-width:100px"><div class="kv2-lbl">요일 최대 편차</div><div class="kv2-val" style="color:#34d399">${(Math.max(...wdData)-Math.min(...wdData.filter(v=>v>0))).toLocaleString()}</div><div class="kv2-sub">최고-최저</div></div></div><div class="ch-panel" style="margin:0"><div class="ch-panel-title">📊 평일 요일별 ${mk}</div><div id="chartDowWd" class="ch-apex"></div></div><div class="ch-panel" style="margin-top:16px"><div class="ch-panel-title" style="color:var(--dim)">🌙 주말 ${mk}</div><div id="chartDowWe" class="ch-apex"></div></div><div class="ch-panel" style="margin-top:16px"><div class="ch-panel-title">🕸️ 끼니별 요일 패턴 비교</div><div id="chartRadar" class="ch-apex"></div></div></div>`; setTimeout(()=>{const maxWd=Math.max(...wdData);try{const c3=new ApexCharts(document.getElementById('chartDowWd'),{...APEX_BASE,chart:{...APEX_BASE.chart,type:'bar',height:210},series:[{name:mk,data:wdData}],colors:wdData.map(v=>v===maxWd?mkColor:mkColor+'55'),plotOptions:{bar:{borderRadius:5,distributed:true,columnWidth:'60%',dataLabels:{position:'top'}}},dataLabels:{enabled:true,formatter:v=>v>0?v.toLocaleString():'',style:{fontSize:'9px',colors:['#e2e8f0']},offsetY:-16},xaxis:{...APEX_BASE.xaxis,categories:['월','화','수','목','금']},yaxis:{...APEX_BASE.yaxis,min:0},annotations:{yaxis:[{y:wdAvgLine,borderColor:mkColor+'66',strokeDashArray:3,label:{text:`평균 ${wdAvgLine}`,style:{background:mkColor+'14',color:mkColor,fontSize:'9px'}}}]},legend:{show:false},tooltip:{...APEX_BASE.tooltip,y:{formatter:v=>v.toLocaleString()+'명'}}});c3.render();window._apexCharts.push(c3);}catch(e){}try{const c4=new ApexCharts(document.getElementById('chartDowWe'),{...APEX_BASE,chart:{...APEX_BASE.chart,type:'bar',height:210},series:[{name:mk,data:weData}],colors:['#334155'],plotOptions:{bar:{borderRadius:5,distributed:true,columnWidth:'55%'}},dataLabels:{enabled:true,formatter:v=>v>0?v.toLocaleString():'없음',style:{fontSize:'9px',colors:['#64748b']}},xaxis:{...APEX_BASE.xaxis,categories:['토','일']},yaxis:{...APEX_BASE.yaxis,min:0,max:Math.max(maxWd,1)},annotations:{yaxis:[{y:wdAvgLine,borderColor:mkColor+'55',strokeDashArray:4,label:{text:'평일평균',style:{background:mkColor+'14',color:mkColor,fontSize:'9px'}}}]},legend:{show:false},tooltip:{...APEX_BASE.tooltip,y:{formatter:v=>v.toLocaleString()+'명(주말)'}}});c4.render();window._apexCharts.push(c4);}catch(e){}try{const c5=new ApexCharts(document.getElementById('chartRadar'),{...APEX_BASE,chart:{...APEX_BASE.chart,type:'radar',height:260},series:[{name:'조식',data:radarData.map(d=>d['조식']||0)},{name:'중식',data:radarData.map(d=>d['중식']||0)},{name:'석식',data:radarData.map(d=>d['석식']||0)}],colors:['#f97316','#38bdf8','#a78bfa'],stroke:{width:2},fill:{opacity:.1},markers:{size:3},xaxis:{categories:DAYS},yaxis:{show:false},legend:{...APEX_BASE.legend,position:'top'},tooltip:{...APEX_BASE.tooltip,y:{formatter:v=>v.toLocaleString()+'명'}}});c5.render();window._apexCharts.push(c5);}catch(e){}},100); }
+        function renderTabSites(body) { const {filtRecs,dates,sites,normalDates,lowDates,byDate,mk,mkColor,normAvg,regionLabel}=window._trCtx; const sfilt=window._trendSiteFilter||[]; const SC=['#38bdf8','#34d399','#fb923c','#f472b6','#a78bfa','#fbbf24','#60a5fa']; const getMkValSite=(recs,m)=>recs.reduce((s,r)=>s+n(r['DI_'+m])+n(r['TO_'+m]),0); const siteData=sites.map((site,si)=>{const sr=filtRecs.filter(r=>r.siteName===site);const byD={};sr.forEach(r=>{const v=mk==='합계'?['조식','중식','석식','야식'].reduce((s,m)=>s+n(r['DI_'+m])+n(r['TO_'+m]),0):n(r['DI_'+mk])+n(r['TO_'+mk]);byD[r.date]=(byD[r.date]||0)+v;});const wdV=normalDates.filter(d=>(byD[d]||0)>0).map(d=>byD[d]);const wdA=wdV.length?Math.round(wdV.reduce((a,b)=>a+b,0)/wdV.length):0;const jo=getMkValSite(sr,'조식'),mi=getMkValSite(sr,'중식'),sk=getMkValSite(sr,'석식');const{slope}=linReg(wdV.slice(-14));return{site,byD,wdA,jo,mi,sk,total:jo+mi+sk,slope,color:SC[si%SC.length]};}).sort((a,b)=>b.wdA-a.wdA); const overallAvg=Math.round(siteData.reduce((s,d)=>s+d.wdA,0)/(siteData.length||1)); const weekMap={};dates.forEach(d=>{const dt=new Date(d+'T00:00:00');const wn=`${dt.getFullYear()}-W${String(Math.ceil((dt.getDate()+new Date(dt.getFullYear(),dt.getMonth(),1).getDay())/7)).padStart(2,'0')}`;if(!weekMap[wn])weekMap[wn]={};sites.forEach(site=>{const val=filtRecs.filter(r=>r.siteName===site&&r.date===d).reduce((s,r)=>s+(mk==='합계'?['조식','중식','석식','야식'].reduce((ss,m)=>ss+n(r['DI_'+m])+n(r['TO_'+m]),0):n(r['DI_'+mk])+n(r['TO_'+mk])),0);if(val>0)weekMap[wn][site]=(weekMap[wn][site]||0)+val;});}); const validWeeks=Object.entries(weekMap).filter(([,sv])=>sites.every(s=>(sv[s]||0)>0)).slice(-5); let wkTbl=validWeeks.length>0?`<div class="ch-panel" style="margin-top:0"><div class="ch-panel-title">📅 전 사업장 공통 주간 비교 (${mk})</div><div style="overflow-x:auto"><table class="week-cmp-tbl"><thead><tr><th style="text-align:left">사업장</th>${validWeeks.map(([w])=>`<th>${w.slice(5)}</th>`).join('')}<th>증감</th></tr></thead><tbody>${siteData.map(sd=>{const wkV=validWeeks.map(([,sv])=>sv[sd.site]||0);const last2=wkV.slice(-2);const chg=last2[0]>0?((last2[1]-last2[0])/last2[0]*100).toFixed(1):0;const cc=chg>0?'#34d399':chg<0?'#f87171':'#fbbf24';return`<tr><td style="color:${sd.color}">${sd.site}</td>${wkV.map((v,i)=>{const prev=i>0?wkV[i-1]:v;const p=prev>0?((v-prev)/prev*100).toFixed(0):0;const pc=p>0?'#34d399':p<0?'#f87171':'var(--muted)';return`<td>${v.toLocaleString()}<br><span style="font-size:9px;color:${pc}">${i>0&&prev>0?(p>0?'+':'')+p+'%':''}</span></td>`;}).join('')}<td style="color:${cc};font-weight:900">${chg>0?'↑':'↓'} ${Math.abs(chg)}%</td></tr>`;}).join('')}</tbody></table></div></div>`:`<div class="ch-panel" style="margin-top:0"><div class="ch-panel-sub" style="padding:8px 0">⚠️ 전 사업장 공통 주간 데이터가 부족합니다</div></div>`; body.innerHTML=`<div style="padding:4px 0 16px">${mkFilterHTML(mk,sites,sfilt)}<div class="ch-panel"><div class="ch-panel-title">🏢 사업장별 평일 평균 ${mk}</div><div id="chartSiteBar" class="ch-apex"></div></div>${wkTbl}<div class="ch-panel"><div class="ch-panel-title">📈 사업장별 최근 21일 추이</div><div id="chartSiteLine" class="ch-apex"></div></div></div>`; setTimeout(()=>{try{const c6=new ApexCharts(document.getElementById('chartSiteBar'),{...APEX_BASE,chart:{...APEX_BASE.chart,type:'bar',height:Math.max(200,siteData.length*44+60)},series:[{name:'평일 평균',data:siteData.map(d=>d.wdA)}],colors:siteData.map(d=>d.wdA>=overallAvg?'#34d399':'#f87171'),plotOptions:{bar:{borderRadius:6,horizontal:true,distributed:true,dataLabels:{position:'right'}}},dataLabels:{enabled:true,formatter:v=>v.toLocaleString()+'명',style:{fontSize:'10px',colors:['#e2e8f0']},offsetX:8},xaxis:{...APEX_BASE.xaxis,min:0},yaxis:{...APEX_BASE.yaxis,labels:{style:{colors:siteData.map(d=>d.color),fontSize:'11px',fontWeight:700}},categories:siteData.map(d=>d.site)},annotations:{xaxis:[{x:overallAvg,borderColor:'#38bdf866',strokeDashArray:4,label:{text:`전체평균 ${overallAvg}`,position:'top',textAnchor:'middle',orientation:'horizontal',style:{background:'#38bdf8',color:'#fff',fontSize:'10px',fontWeight:900}}}]},legend:{show:false},tooltip:{...APEX_BASE.tooltip,y:{formatter:v=>v.toLocaleString()+'명'}}});c6.render();window._apexCharts.push(c6);}catch(e){}const rd21=dates.slice(-21);try{const c7=new ApexCharts(document.getElementById('chartSiteLine'),{...APEX_BASE,chart:{...APEX_BASE.chart,type:'line',height:220},series:siteData.map(sd=>({name:sd.site,data:rd21.map(d=>{const v=sd.byD[d];return v>0?v:null;})})),colors:siteData.map(d=>d.color),stroke:{width:2.5,curve:'smooth'},markers:{size:3,strokeWidth:1},xaxis:{...APEX_BASE.xaxis,categories:rd21.map(d=>d.slice(5)),tickAmount:7},yaxis:{...APEX_BASE.yaxis,min:0},dataLabels:{enabled:false},legend:{...APEX_BASE.legend,position:'top'},tooltip:{...APEX_BASE.tooltip,y:{formatter:v=>v!=null?v.toLocaleString()+'명':'-'}}});c7.render();window._apexCharts.push(c7);}catch(e){}},100); }
+        function renderTabReport(body) { const {filtRecs,dates,sites,normalDates,lowDates,byDate,mk,mkColor,normAvg,regionLabel,getMkVal}=window._trCtx; const sfilt=window._trendSiteFilter||[]; const wdValsFr=normalDates.map(d=>getMkVal(d)).filter(v=>v>0); const weVals=(window._trCtx.weDates||[]).map(d=>getMkVal(d)).filter(v=>v>0); const {slope:wdS,intercept:wdI}=linReg(wdValsFr); const {slope:weS,intercept:weI}=linReg(weVals.length>=2?weVals:[0,0]); const wdAvg=wdValsFr.length?wdValsFr.reduce((a,b)=>a+b,0)/wdValsFr.length:0; const weAvg=weVals.length?weVals.reduce((a,b)=>a+b,0)/weVals.length:wdAvg*0.4; const lastDate=new Date(dates[dates.length-1]+'T00:00:00'); const foreRows=[];let wdN=wdValsFr.length,weN=Math.max(weVals.length,1); for(let i=1;i<=7;i++){const fd=new Date(lastDate);fd.setDate(fd.getDate()+i);const ds=_toYMD(fd),ht=getHolidayType(ds);const isOff=ht.type!=='workday';const fv=isOff?Math.max(0,Math.round(weI+weS*weN)):Math.max(0,Math.round(wdI+wdS*wdN));if(isOff)weN++;else wdN++;foreRows.push({ds,fv,ht,isOff});} const confText=wdValsFr.length>=10?'높음 ✅':wdValsFr.length>=5?'중간 ⚠️':'낮음 ❌'; const direction=wdS>2?'📈 증가 추세':wdS<-2?'📉 감소 추세':'➡️ 안정적 유지'; const rptDiByDate={},rptToByDate={};const rptMeals=mk==='합계'?['조식','중식','석식','야식']:[mk];filtRecs.forEach(r=>{rptMeals.forEach(m=>{rptDiByDate[r.date]=(rptDiByDate[r.date]||0)+n(r['DI_'+m]);rptToByDate[r.date]=(rptToByDate[r.date]||0)+n(r['TO_'+m]);});}); const rptDates14=dates.slice(-14);const rptTotalDI=Object.values(rptDiByDate).reduce((a,b)=>a+b,0);const rptTotalTO=Object.values(rptToByDate).reduce((a,b)=>a+b,0);const rptSumAll=rptTotalDI+rptTotalTO||1;const rptDiPct=Math.round(rptTotalDI/rptSumAll*100);const rptToPct=100-rptDiPct; body.innerHTML=`<div style="padding:4px 0 16px">${mkFilterHTML(mk,sites,sfilt)}<div class="ch-panel"><div class="ch-panel-title">🍱 일반식(D/I) vs 테이크아웃(T/O) 분리 분석</div><div class="ch-panel-sub">${mk} 기준 · 최근 14일</div><div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap"><div class="kpi-v2 accent" style="flex:1;min-width:80px"><div class="kv2-lbl">일반식(D/I) 합계</div><div class="kv2-val" style="color:#38bdf8">${rptTotalDI.toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptDiPct}%</div></div><div class="kpi-v2 warning" style="flex:1;min-width:80px"><div class="kv2-lbl">테이크아웃(T/O) 합계</div><div class="kv2-val" style="color:#fbbf24">${rptTotalTO.toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptToPct}%</div></div><div class="kpi-v2 success" style="flex:1;min-width:80px"><div class="kv2-lbl">전체 합계</div><div class="kv2-val" style="color:#34d399">${(rptTotalDI+rptTotalTO).toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${dates.length}일 기준</div></div></div><div id="chartRptDITO" class="ch-apex"></div><div style="max-width:260px;margin:16px auto 0"><div id="chartRptDonut" class="ch-apex"></div></div></div><div class="ch-panel"><div class="ch-panel-title">🔮 AI 예측 (향후 7일) <span style="font-size:9px;color:var(--dim);font-weight:400">신뢰도: ${confText}</span></div><div id="chartForecast" class="ch-apex"></div><div style="overflow-x:auto;margin-top:14px"><table class="week-cmp-tbl"><thead><tr><th style="text-align:left">예측일</th><th>구분</th><th>추정 ${mk}</th><th>기준 대비</th></tr></thead><tbody>${foreRows.map(({ds,fv,ht,isOff})=>{const badge=isOff?`<span style="background:rgba(248,113,113,.12);color:#f87171;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">${ht.label||'휴일'}</span>`:`<span style="background:rgba(56,189,248,.1);color:#38bdf8;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:800">평일</span>`;const bAvg=isOff?weAvg:wdAvg;const chg=bAvg>0?((fv-bAvg)/bAvg*100).toFixed(1):0;const cc=chg>0?'#34d399':chg<0?'#f87171':'#fbbf24';const diRatio=rptSumAll>0?rptTotalDI/rptSumAll:0.7;const estDI=Math.round(fv*diRatio);const estTO=Math.round(fv*(1-diRatio));const ditoInfo=(mk==='중식'||mk==='합계')?`<br><span style="font-size:9px;color:var(--dim)">일반식 ~${estDI.toLocaleString()} / T/O ~${estTO.toLocaleString()}</span>`:'';return`<tr${isOff?' style="opacity:.6"':''}><td>${ds.slice(5)}</td><td>${badge}</td><td style="color:var(--accent3);font-weight:900">${fv.toLocaleString()}식${ditoInfo}</td><td style="color:${cc};font-weight:800">${chg>0?'+':''}${chg}%</td></tr>`;}).join('')}</tbody></table></div><div style="margin-top:12px;padding:12px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:10px;font-size:11px;line-height:1.9"><strong style="color:var(--accent3)">📋 종합 진단 · ${regionLabel}</strong><br>${direction} · 평일 변화율 <strong>${wdS>0?'+':''}${wdS.toFixed(1)}</strong>식/일<br><span style="color:var(--dim)">주말 변화율 ${weS>0?'+':''}${weS.toFixed(1)}식/일 · 평일 ${wdValsFr.length}일 / 주말 ${weVals.length}일 데이터 기반</span></div></div><div class="ch-panel" style="background:rgba(56,189,248,.02);border:1px dashed rgba(56,189,248,.3)"><div class="ch-panel-title" style="color:var(--accent)">📌 운영 별첨 (DS 식대 지원금 안내)</div><div style="font-size:11px;line-height:1.8;color:var(--dim)"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px"><div style="padding:10px;background:rgba(255,255,255,.03);border-radius:8px"><strong style="color:#fff">📅 주말 지원금</strong><br>• 중식/석식/야식: 각 3,500원<br>• 면역력(중/야): 1,000원 별도<br>• 야식포차: 2,400원 (주말야간 포함)</div><div style="padding:10px;background:rgba(255,255,255,.03);border-radius:8px"><strong style="color:#fff">🥗 건강/특화 지원</strong><br>• 건강지원금: 2,500원 (주말조/석/야)<br>• 그린데이(21일): 4,000원 (중식 T/i)<br>• 그린미트(월/수/금): 2,000원 (중식)</div></div><div style="padding:10px;background:rgba(255,255,255,.03);border-radius:8px;margin-bottom:12px"><strong style="color:#fff">⚙️ 기타 실비/정산 항목</strong><br>• 선택식(조식 아메/석식 코너 등): 500원<br>• DS가든 지원: 야간만 지원(1,200원)<br>• 브랜드 콜라보: 3,000원 (월 1회)<br>• 특수김치(월/수): 50% 지원<br><span style="color:var(--warning);font-weight:800">⚠️ 11주차부터 정산 금액 조정 중 (1,500원)</span></div></div></div></div>`; setTimeout(()=>{try{const cDITO=new ApexCharts(document.getElementById('chartRptDITO'),{...APEX_BASE,chart:{...APEX_BASE.chart,type:'bar',height:220,stacked:true},series:[{name:'일반식(D/I)',data:rptDates14.map(d=>rptDiByDate[d]||0)},{name:'테이크아웃(T/O)',data:rptDates14.map(d=>rptToByDate[d]||0)}],colors:['#38bdf8','#fbbf24'],plotOptions:{bar:{borderRadius:3,columnWidth:'60%'}},xaxis:{...APEX_BASE.xaxis,categories:rptDates14.map(d=>{const ht=getHolidayType(d).type;return d.slice(5)+(ht!=='workday'?'\n'+(ht==='weekend'?'🟡':'🔴'):'')}),},yaxis:{...APEX_BASE.yaxis,min:0,labels:{...APEX_BASE.yaxis.labels,formatter:v=>v.toLocaleString()}},dataLabels:{enabled:true,style:{fontSize:'8px'},formatter:v=>v>0?v.toLocaleString():''},tooltip:{...APEX_BASE.tooltip,y:{formatter:v=>v.toLocaleString()+'명'}},legend:{...APEX_BASE.legend,position:'top'}});cDITO.render();window._apexCharts.push(cDITO);}catch(e){}try{const cDonut=new ApexCharts(document.getElementById('chartRptDonut'),{chart:{type:'donut',height:220,background:'transparent'},series:[rptTotalDI,rptTotalTO],labels:['일반식(D/I)','테이크아웃(T/O)'],colors:['#38bdf8','#fbbf24'],theme:{mode:'dark'},plotOptions:{pie:{donut:{size:'60%',labels:{show:true,name:{show:true,fontSize:'11px',color:'#94a3b8'},value:{show:true,fontSize:'16px',fontWeight:900,color:'#f1f5f9',formatter:v=>Number(v).toLocaleString()+'식'},total:{show:true,label:'전체',fontSize:'10px',color:'#64748b',formatter:w=>w.globals.seriesTotals.reduce((a,b)=>a+b,0).toLocaleString()+'식'}}}}},dataLabels:{enabled:false},legend:{show:false},stroke:{width:2,colors:['#0a0f1e']},tooltip:{theme:'dark',y:{formatter:v=>v.toLocaleString()+'명'}}});cDonut.render();window._apexCharts.push(cDonut);}catch(e){}const fLabels=foreRows.map(r=>{const ht=r.ht.type;return r.ds.slice(5)+(ht==='weekend'?'\n🟡':ht==='holiday'?'\n🔴':ht==='sandwich'?'\n🟣':'');});try{const c8=new ApexCharts(document.getElementById('chartForecast'),{...APEX_BASE,chart:{...APEX_BASE.chart,type:'bar',height:200},series:[{name:'추정 '+mk,data:foreRows.map(r=>r.fv)}],colors:foreRows.map(r=>r.isOff?'#475569':'#38bdf8'),plotOptions:{bar:{borderRadius:6,distributed:true,columnWidth:'55%',dataLabels:{position:'top'}}},dataLabels:{enabled:true,formatter:v=>v.toLocaleString(),style:{fontSize:'9px',colors:['#e2e8f0']},offsetY:-18},xaxis:{...APEX_BASE.xaxis,categories:fLabels},yaxis:{...APEX_BASE.yaxis,min:0,labels:{...APEX_BASE.yaxis.labels,formatter:v=>v.toLocaleString()}},annotations:{yaxis:[{y:Math.round(wdAvg),borderColor:'#38bdf8aa',strokeDashArray:0,label:{text:`평일평균 ${Math.round(wdAvg)}`,position:'right',textAnchor:'end',orientation:'horizontal',style:{background:'#38bdf8',color:'#fff',fontSize:'10px',fontWeight:900},offsetX:-10}},...(weAvg>0?[{y:Math.round(weAvg),borderColor:'#fbbf24aa',strokeDashArray:0,label:{text:`주말평균 ${Math.round(weAvg)}`,position:'right',textAnchor:'end',orientation:'horizontal',style:{background:'#fbbf24',color:'#000',fontSize:'10px',fontWeight:900},offsetX:-10}}]:[]))],},legend:{show:false},tooltip:{...APEX_BASE.tooltip,y:{formatter:v=>v.toLocaleString()+'명(추정)'}}});c8.render();window._apexCharts.push(c8);}catch(e){}},100); }
+
+        window.exportReport = function () { const body = document.getElementById("trend-body").innerHTML; const now = new Date().toLocaleDateString('ko-KR'); const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>Welstory 분석 리포트 ${now}</title><style>body{font-family:'Malgun Gothic',sans-serif;background:#0a0f1e;color:#f1f5f9;padding:24px;max-width:800px;margin:0 auto}.trend-section{background:#111827;border:1px solid rgba(148,163,184,.08);border-radius:12px;padding:18px;margin-bottom:16px}.kpi-box{background:rgba(255,255,255,.02);border:1px solid rgba(148,163,184,.08);border-radius:10px;padding:12px;text-align:center}table{width:100%;border-collapse:collapse;font-size:11px}th{padding:8px;text-align:center;color:#64748b;font-size:10px;border-bottom:1px solid rgba(148,163,184,.08)}td{padding:8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.03);font-weight:700}h1{font-size:20px;font-weight:900;color:#38bdf8;margin-bottom:6px}</style></head><body><h1>📈 Welstory 정밀 분석 리포트</h1><div style="font-size:12px;color:#64748b;margin-bottom:24px">생성일: ${now}</div>${body}</body></html>`; const blob = new Blob([html], { type: 'text/html;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Welstory_리포트_${now.replace(/\./g, '')}.html`; a.click(); };
+        window.copyReportText = function () { const body = document.getElementById("trend-body"); const text = body ? body.innerText : ''; navigator.clipboard.writeText(text).then(() => alert("리포트 텍스트가 클립보드에 복사되었습니다.")).catch(() => { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert("복사 완료"); }); };
+
+        /* ===== REPORT OVERLAY ===== */
+        window.openReport = function () {
+            const fd = D.filter(d => d["지역"] === REG); if (!fd.length) return;
+            const ct = document.getElementById("ov-ct");
+            let h = `<div class="ov-hdr"><h3>📊 ${REG} 운영 리포트</h3><button class="cls-btn" onclick="document.getElementById('ov').style.display='none'">닫기</button></div>`;
+            h += `<div class="sec-title">🔥 업무 강도 (사업장 비교)</div>`;
+            const intensities = fd.map(d => ({ name: d["사업장명"], it: inten(d) }));
+            const svgW=320,svgH=140,padL=38,padR=12,padT=16,padB=32,plotW=svgW-padL-padR,plotH=svgH-padT-padB;
+            const allScores=intensities.map(x=>x.it.s),maxS=Math.max(...allScores,100),minS=Math.min(0,...allScores);
+            const toX=i=>padL+(i/(intensities.length-1||1))*plotW,toY=v=>padT+(1-(v-minS)/(maxS-minS))*plotH;
+            const y80=toY(80),y95=toY(95),pts=intensities.map((x,i)=>`${toX(i)},${toY(x.it.s)}`).join(' ');
+            let svgHtml=`<div style="margin-bottom:16px;overflow-x:auto"><svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;min-width:${svgW}px;height:${svgH}px;display:block"><defs><linearGradient id="ig" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".25"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></linearGradient></defs><line x1="${padL}" y1="${y80}" x2="${svgW-padR}" y2="${y80}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/><text x="${padL-4}" y="${y80+4}" font-size="8" fill="#fbbf24" text-anchor="end" opacity=".7">80</text><line x1="${padL}" y1="${y95}" x2="${svgW-padR}" y2="${y95}" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/><text x="${padL-4}" y="${y95+4}" font-size="8" fill="#f87171" text-anchor="end" opacity=".7">95</text><line x1="${padL}" y1="${padT+plotH}" x2="${svgW-padR}" y2="${padT+plotH}" stroke="rgba(148,163,184,.12)" stroke-width="1"/><polygon points="${intensities.map((x,i)=>`${toX(i)},${toY(x.it.s)}`).join(' ')} ${toX(intensities.length-1)},${padT+plotH} ${toX(0)},${padT+plotH}" fill="url(#ig)"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${intensities.map((x,i)=>{const lb=iLb(x.it.s),cx=toX(i),cy=toY(x.it.s),nameShort=x.name.length>4?x.name.slice(0,4)+'…':x.name;return`<circle cx="${cx}" cy="${cy}" r="5" fill="${lb.c}" stroke="var(--bg)" stroke-width="2"/><text x="${cx}" y="${cy-10}" font-size="10" font-weight="900" fill="${lb.c}" text-anchor="middle">${x.it.s.toFixed(0)}</text><text x="${cx}" y="${svgH-padB+14}" font-size="9" fill="var(--muted)" text-anchor="middle">${nameShort}</text>`;}).join('')}</svg></div>`;
+            svgHtml+=`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">`;
+            intensities.forEach(({name,it})=>{const lb=iLb(it.s);svgHtml+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(0,0,0,.2);border-radius:8px"><span style="font-size:12px;font-weight:900">${name}</span><div style="display:flex;gap:10px;align-items:center;font-size:11px;color:var(--dim)"><span>투입 ${it.st}명</span><span>총 ${it.tm.toLocaleString()}식</span><span class="badge" style="color:${lb.c};background:${lb.b}">${lb.e} ${lb.t} <strong style="color:${lb.c}">${it.s.toFixed(1)}</strong></span></div></div>`;});
+            svgHtml+='</div>'; h+=svgHtml;
+            const mxL=Math.max(...fd.map(d=>n(d["DI_중식"])+n(d["TO_중식"])));
+            h+=`<div class="sec-title">🏢 중식 비교 (D/I · T/O)</div>`;
+            fd.forEach(d=>{const di=n(d["DI_중식"]),to=n(d["TO_중식"]),tot=di+to,pDI=mxL>0?(di/mxL*100):0,pTO=mxL>0?(to/mxL*100):0;h+=`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:900;margin-bottom:4px"><span>${d["사업장명"]}</span><span style="color:var(--dim);font-weight:700">합계 ${f(tot)}</span></div><div class="ch-dual"><div class="ch-track"><div class="ch-fill" style="width:${pDI}%;background:linear-gradient(90deg,var(--accent),var(--accent2))">${f(di)}</div></div></div><div class="ch-dual"><div class="ch-track"><div class="ch-fill" style="width:${pTO}%;background:linear-gradient(90deg,var(--warning),#f59e0b)">${f(to)}</div></div></div><div style="display:flex;gap:12px;font-size:9px;color:var(--dim);margin-top:1px"><span>🔵 D/I</span><span>🟠 T/O</span></div></div>`;});
+            h+=`<div class="sec-title">💡 운영 상황 진단 및 솔루션 가이드</div><div style="padding:14px;background:rgba(56,189,248,.04);border:1px solid rgba(56,189,248,.12);border-radius:12px;font-size:11px;line-height:1.7"><div style="margin-bottom:10px"><strong style="color:var(--warning)">CASE A. 회전율은 높으나 업무 강도 보통 (🟡/🟢)</strong><br>• <span style="color:var(--text)">진단:</span> 조리 인력은 적정하나 식당 공간/좌석이 부족한 상태입니다.<br>• <span style="color:var(--accent)">솔루션:</span> 인원 충원보다는 T/O(도시락 형태) 비율을 확대 권장합니다.</div><div style="margin-bottom:10px"><strong style="color:var(--danger)">CASE B. 회전율도 높고 업무 강도도 높음 (🔴)</strong><br>• <span style="color:var(--text)">진단:</span> 공간도 부족하고 주방 일손도 한계치에 도달한 위험 상태입니다.<br>• <span style="color:var(--accent)">솔루션:</span> 신규 인원 충원, 지원 인력 투입 또는 제공 품목수 축소가 시급합니다.</div></div>`;
+            ct.innerHTML = h;
+            document.getElementById("ov").style.display = "flex";
+        };
+
+        /* ===== 비밀번호 변경 ===== */
+        window.openPwChange = function () {
+            document.getElementById("pw-cur").value = "";
+            document.getElementById("pw-new").value = "";
+            document.getElementById("pw-confirm").value = "";
+            document.getElementById("pw-msg").textContent = "";
+            document.getElementById("pw-modal").style.display = "flex";
+            setTimeout(() => document.getElementById("pw-cur").focus(), 100);
+        };
+        window.submitPwChange = async function () {
+            const msg = document.getElementById("pw-msg");
+            const cur = document.getElementById("pw-cur").value;
+            const nw = document.getElementById("pw-new").value;
+            const conf = document.getElementById("pw-confirm").value;
+            if (!cur) { msg.style.color = "var(--danger)"; msg.textContent = "현재 비밀번호를 입력하세요."; return; }
+            if (!nw || nw.length < 4) { msg.style.color = "var(--danger)"; msg.textContent = "새 비밀번호는 4자 이상이어야 합니다."; return; }
+            if (nw !== conf) { msg.style.color = "var(--danger)"; msg.textContent = "새 비밀번호가 일치하지 않습니다."; return; }
+            msg.style.color = "var(--dim)"; msg.textContent = "변경 중...";
+            try {
+                const r = await fetch(API, { method: "POST", redirect: "follow", body: JSON.stringify({ action: "changePw", userId: USER, currentPw: cur, newPw: nw }) });
+                const d = await r.json();
+                if (d.ok) { msg.style.color = "var(--success)"; msg.textContent = "✅ 비밀번호가 변경되었습니다!"; setTimeout(() => document.getElementById("pw-modal").style.display = "none", 1500); }
+                else { const errMap = { wrong_current_pw: "현재 비밀번호가 올바르지 않습니다.", weak_new_pw: "새 비밀번호는 4자 이상이어야 합니다.", user_not_found: "계정을 찾을 수 없습니다." }; msg.style.color = "var(--danger)"; msg.textContent = errMap[d.error] || "오류: " + d.error; }
+            } catch (e) { msg.style.color = "var(--warning)"; msg.textContent = "통신 오류: " + e.message; }
+        };
+
+        /* =====================================================
+           ★ window.onload — v3.6 핵심 수정
+              세션 재사용 시 sessionLog 호출로 GAS 로그 기록
+        ===================================================== */
+        window.onload = function () {
+            /* 아이디 저장 복원 */
+            try {
+                const saved = localStorage.getItem("WS_ID");
+                if (saved) {
+                    document.getElementById("loginId").value = saved;
+                    document.getElementById("loginId").closest('.login-field').style.opacity = '0.7';
+                    document.getElementById("save-id-label").textContent = "저장됨 ✓";
+                    document.getElementById("save-id-btn").textContent = "저장 해제";
+                    document.getElementById("save-id-btn").style.color = "var(--accent)";
+                    document.getElementById("save-id-btn").style.borderColor = "rgba(56,189,248,.3)";
+                    document.getElementById("loginPw").focus();
+                }
+            } catch (e) { }
+
+            /* 세션 재사용 로그인 */
+            try {
+                const s = sessionStorage.getItem("WS"), tk = sessionStorage.getItem("WTK");
+                const role = sessionStorage.getItem("WR") || "C";
+                const region = sessionStorage.getItem("WRG") || "";
+                const site = sessionStorage.getItem("WST") || "";
+                if (s) {
+                    USER = s; TK = tk;
+                    USER_ROLE = role; USER_REGION = region; USER_SITE = site;
+                    document.getElementById("login-overlay").style.display = "none";
+                    applyRoleUI();
+                    init();
+                    setTimeout(() => initSecurity(s), 500);
+
+                    /* ★ v3.6 핵심: 세션 재사용 접속 로그를 GAS에 기록 */
+                    if (tk) {
+                        fetch(
+                            API + "?type=sessionLog&tk=" + encodeURIComponent(tk) + "&userId=" + encodeURIComponent(s),
+                            { redirect: "follow" }
+                        ).catch(() => { /* 로그 전송 실패는 무시 */ });
+                    }
+                }
+            } catch (e) { }
+        };
+
+        window.toggleSaveId = function () {
+            try {
+                const saved = localStorage.getItem("WS_ID"), btn = document.getElementById("save-id-btn"), lbl = document.getElementById("save-id-label"), idInput = document.getElementById("loginId");
+                if (saved) { localStorage.removeItem("WS_ID"); idInput.value = ""; idInput.closest('.login-field').style.opacity = '1'; idInput.disabled = false; lbl.textContent = ""; btn.textContent = "아이디 저장"; btn.style.color = "var(--muted)"; btn.style.borderColor = "var(--border)"; idInput.focus(); }
+                else { const id = idInput.value.trim(); if (!id) { idInput.focus(); return; } localStorage.setItem("WS_ID", id); lbl.textContent = "저장됨 ✓"; btn.textContent = "저장 해제"; btn.style.color = "var(--accent)"; btn.style.borderColor = "rgba(56,189,248,.3)"; idInput.closest('.login-field').style.opacity = '0.7'; document.getElementById("loginPw").focus(); }
+            } catch (e) { const lbl = document.getElementById("save-id-label"); if (lbl) { lbl.textContent = "⚠️ 저장 불가"; setTimeout(() => { lbl.textContent = ""; }, 2000); } }
+        };
+
+        /* ===== 보안 모듈 ===== */
+        function initSecurity(userId) { function buildWatermark(uid) { const cvs = document.createElement('canvas'); cvs.width = 340; cvs.height = 160; const ctx = cvs.getContext('2d'); ctx.clearRect(0, 0, cvs.width, cvs.height); ctx.save(); ctx.translate(cvs.width / 2, cvs.height / 2); ctx.rotate(-Math.PI / 7); ctx.globalAlpha = 0.055; ctx.fillStyle = '#ffffff'; ctx.font = '700 15px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Samsung Welstory', 0, -18); ctx.font = '600 13px Inter, sans-serif'; ctx.fillText(uid + '@samsung.com', 0, 4); ctx.font = '500 11px Inter, sans-serif'; ctx.fillText(new Date().toLocaleDateString('ko-KR'), 0, 22); ctx.restore(); return cvs.toDataURL('image/png'); } const wmDiv = document.createElement('div'); wmDiv.id = 'wm-overlay'; wmDiv.style.cssText = `position:fixed;inset:0;z-index:99998;pointer-events:none;user-select:none;background-image:url(${buildWatermark(userId)});background-repeat:repeat;background-size:340px 160px;opacity:1;`; document.body.appendChild(wmDiv); const blurShield = document.createElement('div'); blurShield.id = 'blur-shield'; blurShield.style.cssText = `display:none;position:fixed;inset:0;z-index:99997;background:rgba(10,15,30,0.97);backdrop-filter:blur(20px);justify-content:center;align-items:center;flex-direction:column;gap:12px;pointer-events:all;`; blurShield.innerHTML = `<div style="font-size:48px;">🔒</div><div style="color:#f1f5f9;font-size:18px;font-weight:900;letter-spacing:-.5px">화면 보호 중</div><div style="color:#64748b;font-size:13px;text-align:center;line-height:1.6">화면 공유 또는 캡처 감지됨<br/>이 창을 다시 클릭하면 해제됩니다</div>`; document.body.appendChild(blurShield); function showShield() { if (!secReady) return; blurShield.style.display = 'flex'; } function hideShield() { blurShield.style.display = 'none'; } blurShield.addEventListener('click', hideShield); var secReady = false; setTimeout(function () { secReady = true; }, 5000); document.addEventListener('visibilitychange', () => { if (document.hidden) showShield(); else setTimeout(hideShield, 1200); }); if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) { const origGDM = navigator.mediaDevices.getDisplayMedia.bind(navigator.mediaDevices); navigator.mediaDevices.getDisplayMedia = async function (...args) { showShield(); const stream = await origGDM(...args); stream.getTracks().forEach(t => t.addEventListener('ended', hideShield)); return stream; }; } document.addEventListener("keydown", e => { const k = e.key.toLowerCase(); if (e.key === 'PrintScreen') { e.preventDefault(); showShield(); setTimeout(hideShield, 2000); return; } if (e.key === 'F12') { e.preventDefault(); return; } if (e.ctrlKey || e.metaKey) { const blocked = ['c', 'a', 'u', 's', 'p', 'x', 'f', 'g', 'e', 'h', 'r', 'l', 'd', 'n', 't', 'w', 'j']; if (blocked.includes(k)) { e.preventDefault(); return; } if (e.shiftKey && ['i', 'j', 'c', 'k', 'm', 'p', 'e'].includes(k)) { e.preventDefault(); return; } } }, true); document.addEventListener("contextmenu", e => e.preventDefault(), true); document.addEventListener("dragstart", e => e.preventDefault(), true); document.addEventListener("selectstart", e => { if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) e.preventDefault(); }, true); const noSelectStyle = document.createElement('style'); noSelectStyle.textContent = `body,.card,.tbl-wrap,.stats-row,.staff-panel,header,main{-webkit-user-select:none!important;-moz-user-select:none!important;user-select:none!important;}input,textarea,select{-webkit-user-select:text!important;user-select:text!important;}`; document.head.appendChild(noSelectStyle); let devToolsOpen = false; setInterval(() => { const threshold = 160; if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) { if (!devToolsOpen) { devToolsOpen = true; showShield(); blurShield.innerHTML = `<div style="font-size:48px;">⚠️</div><div style="color:#f87171;font-size:18px;font-weight:900">개발자 도구 감지</div><div style="color:#64748b;font-size:13px;text-align:center;line-height:1.6">보안 정책에 의해 접근이 제한됩니다<br/><span id="dev-countdown" style="color:#fbbf24;font-weight:700">5초 후 로그아웃...</span></div>`; let countdown = 5; const timer = setInterval(() => { countdown--; const el = document.getElementById('dev-countdown'); if (el) el.textContent = `${countdown}초 후 로그아웃...`; if (countdown <= 0) { clearInterval(timer); sessionStorage.clear(); location.reload(); } }, 1000); } } else { devToolsOpen = false; } }, 1000); }
+    </script>
+</body>
+
+</html>
