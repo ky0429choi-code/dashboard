@@ -2125,7 +2125,44 @@
         }
 
         /* =====================================================
-           ★ LOGIN
+           ★ v3.7: 세션 복원 시 접속 로그 전송
+        ===================================================== */
+        async function sendSessionLog(token, userId) {
+            try {
+                const url = API + "?type=sessionLog&tk=" + encodeURIComponent(token)
+                              + "&hint=" + encodeURIComponent(userId || "");
+                const r = await fetch(url, { redirect: "follow" });
+                const t = await r.text();
+                if (t === "token_expired") {
+                    console.warn("세션 토큰 만료 — 재로그인 필요");
+                    try { sessionStorage.removeItem("WTK"); localStorage.removeItem("WTK"); } catch(e) {}
+                    return "expired";
+                }
+                console.log("sessionLog 전송 성공:", userId);
+                return "ok";
+            } catch(e) {
+                console.warn("sessionLog 전송 실패 (1차):", e.message);
+                try {
+                    await new Promise(r => setTimeout(r, 1000));
+                    await fetch(API + "?type=sessionLog&tk=" + encodeURIComponent(token)
+                                  + "&hint=" + encodeURIComponent(userId || ""), { redirect: "follow" });
+                    console.log("sessionLog 재시도 성공");
+                } catch(e2) { console.warn("sessionLog 재시도도 실패:", e2.message); }
+                return "ok";
+            }
+        }
+
+        /* ★ v3.7: 로그아웃 시 세션 정리 */
+        window.doLogout = function() {
+            sessionStorage.removeItem("WS"); sessionStorage.removeItem("WTK");
+            sessionStorage.removeItem("WR"); sessionStorage.removeItem("WRG"); sessionStorage.removeItem("WST");
+            localStorage.removeItem("WTK"); localStorage.removeItem("WS");
+            localStorage.removeItem("WR"); localStorage.removeItem("WRG"); localStorage.removeItem("WST");
+            location.reload();
+        };
+
+        /* =====================================================
+           ★ LOGIN (v3.7: sessionStorage + localStorage 이중 저장)
         ===================================================== */
         window.doLogin = async function () {
             const err = document.getElementById("login-error"); err.style.display = "none";
@@ -2142,17 +2179,27 @@
                     USER_ROLE = parts[2] || "C";
                     USER_REGION = parts[3] || "";
                     USER_SITE = parts[4] || "";
+                    /* ★ v3.7: sessionStorage + localStorage 이중 저장 */
                     try {
                         sessionStorage.setItem("WS", id);
                         if (TK) sessionStorage.setItem("WTK", TK);
                         sessionStorage.setItem("WR", USER_ROLE);
                         sessionStorage.setItem("WRG", USER_REGION);
                         sessionStorage.setItem("WST", USER_SITE);
+                        localStorage.setItem("WS", id);
+                        if (TK) localStorage.setItem("WTK", TK);
+                        localStorage.setItem("WR", USER_ROLE);
+                        localStorage.setItem("WRG", USER_REGION);
+                        localStorage.setItem("WST", USER_SITE);
                     } catch (e) { }
                     document.getElementById("login-overlay").style.display = "none";
                     applyRoleUI();
                     init();
                     setTimeout(() => initSecurity(id), 500);
+                    /* ★ v3.7: 아이디 저장 설정 반영 */
+                    if (localStorage.getItem("WS_SAVE_ID_ON") === "Y") {
+                        localStorage.setItem("WS_SAVE_ID", id);
+                    }
                 } else {
                     err.innerText = t === "NoPermission" ? "등록되지 않은 계정입니다." : "비밀번호가 올바르지 않습니다.";
                     err.style.display = "block";
@@ -2758,7 +2805,27 @@
             const trendPct = normAvg > 0 ? ((r7avg - normAvg) / normAvg * 100).toFixed(1) : 0;
             const trendCls = trendPct > 0 ? '#34d399' : trendPct < 0 ? '#f87171' : '#fbbf24';
 
-            // 예측 (정상 평일만 회귀)
+            // ★ AI 예측 정확도 산출 (MAPE 기반)
+            let aiAccuracy = null;
+            if (wdValsFr.length >= 5) {
+                // Leave-one-out: 마지막 3개 데이터를 예측해보고 실제와 비교
+                const testN = Math.min(3, Math.floor(wdValsFr.length / 3));
+                if (testN > 0) {
+                    const trainVals = wdValsFr.slice(0, -testN);
+                    const testVals = wdValsFr.slice(-testN);
+                    const { slope: tSlope, intercept: tInt } = linReg(trainVals);
+                    let sumAPE = 0;
+                    testVals.forEach((actual, i) => {
+                        const predicted = Math.max(0, Math.round(tInt + tSlope * (trainVals.length + i)));
+                        if (actual > 0) sumAPE += Math.abs(actual - predicted) / actual;
+                    });
+                    const mape = sumAPE / testN * 100;
+                    aiAccuracy = Math.max(0, Math.round(100 - mape));
+                }
+            }
+            const aiAccText = aiAccuracy !== null ? `${aiAccuracy}%` : '산출불가';
+            const aiAccColor = aiAccuracy !== null ? (aiAccuracy >= 80 ? '#34d399' : aiAccuracy >= 60 ? '#fbbf24' : '#f87171') : 'var(--dim)';
+
             const wdValsFr = normalDates.map(d => getMkVal(d)).filter(v => v > 0);
             const weValsFr = (window._trCtx.weDates || []).map(d => getMkVal(d)).filter(v => v > 0);
             const { slope: wdSlope, intercept: wdInt } = linReg(wdValsFr);
@@ -2811,12 +2878,11 @@
                 const c = MC[m] || '#38bdf8';
                 return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:var(--dim)">${m}</span><div style="display:flex;gap:8px;align-items:center"><span style="font-size:9px;color:var(--dim)">${la.toLocaleString()}→${na.toLocaleString()}</span><span style="font-size:11px;font-weight:800;color:#f43f5e">▼${dp}%</span></div></div><div style="background:rgba(255,255,255,.04);border-radius:99px;height:5px"><div style="height:100%;border-radius:99px;width:${100 - dp}%;background:linear-gradient(90deg,${c}33,${c})"></div></div></div>`;
             }).join('')}
-                    ${lowDates.length > 0 ? `<div style="font-size:9px;color:var(--dim);margin-top:6px;line-height:1.5">🟠 저조기 = 정상 평일 평균의 65% 미만<br>저조기 날짜: ${lowDates.map(d => d.slice(5)).join(' · ')}</div>` : '<div style="font-size:9px;color:var(--dim)">저조기 데이터 없음</div>'}
-                </div>
+                    ${lowDates.length > 0 ? `<div style="font-size:9px;color:var(--dim);margin-top:8px;line-height:1.5">🟠 해당 날짜: ${lowDates.map(d => d.slice(5)).join(' · ')}</div>` : '<div style="font-size:9px;color:var(--dim)">저조기 데이터 없음</div>'}
             </div>
             <!-- 추이 + 예측 차트 -->
             <div class="ch-panel">
-                <div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:var(--dim);font-weight:400">🟠저조기 / 🟡주말 / 🔴공휴일 · 차트 클릭 시 상세보기</span></div>
+                <div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:${aiAccColor};font-weight:700;margin-left:6px">정확도 ${aiAccText}</span> <span style="font-size:9px;color:var(--dim);font-weight:400">🟠저조기 / 🟡주말 / 🔴공휴일</span></div>
                 <div class="chart-scroll-wrap">
                     <div id="chartTrend" class="ch-apex" style="min-width:650px"></div>
                 </div>
@@ -2905,6 +2971,7 @@
                                         fill: { type: ['gradient', 'solid'], gradient: { shade: 'dark', type: 'vertical', opacityFrom: .3, opacityTo: .01 } },
                                         colors: [mkColor, '#f43f5e'],
                                         markers: { size: [4, 5], colors: [mkColor, '#f43f5e'], strokeWidth: 2 },
+                                        dataLabels: { enabled: true, enabledOnSeries: [1], style: { fontSize: '9px', colors: ['#f43f5e'] }, offsetY: -10, formatter: v => v ? v.toLocaleString() : '' },
                                         xaxis: {
                                             ...APEX_BASE.xaxis, categories: xLabels, tickAmount: undefined, labels: {
                                                 ...APEX_BASE.xaxis.labels, rotate: 0, minHeight: 40, formatter: (val, ts, opts) => {
@@ -3022,7 +3089,7 @@
                         plotOptions: { bar: { borderRadius: 5, distributed: true, columnWidth: '60%', dataLabels: { position: 'top' } } },
                         dataLabels: { enabled: true, formatter: v => v > 0 ? v.toLocaleString() : '', style: { fontSize: '9px', colors: ['#e2e8f0'] }, offsetY: -16 },
                         xaxis: { ...APEX_BASE.xaxis, categories: ['월', '화', '수', '목', '금'] },
-                        yaxis: { ...APEX_BASE.yaxis, min: 0 },
+                        yaxis: { ...APEX_BASE.yaxis, min: Math.max(0, Math.floor(Math.min(...wdData.filter(v => v > 0)) * 0.95)) },
                         annotations: { yaxis: [{ y: wdAvgLine, borderColor: mkColor + '66', strokeDashArray: 3, label: { text: `평균 ${wdAvgLine}`, style: { background: mkColor + '14', color: mkColor, fontSize: '9px' } } }] },
                         legend: { show: false },
                         tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
@@ -3037,7 +3104,7 @@
                         plotOptions: { bar: { borderRadius: 5, distributed: true, columnWidth: '55%' } },
                         dataLabels: { enabled: true, formatter: v => v > 0 ? v.toLocaleString() : '없음', style: { fontSize: '9px', colors: ['#64748b'] } },
                         xaxis: { ...APEX_BASE.xaxis, categories: ['토', '일'] },
-                        yaxis: { ...APEX_BASE.yaxis, min: 0, max: Math.max(maxWd, 1) },
+                        yaxis: { ...APEX_BASE.yaxis, min: 0, max: Math.max(...weData, 1) * 1.5 },
                         annotations: { yaxis: [{ y: wdAvgLine, borderColor: mkColor + '55', strokeDashArray: 4, label: { text: '평일평균', style: { background: mkColor + '14', color: mkColor, fontSize: '9px' } } }] },
                         legend: { show: false },
                         tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명 (주말)' } },
@@ -3079,7 +3146,7 @@
 
             const overallAvg = Math.round(siteData.reduce((s, d) => s + d.wdA, 0) / (siteData.length || 1));
 
-            // 주간 비교 (공통 데이터 있는 주)
+            // 주간 비교 (공통 데이터 있는 주 + 예측 3주)
             const weekMap = {};
             dates.forEach(d => {
                 const dt = new Date(d + 'T00:00:00');
@@ -3090,24 +3157,58 @@
                     if (val > 0) weekMap[wn][site] = (weekMap[wn][site] || 0) + val;
                 });
             });
-            const validWeeks = Object.entries(weekMap).filter(([, sv]) => sites.every(s => (sv[s] || 0) > 0)).slice(-5);
+            
+            const validWeeks = Object.entries(weekMap).filter(([, sv]) => sites.every(s => (sv[s] || 0) > 0)).slice(-4);
+            const lastWeekEntry = validWeeks[validWeeks.length - 1];
+            const currentWeekId = lastWeekEntry ? lastWeekEntry[0] : "";
+
+            // 추가 예측 3주 (단순 산형 예측)
+            const predictionWeeks = [];
+            if (lastWeekEntry) {
+                const [lastWn] = lastWeekEntry;
+                const [year, week] = lastWn.split('-W').map(Number);
+                for (let i = 1; i <= 3; i++) {
+                    const nextWeek = week + i;
+                    const nextWn = `${year}-W${String(nextWeek).padStart(2, '0')} (예측)`;
+                    const sv = {};
+                    siteData.forEach(sd => {
+                        const history = validWeeks.map(([,v]) => v[sd.site] || 0);
+                        const { slope, intercept } = linReg(history);
+                        sv[sd.site] = Math.max(0, Math.round(intercept + slope * (history.length + i - 1)));
+                    });
+                    predictionWeeks.push([nextWn, sv]);
+                }
+            }
 
             let wkTbl = '';
-            if (validWeeks.length > 0) {
+            const allDisplayWeeks = [...validWeeks, ...predictionWeeks];
+            if (allDisplayWeeks.length > 0) {
                 wkTbl = `<div class="ch-panel" style="margin-top:0">
-                    <div class="ch-panel-title">📅 전 사업장 공통 주간 비교 (${mk})</div>
-                    <div class="ch-panel-sub">전 사업장 데이터 존재 주만 표시 · 주간 합계 기준</div>
+                    <div class="ch-panel-title">📅 전 사업장 주간 비교 & AI 예측 (${mk}) <span style="font-size:9px;color:var(--dim);font-weight:400">현 시점 🔵 마킹 · 향후 3주 예측 포함</span></div>
                     <div style="overflow-x:auto"><table class="week-cmp-tbl">
-                    <thead><tr><th style="text-align:left">사업장</th>${validWeeks.map(([w]) => `<th>${w.slice(5)}</th>`).join('')}<th>증감</th></tr></thead>
+                    <thead><tr><th style="text-align:left">사업장</th>${allDisplayWeeks.map(([w]) => {
+                        const isCur = w === currentWeekId;
+                        const isPred = w.includes('예측');
+                        return `<th style="${isCur ? 'background:rgba(56,189,248,.1);color:#38bdf8' : ''}${isPred ? 'color:var(--accent3)' : ''}">${isCur ? '🔵 ' : ''}${w.slice(5)}</th>`;
+                    }).join('')}<th>증감</th></tr></thead>
                     <tbody>${siteData.map(sd => {
-                    const wkV = validWeeks.map(([, sv]) => sv[sd.site] || 0);
-                    const last2 = wkV.slice(-2);
-                    const chg = last2[0] > 0 ? ((last2[1] - last2[0]) / last2[0] * 100).toFixed(1) : 0;
-                    const cc = chg > 0 ? '#34d399' : chg < 0 ? '#f87171' : '#fbbf24';
-                    return `<tr><td style="color:${sd.color}">${sd.site}</td>${wkV.map((v, i) => { const prev = i > 0 ? wkV[i - 1] : v; const p = prev > 0 ? ((v - prev) / prev * 100).toFixed(0) : 0; const pc = p > 0 ? '#34d399' : p < 0 ? '#f87171' : 'var(--muted)'; return `<td>${v.toLocaleString()}<br><span style="font-size:9px;color:${pc}">${i > 0 && prev > 0 ? (p > 0 ? '+' : '') + p + '%' : ''}</span></td>` }).join('')}<td style="color:${cc};font-weight:900">${chg > 0 ? '↑' : '↓'} ${Math.abs(chg)}%</td></tr>`;
-                }).join('')}</tbody></table></div></div>`;
+                        const wkV = allDisplayWeeks.map(([, sv]) => sv[sd.site] || 0);
+                        const lastActualIdx = validWeeks.length - 1;
+                        const last2Actual = wkV.slice(lastActualIdx - 1, lastActualIdx + 1);
+                        const chg = last2Actual[0] > 0 ? ((last2Actual[1] - last2Actual[0]) / last2Actual[0] * 100).toFixed(1) : 0;
+                        const cc = chg > 1 ? '#34d399' : chg < -1 ? '#f87171' : '#fbbf24';
+                        
+                        return `<tr><td style="color:${sd.color}">${sd.site}</td>${wkV.map((v, i) => {
+                            const isCur = allDisplayWeeks[i][0] === currentWeekId;
+                            const isPred = allDisplayWeeks[i][0].includes('예측');
+                            const prev = i > 0 ? wkV[i-1] : v;
+                            const p = prev > 0 ? ((v - prev) / prev * 100).toFixed(0) : 0;
+                            const pc = p > 0 ? '#34d399' : p < 0 ? '#f87171' : 'var(--border)';
+                            return `<td style="${isCur ? 'background:rgba(56,189,248,.05);font-weight:900' : ''}${isPred ? 'background:rgba(167,139,250,.03);color:var(--accent3);font-style:italic' : ''}">${v.toLocaleString()}<br><span style="font-size:9px;color:${pc}">${i > 0 && prev > 0 ? (p > 0 ? '+' : '') + p + '%' : ''}</span></td>`
+                        }).join('')}<td style="color:${cc};font-weight:900">${chg > 0 ? '↑' : '↓'} ${Math.abs(chg)}%</td></tr>`;
+                    }).join('')}</tbody></table></div></div>`;
             } else {
-                wkTbl = `<div class="ch-panel" style="margin-top:0"><div class="ch-panel-sub" style="padding:8px 0">⚠️ 전 사업장 공통 주간 데이터가 부족합니다</div></div>`;
+                wkTbl = `<div class="ch-panel" style="margin-top:0"><div class="ch-panel-sub" style="padding:8px 0">⚠️ 주간 데이터가 부족합니다</div></div>`;
             }
 
             body.innerHTML = `
@@ -3172,7 +3273,7 @@
             const weAvg = weVals.length ? weVals.reduce((a, b) => a + b, 0) / weVals.length : wdAvg * 0.4;
             const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00');
             const foreRows = []; let wdN = wdValsFr.length, weN = Math.max(weVals.length, 1);
-            for (let i = 1; i <= 7; i++) {
+            for (let i = 1; i <= 21; i++) {
                 const fd = new Date(lastDate); fd.setDate(fd.getDate() + i);
                 const ds = _toYMD(fd), ht = getHolidayType(ds);
                 const isOff = ht.type !== 'workday';
@@ -3192,7 +3293,7 @@
                     rptToByDate[r.date] = (rptToByDate[r.date] || 0) + n(r['TO_' + m]);
                 });
             });
-            const rptDates14 = dates.slice(-14);
+            const rptDates7 = dates.slice(-7);
             const rptTotalDI = Object.values(rptDiByDate).reduce((a, b) => a + b, 0);
             const rptTotalTO = Object.values(rptToByDate).reduce((a, b) => a + b, 0);
             const rptSumAll = rptTotalDI + rptTotalTO || 1;
@@ -3204,7 +3305,7 @@
             ${mkFilterHTML(mk, sites, sfilt)}
             <!-- ★ 일반식 vs 테이크아웃 분리 차트 -->
             <div class="ch-panel">
-                <div class="ch-panel-title">🍱 일반식(D/I) vs 테이크아웃(T/O) 분리 분석 <span style="font-size:9px;color:var(--dim);font-weight:400">${mk} 기준 · 최근 14일</span></div>
+                <div class="ch-panel-title">🍱 일반식(D/I) vs 테이크아웃(T/O) 분리 분석 <span style="font-size:9px;color:var(--dim);font-weight:400">${mk} 기준 · 최근 7일</span></div>
                 <div class="ch-panel-sub">일반식과 테이크아웃 식수를 분리하여 운영 구성을 분석합니다</div>
                 <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
                     <div class="kpi-v2 accent" style="flex:1;min-width:80px"><div class="kv2-lbl">일반식(D/I) 합계</div><div class="kv2-val" style="color:#38bdf8">${rptTotalDI.toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptDiPct}%</div></div>
@@ -3217,7 +3318,7 @@
                 </div>
             </div>
             <div class="ch-panel">
-                <div class="ch-panel-title">🔮 AI 예측 (향후 7일) <span style="font-size:9px;color:var(--dim);font-weight:400">신뢰도: ${confText} · 평일/주말 기준 분리</span></div>
+                <div class="ch-panel-title">🔮 AI 예측 (향후 21일) <span style="font-size:9px;color:var(--dim);font-weight:400">신뢰도: ${confText} · 평일/주말 기준 분리</span></div>
                 <div id="chartForecast" class="ch-apex"></div>
                 <div style="overflow-x:auto;margin-top:14px">
                 <table class="week-cmp-tbl">
@@ -3278,12 +3379,12 @@
                         ...APEX_BASE,
                         chart: { ...APEX_BASE.chart, type: 'bar', height: 220, stacked: true },
                         series: [
-                            { name: '일반식(D/I)', data: rptDates14.map(d => rptDiByDate[d] || 0) },
-                            { name: '테이크아웃(T/O)', data: rptDates14.map(d => rptToByDate[d] || 0) }
+                            { name: '일반식(D/I)', data: rptDates7.map(d => rptDiByDate[d] || 0) },
+                            { name: '테이크아웃(T/O)', data: rptDates7.map(d => rptToByDate[d] || 0) }
                         ],
                         colors: ['#38bdf8', '#fbbf24'],
                         plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
-                        xaxis: { ...APEX_BASE.xaxis, categories: rptDates14.map(d => { const ht = getHolidayType(d).type; return d.slice(5) + (ht !== 'workday' ? '\n' + (ht === 'weekend' ? '🟡' : '🔴') : ''); }) },
+                        xaxis: { ...APEX_BASE.xaxis, categories: rptDates7.map(d => { const ht = getHolidayType(d).type; return d.slice(5) + (ht !== 'workday' ? '\n' + (ht === 'weekend' ? '🟡' : '🔴') : ''); }) },
                         yaxis: { ...APEX_BASE.yaxis, min: 0, labels: { ...APEX_BASE.yaxis.labels, formatter: v => v.toLocaleString() } },
                         dataLabels: { enabled: true, style: { fontSize: '8px' }, formatter: v => v > 0 ? v.toLocaleString() : '' },
                         tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
@@ -3508,13 +3609,35 @@
             } catch (e) { msg.style.color = "var(--warning)"; msg.textContent = "통신 오류: " + e.message; }
         };
 
-        /* ===== window.onload ===== */
+        /* ===== window.onload (v3.7: localStorage 세션 복원 + sessionLog) ===== */
         window.onload = function () {
             try { const saved = localStorage.getItem("WS_ID"); if (saved) { document.getElementById("loginId").value = saved; document.getElementById("loginId").closest('.login-field').style.opacity = '0.7'; document.getElementById("save-id-label").textContent = "저장됨 ✓"; document.getElementById("save-id-btn").textContent = "저장 해제"; document.getElementById("save-id-btn").style.color = "var(--accent)"; document.getElementById("save-id-btn").style.borderColor = "rgba(56,189,248,.3)"; document.getElementById("loginPw").focus(); } } catch (e) { }
             try {
-                const s = sessionStorage.getItem("WS"), tk = sessionStorage.getItem("WTK");
-                const role = sessionStorage.getItem("WR") || "C", region = sessionStorage.getItem("WRG") || "", site = sessionStorage.getItem("WST") || "";
-                if (s) { USER = s; TK = tk; USER_ROLE = role; USER_REGION = region; USER_SITE = site; document.getElementById("login-overlay").style.display = "none"; applyRoleUI(); init(); setTimeout(() => initSecurity(s), 500); }
+                /* ★ v3.7: sessionStorage + localStorage 둘 다 확인 */
+                const s = sessionStorage.getItem("WS") || localStorage.getItem("WS");
+                const tk = sessionStorage.getItem("WTK") || localStorage.getItem("WTK");
+                const role = (sessionStorage.getItem("WR") || localStorage.getItem("WR")) || "C";
+                const region = (sessionStorage.getItem("WRG") || localStorage.getItem("WRG")) || "";
+                const site = (sessionStorage.getItem("WST") || localStorage.getItem("WST")) || "";
+                if (s && tk) {
+                    USER = s; TK = tk; USER_ROLE = role; USER_REGION = region; USER_SITE = site;
+                    document.getElementById("login-overlay").style.display = "none";
+                    applyRoleUI(); init(); setTimeout(() => initSecurity(s), 500);
+                    /* ★ v3.7 핵심: 세션 복원 시 접속 로그 전송 */
+                    sendSessionLog(tk, s).then(result => {
+                        if (result === "expired") {
+                            alert("세션이 만료되었습니다. 다시 로그인해 주세요.");
+                            sessionStorage.clear();
+                            localStorage.removeItem("WTK"); localStorage.removeItem("WS");
+                            localStorage.removeItem("WR"); localStorage.removeItem("WRG"); localStorage.removeItem("WST");
+                            location.reload();
+                        }
+                    });
+                } else if (s) {
+                    /* 토큰 없이 ID만 있는 경우: 저장된 아이디 채우기 */
+                    const loginIdEl = document.getElementById("loginId");
+                    if (loginIdEl) loginIdEl.value = s;
+                }
             } catch (e) { }
         };
 
