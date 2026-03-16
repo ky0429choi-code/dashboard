@@ -1532,7 +1532,7 @@
             border-radius: 14px;
             padding: 18px;
             margin-bottom: 16px;
-            overflow: hidden
+            overflow: visible; /* ★ v3.8 수정: hidden → visible (내부 가로 스크롤 허용) */
         }
 
         .ch-panel-title {
@@ -1641,30 +1641,43 @@
         .week-cmp-tbl {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px
+            font-size: 11px;
+            table-layout: auto; /* ★ v3.8: 열 너비 자동 계산 */
         }
 
         .week-cmp-tbl th {
-            padding: 7px 8px;
+            padding: 7px 10px;
             text-align: center;
             color: var(--dim);
             font-size: 9px;
             font-weight: 800;
             border-bottom: 1px solid var(--border);
-            background: rgba(255, 255, 255, .01)
+            background: rgba(17, 24, 39, .97); /* ★ v3.8: sticky 배경 불투명 처리 */
+            white-space: nowrap;  /* ★ v3.8: 열 제목 줄바꿈 방지 */
+            min-width: 72px;      /* ★ v3.8: 최소 열 너비 */
         }
 
         .week-cmp-tbl td {
-            padding: 7px 8px;
+            padding: 7px 10px;
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, .03);
-            font-weight: 700
+            font-weight: 700;
+            white-space: nowrap;  /* ★ v3.8: 수치 줄바꿈 방지 */
+            min-width: 72px;      /* ★ v3.8: 최소 열 너비 */
         }
 
-        .week-cmp-tbl td:first-child {
+        /* ★ v3.8: 사업장명 열 — 가로 스크롤 시 좌측 고정 */
+        .week-cmp-tbl td:first-child,
+        .week-cmp-tbl th:first-child {
             text-align: left;
             color: var(--accent);
-            font-weight: 800
+            font-weight: 800;
+            min-width: 90px;
+            position: sticky;
+            left: 0;
+            background: rgba(17, 24, 39, .97);
+            z-index: 2;
+            box-shadow: 2px 0 6px rgba(0, 0, 0, .3); /* 고정 열 구분선 */
         }
 
         .wk-holiday {
@@ -2805,7 +2818,15 @@
             const trendPct = normAvg > 0 ? ((r7avg - normAvg) / normAvg * 100).toFixed(1) : 0;
             const trendCls = trendPct > 0 ? '#34d399' : trendPct < 0 ? '#f87171' : '#fbbf24';
 
-            // ★ AI 예측 정확도 산출 (MAPE 기반)
+            // ★ v3.8 수정: wdValsFr/weValsFr 선언을 AI 정확도 블록보다 먼저 이동
+            //   이전 버전은 const wdValsFr가 사용(line ~2810) 이후에 선언(line ~2829)되어
+            //   JavaScript Temporal Dead Zone ReferenceError 발생 → 추이/예측 탭 전체 미렌더링
+            const wdValsFr = normalDates.map(d => getMkVal(d)).filter(v => v > 0);
+            const weValsFr = (window._trCtx.weDates || []).map(d => getMkVal(d)).filter(v => v > 0);
+            const { slope: wdSlope, intercept: wdInt } = linReg(wdValsFr);
+            const { slope: weSlope, intercept: weInt } = linReg(weValsFr.length >= 2 ? weValsFr : [0, 0]);
+
+            // ★ AI 예측 정확도 산출 (MAPE 기반) — wdValsFr 선언 이후에 사용
             let aiAccuracy = null;
             if (wdValsFr.length >= 5) {
                 // Leave-one-out: 마지막 3개 데이터를 예측해보고 실제와 비교
@@ -2825,11 +2846,6 @@
             }
             const aiAccText = aiAccuracy !== null ? `${aiAccuracy}%` : '산출불가';
             const aiAccColor = aiAccuracy !== null ? (aiAccuracy >= 80 ? '#34d399' : aiAccuracy >= 60 ? '#fbbf24' : '#f87171') : 'var(--dim)';
-
-            const wdValsFr = normalDates.map(d => getMkVal(d)).filter(v => v > 0);
-            const weValsFr = (window._trCtx.weDates || []).map(d => getMkVal(d)).filter(v => v > 0);
-            const { slope: wdSlope, intercept: wdInt } = linReg(wdValsFr);
-            const { slope: weSlope, intercept: weInt } = linReg(weValsFr.length >= 2 ? weValsFr : [0, 0]);
             const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00');
             const foreRows = [];
             let wdN = wdValsFr.length, weN = Math.max(weValsFr.length, 1);
@@ -3147,10 +3163,24 @@
             const overallAvg = Math.round(siteData.reduce((s, d) => s + d.wdA, 0) / (siteData.length || 1));
 
             // 주간 비교 (공통 데이터 있는 주 + 예측 3주)
+            // ★ v3.8 수정: 주차 기준을 월별 기준 → 연간 누적 기준으로 변경
+            //   예전: Math.ceil((dt.getDate() + 월첫날요일) / 7) → 매월 1주차부터 재시작
+            //   수정: 연초(1월1일)부터의 누적 주차 (1주차, 2주차, ... 52/53주차)
+            function getAnnualWeekNum(d) {
+                const jan1 = new Date(d.getFullYear(), 0, 1);
+                const dayOfYear = Math.floor((d - jan1) / 86400000);
+                return Math.ceil((dayOfYear + jan1.getDay() + 1) / 7);
+            }
+            // 주차 키에서 표시 레이블 변환: "2026-W05" → "5주차", "2026-W05 (예측)" → "5주차 (예측)"
+            function weekLabel(wKey) {
+                const m = wKey.match(/W(\d+)/);
+                const num = m ? parseInt(m[1], 10) : '?';
+                return wKey.includes('예측') ? `${num}주차 (예측)` : `${num}주차`;
+            }
             const weekMap = {};
             dates.forEach(d => {
                 const dt = new Date(d + 'T00:00:00');
-                const wn = `${dt.getFullYear()}-W${String(Math.ceil((dt.getDate() + new Date(dt.getFullYear(), dt.getMonth(), 1).getDay()) / 7)).padStart(2, '0')}`;
+                const wn = `${dt.getFullYear()}-W${String(getAnnualWeekNum(dt)).padStart(2, '0')}`;
                 if (!weekMap[wn]) weekMap[wn] = {};
                 sites.forEach(site => {
                     const val = filtRecs.filter(r => r.siteName === site && r.date === d).reduce((s, r) => s + (mk === '합계' ? ['조식', '중식', '석식', '야식'].reduce((ss, m) => ss + n(r['DI_' + m]) + n(r['TO_' + m]), 0) : n(r['DI_' + mk]) + n(r['TO_' + mk])), 0);
@@ -3185,11 +3215,11 @@
             if (allDisplayWeeks.length > 0) {
                 wkTbl = `<div class="ch-panel" style="margin-top:0">
                     <div class="ch-panel-title">📅 전 사업장 주간 비교 & AI 예측 (${mk}) <span style="font-size:9px;color:var(--dim);font-weight:400">현 시점 🔵 마킹 · 향후 3주 예측 포함</span></div>
-                    <div style="overflow-x:auto"><table class="week-cmp-tbl">
-                    <thead><tr><th style="text-align:left">사업장</th>${allDisplayWeeks.map(([w]) => {
+                    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px"><table class="week-cmp-tbl" style="min-width:${Math.max(380, 90 + allDisplayWeeks.length * 82 + 68)}px">
+                    <thead><tr><th style="text-align:left;position:sticky;left:0;background:rgba(17,24,39,.97);z-index:2;box-shadow:2px 0 6px rgba(0,0,0,.3)">사업장</th>${allDisplayWeeks.map(([w]) => {
                         const isCur = w === currentWeekId;
                         const isPred = w.includes('예측');
-                        return `<th style="${isCur ? 'background:rgba(56,189,248,.1);color:#38bdf8' : ''}${isPred ? 'color:var(--accent3)' : ''}">${isCur ? '🔵 ' : ''}${w.slice(5)}</th>`;
+                        return `<th style="${isCur ? 'background:rgba(56,189,248,.1);color:#38bdf8' : ''}${isPred ? 'color:var(--accent3)' : ''}">${isCur ? '🔵 ' : ''}${weekLabel(w)}</th>`;
                     }).join('')}<th>증감</th></tr></thead>
                     <tbody>${siteData.map(sd => {
                         const wkV = allDisplayWeeks.map(([, sv]) => sv[sd.site] || 0);
@@ -3198,7 +3228,7 @@
                         const chg = last2Actual[0] > 0 ? ((last2Actual[1] - last2Actual[0]) / last2Actual[0] * 100).toFixed(1) : 0;
                         const cc = chg > 1 ? '#34d399' : chg < -1 ? '#f87171' : '#fbbf24';
                         
-                        return `<tr><td style="color:${sd.color}">${sd.site}</td>${wkV.map((v, i) => {
+                        return `<tr><td style="color:${sd.color};position:sticky;left:0;background:rgba(17,24,39,.97);z-index:1;box-shadow:2px 0 6px rgba(0,0,0,.3)">${sd.site}</td>${wkV.map((v, i) => {
                             const isCur = allDisplayWeeks[i][0] === currentWeekId;
                             const isPred = allDisplayWeeks[i][0].includes('예측');
                             const prev = i > 0 ? wkV[i-1] : v;
