@@ -1781,55 +1781,6 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
         }
-
-        .login-password-wrap {
-            display: block;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .login-password-wrap #loginPw {
-            display: block !important;
-            width: 100%;
-            margin-bottom: 0;
-        }
-
-        .trend-kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .trend-drop-panel {
-            margin: 0 0 14px;
-            padding: 14px 16px;
-        }
-
-        .report-forecast-scroll {
-            width: 100%;
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 6px;
-        }
-
-        .report-forecast-scroll .chart-forecast-inner {
-            min-width: 980px;
-        }
-
-        @media (max-width: 980px) {
-            .trend-kpi-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 640px) {
-            .trend-kpi-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
-        }
     </style>
 
 
@@ -1851,7 +1802,7 @@
                     style="padding:4px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;transition:all .2s;line-height:1.4">아이디
                     저장</button>
             </div>
-            <div class="login-password-wrap"><input type="password" id="loginPw" placeholder="비밀번호" autocomplete="current-password"></div>
+            <input type="password" id="loginPw" placeholder="비밀번호">
             <button class="login-btn" onclick="doLogin()">로그인</button>
             <div id="login-error"></div>
         </div>
@@ -2241,18 +2192,18 @@
                     USER_ROLE = parts[2] || "C";
                     USER_REGION = parts[3] || "";
                     USER_SITE = parts[4] || "";
-                    /* ★ v3.7: sessionStorage + localStorage 이중 저장 */
+                    /* 로그인 성공 정보는 메모리에만 유지 (새로고침/재접속 시 비밀번호 재입력 필수) */
                     try {
-                        sessionStorage.setItem("WS", id);
-                        if (TK) sessionStorage.setItem("WTK", TK);
-                        sessionStorage.setItem("WR", USER_ROLE);
-                        sessionStorage.setItem("WRG", USER_REGION);
-                        sessionStorage.setItem("WST", USER_SITE);
-                        localStorage.setItem("WS", id);
-                        if (TK) localStorage.setItem("WTK", TK);
-                        localStorage.setItem("WR", USER_ROLE);
-                        localStorage.setItem("WRG", USER_REGION);
-                        localStorage.setItem("WST", USER_SITE);
+                        sessionStorage.removeItem("WS");
+                        sessionStorage.removeItem("WTK");
+                        sessionStorage.removeItem("WR");
+                        sessionStorage.removeItem("WRG");
+                        sessionStorage.removeItem("WST");
+                        localStorage.removeItem("WS");
+                        localStorage.removeItem("WTK");
+                        localStorage.removeItem("WR");
+                        localStorage.removeItem("WRG");
+                        localStorage.removeItem("WST");
                     } catch (e) { }
                     document.getElementById("login-overlay").style.display = "none";
                     applyRoleUI();
@@ -2263,7 +2214,7 @@
                         localStorage.setItem("WS_SAVE_ID", id);
                     }
                 } else {
-                    err.innerText = t === "NoPermission" ? "등록되지 않은 계정입니다." : "비밀번호가 올바르지 않습니다.";
+                    err.innerText = t === "NoPermission" ? "등록되지 않은 계정입니다." : (t === "PasswordNotSet" ? "계정 비밀번호가 설정되지 않았습니다. 관리자에게 문의하세요." : "비밀번호가 올바르지 않습니다.");
                     err.style.display = "block";
                 }
             } catch (e) { err.innerText = "통신 오류: " + e.message; err.style.display = "block"; }
@@ -2293,7 +2244,11 @@
             }
 
             try {
-                const url = TK ? API + "?tk=" + TK : API + "?pw=" + encodeURIComponent(document.getElementById("loginPw").value);
+                if (!TK) {
+                    document.getElementById("login-overlay").style.display = "flex";
+                    throw new Error("auth_required");
+                }
+                const url = API + "?tk=" + TK;
                 const r = await fetch(url, { redirect: "follow" });
                 const raw = await r.json();
                 if (raw.error) throw new Error(raw.error);
@@ -2621,7 +2576,7 @@
                     console.warn("GAS perf error:", d.error);
                 }
             } catch (e) {
-                console.warn("GAS 실적 로드 실패, localStorage 사용:", e.message);
+                console.warn("GAS 실적 로드 실패:", e.message);
             } finally {
                 _gasPerfLoading = false;
             }
@@ -2923,25 +2878,27 @@
             <div style="padding:4px 0 16px">
             ${mkFilterHTML(mk, sites, sfilt)}
             <!-- KPI 낙폭 + 핵심 지표 -->
-            <div class="trend-kpi-grid">
-                <div class="kpi-v2 accent"><div class="kv2-lbl">정상 평일 평균 (${mk})</div><div class="kv2-val" style="color:${mkColor}">${normAvg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${mk === '중식' ? `DI ${diPct}% · T/O ${toPct}%` : ''}</div></div>
-                <div class="kpi-v2 warning"><div class="kv2-lbl">저조기 평균</div><div class="kv2-val" style="color:#fbbf24">${lowAvg > 0 ? lowAvg.toLocaleString() : '-'}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${lowDates.length}일 해당</div></div>
-                <div class="kpi-v2 danger"><div class="kv2-lbl">저조기 낙폭</div><div class="kv2-val" style="color:#f87171">▼${dropPct}<span style="font-size:14px;opacity:.7">%</span></div><div class="kv2-sub">정상 대비</div></div>
-                <div class="kpi-v2 ${trendPct > 0 ? 'success' : trendPct < 0 ? 'danger' : 'warning'}"><div class="kv2-lbl">최근 7일 추이 (평일)</div><div class="kv2-val" style="color:${trendCls}">${r7avg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${trendPct > 0 ? '↑' : '↓'} ${Math.abs(trendPct)}% vs 전체평균</div></div>
-            </div>
-            <div class="ch-panel trend-drop-panel">
-                <div style="font-size:11px;font-weight:900;margin-bottom:10px">📉 정상 대비 저조기 낙폭</div>
-                ${['중식', '합계', '석식', '조식'].map(m => {
-                    const mv_n = normalDates.map(d => m === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, mx) => s + (byDate[mx]?.[d] || 0), 0) : (byDate[m]?.[d] || 0)).filter(v => v > 0);
-                    const mv_l = lowDates.map(d => m === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, mx) => s + (byDate[mx]?.[d] || 0), 0) : (byDate[m]?.[d] || 0)).filter(v => v > 0);
-                    const na = mv_n.length ? Math.round(mv_n.reduce((a, b) => a + b, 0) / mv_n.length) : 0;
-                    const la = mv_l.length ? Math.round(mv_l.reduce((a, b) => a + b, 0) / mv_l.length) : 0;
-                    const dp = na > 0 ? Math.round((1 - la / na) * 100) : 0;
-                    const MC = { 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6', 합계: '#34d399' };
-                    const c = MC[m] || '#38bdf8';
-                    return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:var(--dim)">${m}</span><div style="display:flex;gap:8px;align-items:center"><span style="font-size:9px;color:var(--dim)">${la.toLocaleString()}→${na.toLocaleString()}</span><span style="font-size:11px;font-weight:800;color:#f43f5e">▼${dp}%</span></div></div><div style="background:rgba(255,255,255,.04);border-radius:99px;height:5px"><div style="height:100%;border-radius:99px;width:${100 - dp}%;background:linear-gradient(90deg,${c}33,${c})"></div></div></div>`;
-                }).join('')}
-                ${lowDates.length > 0 ? `<div style="font-size:9px;color:var(--dim);margin-top:8px;line-height:1.5">🟠 해당 날짜: ${lowDates.map(d => d.slice(5)).join(' · ')}</div>` : '<div style="font-size:9px;color:var(--dim)">저조기 데이터 없음</div>'}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <div class="kpi-v2 accent"><div class="kv2-lbl">정상 평일 평균 (${mk})</div><div class="kv2-val" style="color:${mkColor}">${normAvg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${mk === '중식' ? `DI ${diPct}% · T/O ${toPct}%` : ''}</div></div>
+                    <div class="kpi-v2 warning"><div class="kv2-lbl">저조기 평균</div><div class="kv2-val" style="color:#fbbf24">${lowAvg > 0 ? lowAvg.toLocaleString() : '-'}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${lowDates.length}일 해당</div></div>
+                    <div class="kpi-v2 danger"><div class="kv2-lbl">저조기 낙폭</div><div class="kv2-val" style="color:#f87171">▼${dropPct}<span style="font-size:14px;opacity:.7">%</span></div><div class="kv2-sub">정상 대비</div></div>
+                    <div class="kpi-v2 ${trendPct > 0 ? 'success' : trendPct < 0 ? 'danger' : 'warning'}"><div class="kv2-lbl">최근 7일 추이 (평일)</div><div class="kv2-val" style="color:${trendCls}">${r7avg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${trendPct > 0 ? '↑' : '↓'} ${Math.abs(trendPct)}% vs 전체평균</div></div>
+                </div>
+                <!-- 낙폭 바 패널 -->
+                <div class="ch-panel" style="margin:0;padding:14px 16px">
+                    <div style="font-size:11px;font-weight:900;margin-bottom:10px">📉 정상 대비 저조기 낙폭</div>
+                    ${['중식', '합계', '석식', '조식'].map(m => {
+                const mv_n = normalDates.map(d => m === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, mx) => s + (byDate[mx]?.[d] || 0), 0) : (byDate[m]?.[d] || 0)).filter(v => v > 0);
+                const mv_l = lowDates.map(d => m === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, mx) => s + (byDate[mx]?.[d] || 0), 0) : (byDate[m]?.[d] || 0)).filter(v => v > 0);
+                const na = mv_n.length ? Math.round(mv_n.reduce((a, b) => a + b, 0) / mv_n.length) : 0;
+                const la = mv_l.length ? Math.round(mv_l.reduce((a, b) => a + b, 0) / mv_l.length) : 0;
+                const dp = na > 0 ? Math.round((1 - la / na) * 100) : 0;
+                const MC = { 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6', 합계: '#34d399' };
+                const c = MC[m] || '#38bdf8';
+                return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:var(--dim)">${m}</span><div style="display:flex;gap:8px;align-items:center"><span style="font-size:9px;color:var(--dim)">${la.toLocaleString()}→${na.toLocaleString()}</span><span style="font-size:11px;font-weight:800;color:#f43f5e">▼${dp}%</span></div></div><div style="background:rgba(255,255,255,.04);border-radius:99px;height:5px"><div style="height:100%;border-radius:99px;width:${100 - dp}%;background:linear-gradient(90deg,${c}33,${c})"></div></div></div>`;
+            }).join('')}
+                    ${lowDates.length > 0 ? `<div style="font-size:9px;color:var(--dim);margin-top:8px;line-height:1.5">🟠 해당 날짜: ${lowDates.map(d => d.slice(5)).join(' · ')}</div>` : '<div style="font-size:9px;color:var(--dim)">저조기 데이터 없음</div>'}
             </div>
             <!-- 추이 + 예측 차트 -->
             <div class="ch-panel">
@@ -2951,7 +2908,8 @@
                 </div>
                 <div id="chartTrendClickInfo" style="display:none;margin-top:10px;padding:12px;background:rgba(56,189,248,.04);border:1px solid rgba(56,189,248,.15);border-radius:10px;animation:slideIn .25s ease-out"></div>
             </div>
-            ${mk === '중식' || mk === '합계' ? `<div class="ch-panel" style="margin-top:12px">
+            <!-- DI vs T/O -->
+            ${mk === '중식' || mk === '합계' ? `<div class="ch-panel">
                 <div class="ch-panel-title">📊 D/I · T/O 일별 비중 추이 (최근 14일)</div>
                 <div class="ch-panel-sub">T/O 비율이 높을수록 좌석 회전 압박 ↑ · 공간 확장 or T/O 코너 증설 검토 신호</div>
                 <div id="chartDITO" class="ch-apex"></div>
@@ -3297,19 +3255,10 @@
             </div>
             ${wkTbl}
             <div class="ch-panel">
-                <div class="ch-panel-title">📈 사업장별 추이 · 과거 10일 + 향후 14일</div>
-                <div class="chart-scroll-wrap"><div id="chartSiteLine" class="ch-apex" style="min-width:860px"></div></div>
+                <div class="ch-panel-title">📈 사업장별 최근 21일 추이</div>
+                <div id="chartSiteLine" class="ch-apex"></div>
             </div>
             </div>`;
-
-            const hist10 = dates.slice(-10);
-            const lastHistDate = hist10.length ? new Date(hist10[hist10.length - 1] + 'T00:00:00') : new Date();
-            const future14 = Array.from({ length: 14 }, (_, i) => {
-                const d = new Date(lastHistDate);
-                d.setDate(d.getDate() + i + 1);
-                return _toYMD(d);
-            });
-            const mixedWindow = [...hist10, ...future14];
 
             setTimeout(() => {
                 try {
@@ -3327,55 +3276,20 @@
                         tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
                     }); c6.render(); window._apexCharts.push(c6);
                 } catch (e) { }
+                const rd21 = dates.slice(-21);
                 try {
                     const c7 = new ApexCharts(document.getElementById('chartSiteLine'), {
                         ...APEX_BASE,
-                        chart: { ...APEX_BASE.chart, type: 'line', height: 240 },
-                        series: siteData.map(sd => {
-                            const histVals = hist10.map(d => {
-                                const v = sd.byD[d];
-                                return v > 0 ? v : null;
-                            });
-                            const baseSeries = hist10.map(d => (sd.byD[d] || 0)).filter(v => v > 0);
-                            const lr = linReg(baseSeries.length >= 2 ? baseSeries : [0, 0]);
-                            let nIdx = baseSeries.length;
-                            const futureVals = future14.map(ds => {
-                                const ht = getHolidayType(ds);
-                                const ratio = ht.type === 'workday' ? 1 : 0.68;
-                                const fv = Math.max(0, Math.round((lr.intercept + lr.slope * nIdx) * ratio));
-                                nIdx++;
-                                return fv;
-                            });
-                            return { name: sd.site, data: [...histVals, ...futureVals] };
-                        }),
+                        chart: { ...APEX_BASE.chart, type: 'line', height: 220 },
+                        series: siteData.map(sd => ({ name: sd.site, data: rd21.map(d => { const v = sd.byD[d]; return v > 0 ? v : null; }) })),
                         colors: siteData.map(d => d.color),
-                        stroke: { width: 2.5, curve: 'smooth', dashArray: siteData.map(() => 0) },
-                        markers: { size: mixedWindow.map((_, idx) => idx < hist10.length ? 3 : 0), strokeWidth: 1 },
-                        xaxis: {
-                            ...APEX_BASE.xaxis,
-                            categories: mixedWindow.map((d, idx) => idx === hist10.length ? d.slice(5) + '\n예측' : d.slice(5)),
-                            tickAmount: 8
-                        },
-                        annotations: {
-                            xaxis: hist10.length < mixedWindow.length ? [{
-                                x: hist10.length - 0.5,
-                                x2: hist10.length - 0.5,
-                                borderColor: '#a78bfa88',
-                                strokeDashArray: 4,
-                                label: {
-                                    text: '예측 구간 시작',
-                                    style: { background: '#a78bfa', color: '#fff', fontSize: '10px', fontWeight: 800 }
-                                }
-                            }] : []
-                        },
+                        stroke: { width: 2.5, curve: 'smooth' },
+                        markers: { size: 3, strokeWidth: 1 },
+                        xaxis: { ...APEX_BASE.xaxis, categories: rd21.map(d => d.slice(5)), tickAmount: 7 },
                         yaxis: { ...APEX_BASE.yaxis, min: 0 },
                         dataLabels: { enabled: false },
                         legend: { ...APEX_BASE.legend, position: 'top' },
-                        tooltip: {
-                            ...APEX_BASE.tooltip,
-                            x: { formatter: (_, opts) => mixedWindow[opts.dataPointIndex] || '' },
-                            y: { formatter: v => v != null ? v.toLocaleString() + '명' : '-' }
-                        },
+                        tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v != null ? v.toLocaleString() + '명' : '-' } },
                     }); c7.render(); window._apexCharts.push(c7);
                 } catch (e) { }
             }, 100);
@@ -3439,7 +3353,7 @@
             </div>
             <div class="ch-panel">
                 <div class="ch-panel-title">🔮 AI 예측 (향후 21일) <span style="font-size:9px;color:var(--dim);font-weight:400">신뢰도: ${confText} · 평일/주말 기준 분리</span></div>
-                <div class="report-forecast-scroll"><div class="chart-forecast-inner"><div id="chartForecast" class="ch-apex" style="min-width:980px"></div></div></div>
+                <div id="chartForecast" class="ch-apex"></div>
                 <div style="overflow-x:auto;margin-top:14px">
                 <table class="week-cmp-tbl">
                     <thead><tr><th style="text-align:left">예측일</th><th>구분</th><th>추정 ${mk}</th><th>기준 대비</th></tr></thead>
@@ -3532,7 +3446,7 @@
                     const c8 = new ApexCharts(document.getElementById('chartForecast'), {
                         ...APEX_BASE,
                         chart: {
-                            ...APEX_BASE.chart, type: 'bar', height: 220,
+                            ...APEX_BASE.chart, type: 'bar', height: 200,
                             events: {
                                 dataPointSelection: function (event, chartContext, config) {
                                     try {
@@ -3569,8 +3483,8 @@
                         series: [{ name: '추정 ' + mk, data: foreRows.map(r => r.fv) }],
                         colors: foreRows.map(r => r.isOff ? '#475569' : '#38bdf8'),
                         plotOptions: { bar: { borderRadius: 6, distributed: true, columnWidth: '55%', dataLabels: { position: 'top' } } },
-                        dataLabels: { enabled: true, formatter: v => v.toLocaleString(), style: { fontSize: '9px', fontWeight: 800, colors: ['#e2e8f0'] }, offsetY: -18, background: { enabled: true, foreColor: '#e2e8f0', borderRadius: 3, padding: 3, opacity: .18 } },
-                        xaxis: { ...APEX_BASE.xaxis, categories: fLabels, labels: { ...APEX_BASE.xaxis.labels, rotate: 0, trim: false, hideOverlappingLabels: false, minHeight: 46, maxHeight: 52 } },
+                        dataLabels: { enabled: true, formatter: v => v.toLocaleString(), style: { fontSize: '9px', colors: ['#e2e8f0'] }, offsetY: -18 },
+                        xaxis: { ...APEX_BASE.xaxis, categories: fLabels },
                         yaxis: { ...APEX_BASE.yaxis, min: 0, labels: { ...APEX_BASE.yaxis.labels, formatter: v => v.toLocaleString() } },
                         annotations: { yaxis: [{ y: Math.round(wdAvg), borderColor: '#38bdf8aa', strokeDashArray: 0, label: { text: `평일평균 ${Math.round(wdAvg)}`, position: 'right', textAnchor: 'end', orientation: 'horizontal', style: { background: '#38bdf8', color: '#fff', fontSize: '10px', fontWeight: 900 }, offsetX: -10 } }, ...(weAvg > 0 ? [{ y: Math.round(weAvg), borderColor: '#fbbf24aa', strokeDashArray: 0, label: { text: `주말평균 ${Math.round(weAvg)}`, position: 'right', textAnchor: 'end', orientation: 'horizontal', style: { background: '#fbbf24', color: '#000', fontSize: '10px', fontWeight: 900 }, offsetX: -10 } }] : [])] },
                         legend: { show: false },
@@ -3733,31 +3647,18 @@
         window.onload = function () {
             try { const saved = localStorage.getItem("WS_ID"); if (saved) { document.getElementById("loginId").value = saved; document.getElementById("loginId").closest('.login-field').style.opacity = '0.7'; document.getElementById("save-id-label").textContent = "저장됨 ✓"; document.getElementById("save-id-btn").textContent = "저장 해제"; document.getElementById("save-id-btn").style.color = "var(--accent)"; document.getElementById("save-id-btn").style.borderColor = "rgba(56,189,248,.3)"; document.getElementById("loginPw").focus(); } } catch (e) { }
             try {
-                /* ★ v3.7: sessionStorage + localStorage 둘 다 확인 */
-                const s = sessionStorage.getItem("WS") || localStorage.getItem("WS");
-                const tk = sessionStorage.getItem("WTK") || localStorage.getItem("WTK");
-                const role = (sessionStorage.getItem("WR") || localStorage.getItem("WR")) || "C";
-                const region = (sessionStorage.getItem("WRG") || localStorage.getItem("WRG")) || "";
-                const site = (sessionStorage.getItem("WST") || localStorage.getItem("WST")) || "";
-                if (s && tk) {
-                    USER = s; TK = tk; USER_ROLE = role; USER_REGION = region; USER_SITE = site;
-                    document.getElementById("login-overlay").style.display = "none";
-                    applyRoleUI(); init(); setTimeout(() => initSecurity(s), 500);
-                    /* ★ v3.7 핵심: 세션 복원 시 접속 로그 전송 */
-                    sendSessionLog(tk, s).then(result => {
-                        if (result === "expired") {
-                            alert("세션이 만료되었습니다. 다시 로그인해 주세요.");
-                            sessionStorage.clear();
-                            localStorage.removeItem("WTK"); localStorage.removeItem("WS");
-                            localStorage.removeItem("WR"); localStorage.removeItem("WRG"); localStorage.removeItem("WST");
-                            location.reload();
-                        }
-                    });
-                } else if (s) {
-                    /* 토큰 없이 ID만 있는 경우: 저장된 아이디 채우기 */
-                    const loginIdEl = document.getElementById("loginId");
-                    if (loginIdEl) loginIdEl.value = s;
-                }
+                /* 보안 정책: 저장된 인증정보로 자동 입장 금지 */
+                sessionStorage.removeItem("WS");
+                sessionStorage.removeItem("WTK");
+                sessionStorage.removeItem("WR");
+                sessionStorage.removeItem("WRG");
+                sessionStorage.removeItem("WST");
+                localStorage.removeItem("WS");
+                localStorage.removeItem("WTK");
+                localStorage.removeItem("WR");
+                localStorage.removeItem("WRG");
+                localStorage.removeItem("WST");
+                document.getElementById("login-overlay").style.display = "flex";
             } catch (e) { }
         };
 
