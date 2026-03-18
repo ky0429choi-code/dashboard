@@ -2349,7 +2349,7 @@
                     <div class="region-tag">${rg}</div>
                     <div class="site-name">${sn} ${ledDot} <button class="emotion-btn" onclick="openCalForSite('${sn}')" title="데일리 식수 열람">📆</button></div>
                     <div class="monthly-bar">
-                        <div class="mb-item"><span>📊 금월 평균</span><span class="mb-val">${mAvg > 0 ? f(mAvg) + '식' : '-'}</span></div>
+                        <div class="mb-item"><span>📊 금월 평균 (평일)</span><span class="mb-val">${mAvg > 0 ? f(mAvg) + '식' : '-'}</span></div>
                         <div class="mb-split">|</div>
                         <div class="mb-item"><span>전월대비</span><span class="mb-pct ${momClass}">${momIcon} ${Math.abs(mMom)}%</span></div>
                     </div>
@@ -2432,7 +2432,25 @@
            공통 유틸
         ===================================================== */
         window.tp = function (u, t) { ['perf', 'wknd', 'goal', 'edit', 'seat'].forEach(p => { const e = document.getElementById(`p_${p}_${u}`); if (e) { if (p === t) e.classList.toggle('show'); else e.classList.remove('show'); } }); };
-        window.svSeat = function (u, sn) { OV[sn] = OV[sn] || {};['좌석수', '코너수', 'TO_코너수'].forEach(k => { const v = document.getElementById(`ov_${u}_${k}`).value; if (v) OV[sn][k] = Number(v); else delete OV[sn][k]; }); so(); render(); };
+        /* ★ FIX 1-B: 좌석수 미저장 문제 해결 — GAS POST 호출 추가 */
+        window.svSeat = async function (u, sn) { 
+            OV[sn] = OV[sn] || {};
+            ['좌석수', '코너수', 'TO_코너수'].forEach(k => { 
+                const v = document.getElementById(`ov_${u}_${k}`).value; 
+                if (v) OV[sn][k] = Number(v); 
+                else delete OV[sn][k]; 
+            }); 
+            so(); 
+            render();
+            
+            /* ★ PATCH: 시트에 좌석수 저장 로직 */
+            try {
+                const seatData = { tk: TK, action: 'updateSeats', siteName: sn, seats: Number(document.getElementById(`ov_${u}_좌석수`).value || 0), corners: Number(document.getElementById(`ov_${u}_코너수`).value || 0), toCorners: Number(document.getElementById(`ov_${u}_TO_코너수`).value || 0) };
+                const r = await fetch(API, { method: 'POST', body: JSON.stringify(seatData), redirect: 'follow' });
+                const t = await r.text();
+                if (t.includes('Success')) console.log('✓ 좌석수 시트 저장 완료:', sn);
+            } catch (e) { console.warn('좌석수 시트 저장 실패:', e.message); }
+        };
         window.svEdit = function (u, sn) { OV[sn] = OV[sn] || {};['영양사', '조리사', '웰프로_주', '웰프로_야'].forEach(k => { const v = document.getElementById(`ov_${u}_${k}`).value; if (v) OV[sn][k] = Number(v); else delete OV[sn][k]; });["조식", "중식", "석식", "야식"].forEach(m => { ["평일", "주말", "실투입"].forEach(t => { const el = document.getElementById(`ov_${u}_${m}_${t}`); if (!el) return; const v = el.value; if (v) OV[sn][m + '_' + t] = Number(v); else delete OV[sn][m + '_' + t]; }); }); so(); render(); };
         window.svRec = function (u, sn, rg) { /* 하단에서 재정의 */ };
         window.toggleGoalEdit = function (u) { const keys = ['매출', '이익', '재료']; const hint = document.getElementById(`goal-edit-hint-${u}`); const isEditing = document.getElementById(`gi_매출_${u}`).style.display !== 'none'; keys.forEach(k => { const inp = document.getElementById(`gi_${k}_${u}`); const val = document.getElementById(`gv_${k}_${u}`); if (inp && val) { inp.style.display = isEditing ? 'none' : 'block'; val.style.display = isEditing ? 'block' : 'none'; } }); if (hint) hint.textContent = isEditing ? '📝 수치 터치 시 직접 수정 가능' : '✅ 수정 중 — 값 입력 후 다른 곳 터치'; };
@@ -2739,8 +2757,13 @@
             }
 
             const dates = [...new Set(recsToUse.map(r => r.date))].sort();
+            /* ★ FIX 2-A: 당월 중간값 문제 해결 — 데이터 완성도 표시 */
+            const monthFirstDate = new Date(dates[0] + "T00:00:00");
+            const monthLastDay = new Date(monthFirstDate.getFullYear(), monthFirstDate.getMonth() + 1, 0).getDate();
+            const dataCompleteness = `${dates.length}일/${monthLastDay}일`;
+            
             document.getElementById("trend-date-range").textContent =
-                `[${regionLabel}] ${dates[0]} ~ ${dates[dates.length - 1]} · ${dates.length}일 · ${recsToUse.length}건`;
+                `[${regionLabel}] ${dates[0]} ~ ${dates[dates.length - 1]} · ${dataCompleteness} ${dates.length < monthLastDay * 0.5 ? '⚠️ 미완성' : '✓'} · ${recsToUse.length}건`;
             const sites = [...new Set(recsToUse.map(r => r.siteName))];
 
             // 사업장 필터 적용
