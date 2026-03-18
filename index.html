@@ -1977,6 +1977,7 @@
 
         /* ★ GAS 실적 데이터 캐시 (추이 리포트용) */
         let _gasPerfCache = null;   // 로딩된 서버 실적 데이터
+        let _gasForecastCache = [];  // AI 예측 이력 캐시
         let _gasPerfLoading = false; // 로딩 중 플래그
         let _gasPerfLoaded = false;  // 최초 로드 완료 플래그
 
@@ -2471,6 +2472,67 @@
             saveRec(arr);
         }
 
+
+        function normalizePerfRow(row) {
+            return {
+                date: String(row.date || row["날짜"] || "").slice(0, 10),
+                siteName: String(row.siteName || row["사업장명"] || "").trim(),
+                region: String(row.region || row["지역"] || "").trim(),
+                DI_조식: n(row.DI_조식), DI_중식: n(row.DI_중식), DI_석식: n(row.DI_석식), DI_야식: n(row.DI_야식),
+                TO_조식: n(row.TO_조식), TO_중식: n(row.TO_중식), TO_석식: n(row.TO_석식), TO_야식: n(row.TO_야식),
+                도전매출: n(row.도전매출), 재료비: n(row.재료비),
+                식사특이사항: row.식사특이사항 || "", 기타특이사항: row.기타특이사항 || ""
+            };
+        }
+        function normalizeForecastRow(row) {
+            return {
+                createdAt: row.createdAt || row["생성일시"] || "",
+                baseDate: String(row.baseDate || row["기준일"] || "").slice(0, 10),
+                targetDate: String(row.targetDate || row["예측대상일"] || "").slice(0, 10),
+                region: String(row.region || row["지역"] || "").trim(),
+                siteName: String(row.siteName || row["사업장명"] || "").trim(),
+                meal: String(row.meal || row["끼니"] || "").trim(),
+                predicted: n(row.predicted != null ? row.predicted : row["예측값"]),
+                actual: row.actual === '' || row.actual == null ? '' : n(row.actual != null ? row.actual : row["실제값"]),
+                accuracy: row.accuracy === '' || row.accuracy == null ? '' : n(row.accuracy != null ? row.accuracy : row["정확도(%)"]),
+                errorPct: row.errorPct === '' || row.errorPct == null ? '' : n(row.errorPct != null ? row.errorPct : row["오차율(%)"]),
+                status: String(row.status || row["상태"] || "").trim(),
+                note: String(row.note || row["비고"] || "").trim()
+            };
+        }
+        function mealKeysForForecast(mk) { return mk === '합계' ? ['조식', '중식', '석식', '야식', '합계'] : [mk]; }
+        function aggregateForecastByDate(siteNames, mk) {
+            const set = new Set((siteNames || []).filter(Boolean));
+            const meals = mealKeysForForecast(mk);
+            const rows = (_gasForecastCache || []).filter(r => r && r.targetDate && (!set.size || set.has(r.siteName)) && meals.includes(r.meal));
+            const agg = {};
+            rows.forEach(r => {
+                if (mk === '합계' && r.meal !== '합계' && meals.includes('합계')) {
+                    // 합계는 실제 4끼를 합산한 값만 사용하지 않도록 중복 배제
+                    return;
+                }
+                const k = r.targetDate;
+                if (!agg[k]) agg[k] = { pred: 0, actual: 0, hasActual: false, count: 0 };
+                agg[k].pred += n(r.predicted);
+                if (r.actual !== '' && r.actual != null) { agg[k].actual += n(r.actual); agg[k].hasActual = true; }
+                agg[k].count += 1;
+            });
+            return agg;
+        }
+        function getStoredAccuracy(siteNames, mk) {
+            const agg = aggregateForecastByDate(siteNames, mk);
+            const vals = Object.keys(agg).sort().map(k => {
+                const a = agg[k];
+                if (!a.hasActual || a.actual <= 0 || a.pred <= 0) return null;
+                return Math.max(0, Math.round(100 - (Math.abs(a.actual - a.pred) / a.actual * 100)));
+            }).filter(v => v != null);
+            return vals.length ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) : null;
+        }
+        function getForecastValueForDate(siteNames, mk, ds) {
+            const agg = aggregateForecastByDate(siteNames, mk);
+            return agg[ds] ? n(agg[ds].pred) : 0;
+        }
+
         /* ===== 실적 기록: 날짜 변경 시 과거 데이터 불러오기 (수정 모드) ===== */
         window.loadPastRec = function (u, sn, dateVal) {
             const today = new Date().toISOString().slice(0, 10);
@@ -2627,10 +2689,12 @@
                 const r = await fetch(API + "?type=perf&tk=" + TK, { redirect: "follow" });
                 const d = await r.json();
                 if (d.perf && Array.isArray(d.perf) && d.perf.length > 0) {
-                    _gasPerfCache = d.perf;
+                    const perfRows = d.perf.map(normalizePerfRow).filter(r => r.date && r.siteName);
+                    _gasPerfCache = perfRows;
+                    _gasForecastCache = (d.forecastHistory || []).map(normalizeForecastRow).filter(r => r.targetDate && r.siteName && r.meal);
                     /* localStorage에 머지 (GAS 데이터가 우선 — 동일 date+siteName은 GAS값으로 덮어쓰기) */
                     let localRecs = getRec();
-                    d.perf.forEach(gasRec => {
+                    perfRows.forEach(gasRec => {
                         const key = _recKey(gasRec);
                         const idx = localRecs.findIndex(r => _recKey(r) === key);
                         if (idx >= 0) localRecs[idx] = { ...localRecs[idx], ...gasRec }; // GAS 데이터 우선
@@ -2683,7 +2747,7 @@
 
         /* 리프레시 버튼: 강제 재동기화 */
         window.refreshTrendFromGAS = async function () {
-            _gasPerfLoaded = false; _gasPerfCache = null;
+            _gasPerfLoaded = false; _gasPerfCache = null; _gasForecastCache = [];
             const body = document.getElementById("trend-body");
             body.innerHTML = `<div style="text-align:center;padding:60px">📡 재동기화 중...</div>`;
             await loadPerfFromGAS();
@@ -2770,6 +2834,7 @@
             const sfilt = window._trendSiteFilter || [];
             const activeSites = sfilt.length ? sfilt.filter(s => sites.includes(s)) : sites;
             const filtRecs = sfilt.length ? recsToUse.filter(r => sfilt.includes(r.siteName)) : recsToUse;
+            const selectedSites = sfilt.length ? [...sfilt] : [...new Set(recsToUse.map(r => r.siteName))];
 
             // 날짜별 집계 (끼니별)
             const byDate = { 조식: {}, 중식: {}, 석식: {}, 야식: {} };
@@ -2813,7 +2878,7 @@
             // 공유 컨텍스트 저장
             window._trCtx = {
                 filtRecs, dates, sites: activeSites, wdDates, lowDates, weDates, normalDates,
-                byDate, normAvg, lowAvg, dropPct, mk, mkColor, getMkVal, normVals, regionLabel
+                byDate, normAvg, lowAvg, dropPct, mk, mkColor, getMkVal, normVals, regionLabel, selectedSites
             };
 
             const tab = _trendActiveTab;
@@ -2902,9 +2967,10 @@
             const { slope: wdSlope, intercept: wdInt } = linReg(wdValsFr);
             const { slope: weSlope, intercept: weInt } = linReg(weValsFr.length >= 2 ? weValsFr : [0, 0]);
 
-            // ★ AI 예측 정확도 산출 (MAPE 기반) — wdValsFr 선언 이후에 사용
-            let aiAccuracy = null;
-            if (wdValsFr.length >= 5) {
+            const storedAccuracy = getStoredAccuracy(selectedSites, mk);
+            // ★ AI 예측 정확도 산출 (MAPE 기반) — 저장 이력이 있으면 우선 사용
+            let aiAccuracy = storedAccuracy;
+            if (aiAccuracy == null && wdValsFr.length >= 5) {
                 // Leave-one-out: 마지막 3개 데이터를 예측해보고 실제와 비교
                 const testN = Math.min(3, Math.floor(wdValsFr.length / 3));
                 if (testN > 0) {
@@ -2929,7 +2995,8 @@
                 const fd = new Date(lastDate); fd.setDate(fd.getDate() + i);
                 const ds = _toYMD(fd), ht = getHolidayType(ds);
                 const isOff = ht.type !== 'workday';
-                const fv = isOff ? Math.max(0, Math.round(weInt + weSlope * weN)) : Math.max(0, Math.round(wdInt + wdSlope * wdN));
+                const storedPred = getForecastValueForDate(selectedSites, mk, ds);
+                const fv = storedPred > 0 ? storedPred : (isOff ? Math.max(0, Math.round(weInt + weSlope * weN)) : Math.max(0, Math.round(wdInt + wdSlope * wdN)));
                 if (isOff) weN++; else wdN++;
                 foreRows.push({ ds, fv, ht, isOff });
             }
@@ -2976,7 +3043,7 @@
             <div class="ch-panel">
                 <div class="ch-panel-title">📈 ${mk} 일별 추이 & AI 예측 <span style="font-size:9px;color:${aiAccColor};font-weight:700;margin-left:6px">정확도 ${aiAccText}</span> <span style="font-size:9px;color:var(--dim);font-weight:400">🟠저조기 / 🟡주말 / 🔴공휴일</span></div>
                 <div class="chart-scroll-wrap">
-                    <div id="chartTrend" class="ch-apex" style="min-width:650px"></div>
+                    <div id="chartTrend" class="ch-apex" style="min-width:${Math.max(360, allDates.length * 34)}px"></div>
                 </div>
                 <div id="chartTrendClickInfo" style="display:none;margin-top:10px;padding:12px;background:rgba(56,189,248,.04);border:1px solid rgba(56,189,248,.15);border-radius:10px;animation:slideIn .25s ease-out"></div>
             </div>
@@ -3369,7 +3436,7 @@
 
         /* ─────────────── TAB 4: 운영 리포트 ─────────────── */
         function renderTabReport(body) {
-            const { filtRecs, dates, sites, normalDates, lowDates, byDate, mk, mkColor, normAvg, regionLabel, getMkVal } = window._trCtx;
+            const { filtRecs, dates, sites, normalDates, lowDates, byDate, mk, mkColor, normAvg, regionLabel, getMkVal, selectedSites } = window._trCtx;
             const sfilt = window._trendSiteFilter || [];
             const wdValsFr = normalDates.map(d => getMkVal(d)).filter(v => v > 0);
             const weVals = (window._trCtx.weDates || []).map(d => getMkVal(d)).filter(v => v > 0);
@@ -3383,11 +3450,13 @@
                 const fd = new Date(lastDate); fd.setDate(fd.getDate() + i);
                 const ds = _toYMD(fd), ht = getHolidayType(ds);
                 const isOff = ht.type !== 'workday';
-                const fv = isOff ? Math.max(0, Math.round(weI + weS * weN)) : Math.max(0, Math.round(wdI + wdS * wdN));
+                const storedPred = getForecastValueForDate(selectedSites, mk, ds);
+                const fv = storedPred > 0 ? storedPred : (isOff ? Math.max(0, Math.round(weI + weS * weN)) : Math.max(0, Math.round(wdI + wdS * wdN)));
                 if (isOff) weN++; else wdN++;
                 foreRows.push({ ds, fv, ht, isOff });
             }
-            const confText = wdValsFr.length >= 10 ? '높음 ✅' : wdValsFr.length >= 5 ? '중간 ⚠️' : '낮음 ❌';
+            const storedAccRpt = getStoredAccuracy(selectedSites, mk);
+            const confText = storedAccRpt != null ? `정확도 ${storedAccRpt}%` : (wdValsFr.length >= 10 ? '높음 ✅' : wdValsFr.length >= 5 ? '중간 ⚠️' : '낮음 ❌');
             const direction = wdS > 2 ? '📈 증가 추세' : wdS < -2 ? '📉 감소 추세' : '➡️ 안정적 유지';
 
             /* ★ DI/TO 분리 데이터 (Tab4 전용) */
@@ -3622,11 +3691,11 @@
             let h = `<div class="ov-hdr"><h3>📊 ${REG} 운영 리포트</h3><button class="cls-btn" onclick="document.getElementById('ov').style.display='none'">닫기</button></div>`;
             h += `<div class="sec-title">🔥 업무 강도 (사업장 비교)</div>`;
             const intensities = fd.map(d => ({ name: d["사업장명"], it: inten(d) }));
-            const svgW = 320, svgH = 140, padL = 38, padR = 12, padT = 16, padB = 32, plotW = svgW - padL - padR, plotH = svgH - padT - padB;
+            const svgW = Math.max(260, intensities.length * 34), svgH = 136, padL = 28, padR = 8, padT = 14, padB = 28, plotW = svgW - padL - padR, plotH = svgH - padT - padB;
             const allScores = intensities.map(x => x.it.s), maxS = Math.max(...allScores, 100), minS = Math.min(0, ...allScores);
             const toX = i => padL + (i / (intensities.length - 1 || 1)) * plotW, toY = v => padT + (1 - (v - minS) / (maxS - minS)) * plotH;
             const y80 = toY(80), y95 = toY(95), pts = intensities.map((x, i) => `${toX(i)},${toY(x.it.s)}`).join(' ');
-            let svgHtml = `<div style="margin-bottom:16px;overflow-x:auto"><svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;min-width:${svgW}px;height:${svgH}px;display:block"><defs><linearGradient id="ig" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".25"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></linearGradient></defs><line x1="${padL}" y1="${y80}" x2="${svgW - padR}" y2="${y80}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/><text x="${padL - 4}" y="${y80 + 4}" font-size="8" fill="#fbbf24" text-anchor="end" opacity=".7">80</text><line x1="${padL}" y1="${y95}" x2="${svgW - padR}" y2="${y95}" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/><text x="${padL - 4}" y="${y95 + 4}" font-size="8" fill="#f87171" text-anchor="end" opacity=".7">95</text><line x1="${padL}" y1="${padT + plotH}" x2="${svgW - padR}" y2="${padT + plotH}" stroke="rgba(148,163,184,.12)" stroke-width="1"/><polygon points="${intensities.map((x, i) => `${toX(i)},${toY(x.it.s)}`).join(' ')} ${toX(intensities.length - 1)},${padT + plotH} ${toX(0)},${padT + plotH}" fill="url(#ig)"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${intensities.map((x, i) => { const lb = iLb(x.it.s), cx = toX(i), cy = toY(x.it.s), nameShort = x.name.length > 4 ? x.name.slice(0, 4) + '…' : x.name; return `<circle cx="${cx}" cy="${cy}" r="5" fill="${lb.c}" stroke="var(--bg)" stroke-width="2"/><text x="${cx}" y="${cy - 10}" font-size="10" font-weight="900" fill="${lb.c}" text-anchor="middle">${x.it.s.toFixed(0)}</text><text x="${cx}" y="${svgH - padB + 14}" font-size="9" fill="var(--muted)" text-anchor="middle">${nameShort}</text>`; }).join('')}</svg><div style="display:flex;gap:14px;justify-content:center;font-size:9px;color:var(--dim);margin-top:4px"><span style="display:flex;align-items:center;gap:3px"><span style="width:18px;height:1px;background:#fbbf24;display:inline-block;border-top:1px dashed #fbbf24"></span>80 주의기준</span><span style="display:flex;align-items:center;gap:3px"><span style="width:18px;height:1px;background:#f87171;display:inline-block;border-top:1px dashed #f87171"></span>95 과부하기준</span></div></div>`;
+            let svgHtml = `<div style="margin-bottom:16px;overflow-x:auto"><svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;min-width:${svgW}px;height:${svgH}px;display:block"><defs><linearGradient id="ig" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".25"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></linearGradient></defs><line x1="${padL}" y1="${y80}" x2="${svgW - padR}" y2="${y80}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/><text x="${padL - 4}" y="${y80 + 4}" font-size="8" fill="#fbbf24" text-anchor="end" opacity=".7">80</text><line x1="${padL}" y1="${y95}" x2="${svgW - padR}" y2="${y95}" stroke="#f87171" stroke-width="1" stroke-dasharray="4,3" opacity=".5"/><text x="${padL - 4}" y="${y95 + 4}" font-size="8" fill="#f87171" text-anchor="end" opacity=".7">95</text><line x1="${padL}" y1="${padT + plotH}" x2="${svgW - padR}" y2="${padT + plotH}" stroke="rgba(148,163,184,.12)" stroke-width="1"/><polygon points="${intensities.map((x, i) => `${toX(i)},${toY(x.it.s)}`).join(' ')} ${toX(intensities.length - 1)},${padT + plotH} ${toX(0)},${padT + plotH}" fill="url(#ig)"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${intensities.map((x, i) => { const lb = iLb(x.it.s), cx = toX(i), cy = toY(x.it.s), nameShort = x.name.length > 4 ? x.name.slice(0, 4) + '…' : x.name; return `<circle cx="${cx}" cy="${cy}" r="5" fill="${lb.c}" stroke="var(--bg)" stroke-width="2"/><text x="${cx}" y="${cy - 10}" font-size="10" font-weight="900" fill="${lb.c}" text-anchor="middle">${x.it.s.toFixed(0)}</text><text x="${cx}" y="${svgH - padB + 14}" font-size="8" fill="var(--muted)" text-anchor="middle">${nameShort}</text>`; }).join('')}</svg><div style="display:flex;gap:14px;justify-content:center;font-size:9px;color:var(--dim);margin-top:4px"><span style="display:flex;align-items:center;gap:3px"><span style="width:18px;height:1px;background:#fbbf24;display:inline-block;border-top:1px dashed #fbbf24"></span>80 주의기준</span><span style="display:flex;align-items:center;gap:3px"><span style="width:18px;height:1px;background:#f87171;display:inline-block;border-top:1px dashed #f87171"></span>95 과부하기준</span></div></div>`;
             svgHtml += `<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">`;
             intensities.forEach(({ name, it }) => {
                 const lb = iLb(it.s);
