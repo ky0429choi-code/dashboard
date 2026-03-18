@@ -2402,7 +2402,7 @@
                 <div class="fg"><div class="ff"><label>도전매출</label><input type="number" id="fsl_${u}"></div><div class="ff"><label>재료비</label><input type="number" id="fmt_${u}"></div></div>
                 <div class="ff" style="margin-bottom:8px"><label>식사 특이</label><textarea id="fn1_${u}"></textarea></div>
                 <div class="ff" style="margin-bottom:12px"><label>기타 특이</label><textarea id="fn2_${u}"></textarea></div>
-                <button class="sv-btn green" onclick="svRec('${u}','${sn}','${rg}')">💾 저장</button>
+                <button class="sv-btn green" onclick="svRec(this,'${u}','${sn}','${rg}')">💾 저장</button>
                 <div id="fm_${u}" class="sv-msg"></div>
             </div>
             <div id="p_wknd_${u}" class="ipanel"><div class="sec-title" style="margin-top:0">📅 주말 식수</div>
@@ -2442,7 +2442,16 @@
         /* ===== 누적 데이터 (localStorage) ===== */
         function getRec() { try { return JSON.parse(localStorage.getItem("WS_REC") || "[]") } catch (e) { return [] } }
         function saveRec(arr) { localStorage.setItem("WS_REC", JSON.stringify(arr)); }
-        function addRec(rec) { const arr = getRec(); const idx = arr.findIndex(r => r.date === rec.date && r.siteName === rec.siteName); if (idx >= 0) arr[idx] = rec; else arr.push(rec); arr.sort((a, b) => a.date > b.date ? -1 : 1); saveRec(arr); }
+        function _recKey(rec) { return `${String(rec.date||"").trim()}||${String(rec.siteName||"").trim()}`; }
+        function addRec(rec) {
+            const arr = getRec();
+            const key = _recKey(rec);
+            const idx = arr.findIndex(r => _recKey(r) === key);
+            if (idx >= 0) arr[idx] = { ...arr[idx], ...rec }; // 기존 로컬 수정 내용을 유지하며 GAS 최신값 병합
+            else arr.push(rec);
+            arr.sort((a, b) => (a.date || '') > (b.date || '') ? -1 : 1);
+            saveRec(arr);
+        }
 
         /* ===== 실적 기록: 날짜 변경 시 과거 데이터 불러오기 (수정 모드) ===== */
         window.loadPastRec = function (u, sn, dateVal) {
@@ -2468,27 +2477,65 @@
         };
 
         /* ===== 실적 기록 저장 (폼 클리어 포함) ===== */
-        window.svRec = async function (u, sn, rg) {
+        window.svRec = async function (btnOrU, uOrSn, snOrRg, rg) {
+            // btnOrU: 클릭한 버튼 엘리먼트일 수 있음 (onclick="svRec(this,...)")
+            // (사용자 코드가 event 전역변수를 제공하지 않는 환경에서도 안정 동작)
+            let btn = null;
+            let u = uOrSn, sn = snOrRg, region = rg;
+            if (btnOrU && btnOrU.nodeType === 1 && typeof btnOrU.tagName === 'string') {
+                btn = btnOrU;
+            } else {
+                // 구버전 호출 방식: svRec(u,sn,rg)
+                u = btnOrU;
+                sn = uOrSn;
+                region = snOrRg;
+            }
+
             const p = {
                 tk: TK,
-                date: document.getElementById(`fd_${u}`).value, siteName: sn, region: rg,
-                DI_조식: Number(document.getElementById(`fd1_${u}`).value || 0), DI_중식: Number(document.getElementById(`fd2_${u}`).value || 0),
-                DI_석식: Number(document.getElementById(`fd3_${u}`).value || 0), DI_야식: Number(document.getElementById(`fd4_${u}`).value || 0),
-                TO_조식: Number(document.getElementById(`ft1_${u}`).value || 0), TO_중식: Number(document.getElementById(`ft2_${u}`).value || 0),
-                TO_석식: Number(document.getElementById(`ft3_${u}`).value || 0), TO_야식: Number(document.getElementById(`ft4_${u}`).value || 0),
-                도전매출: Number(document.getElementById(`fsl_${u}`).value || 0), 재료비: Number(document.getElementById(`fmt_${u}`).value || 0),
-                식사특이사항: document.getElementById(`fn1_${u}`).value || "", 기타특이사항: document.getElementById(`fn2_${u}`).value || ""
+                date: document.getElementById(`fd_${u}`).value,
+                siteName: sn,
+                region: region,
+                DI_조식: Number(document.getElementById(`fd1_${u}`).value || 0),
+                DI_중식: Number(document.getElementById(`fd2_${u}`).value || 0),
+                DI_석식: Number(document.getElementById(`fd3_${u}`).value || 0),
+                DI_야식: Number(document.getElementById(`fd4_${u}`).value || 0),
+                TO_조식: Number(document.getElementById(`ft1_${u}`).value || 0),
+                TO_중식: Number(document.getElementById(`ft2_${u}`).value || 0),
+                TO_석식: Number(document.getElementById(`ft3_${u}`).value || 0),
+                TO_야식: Number(document.getElementById(`ft4_${u}`).value || 0),
+                도전매출: Number(document.getElementById(`fsl_${u}`).value || 0),
+                재료비: Number(document.getElementById(`fmt_${u}`).value || 0),
+                식사특이사항: document.getElementById(`fn1_${u}`).value || "",
+                기타특이사항: document.getElementById(`fn2_${u}`).value || ""
             };
             addRec(p);
-            const btn = event.target, msg = document.getElementById(`fm_${u}`);
-            btn.disabled = true; btn.innerText = "저장 중...";
+
+            const msg = document.getElementById(`fm_${u}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "저장 중...";
+            }
+
             try {
                 const r = await fetch(API, { method: "POST", body: JSON.stringify(p), redirect: "follow" });
                 const t = await r.text();
-                msg.style.color = t.includes("Success") ? "var(--success)" : "var(--danger)";
-                msg.innerText = t.includes("Success") ? "✅ 저장 완료" : "❌ " + t;
-            } catch (e) { msg.style.color = "var(--warning)"; msg.innerText = "⚠️ 서버 오류 (로컬 저장 완료)"; }
-            finally { btn.disabled = false; btn.innerText = "💾 저장"; }
+                if (msg) {
+                    msg.style.color = t.includes("Success") ? "var(--success)" : "var(--danger)";
+                    msg.innerText = t.includes("Success") ? "✅ 저장 완료" : "❌ " + t;
+                }
+            } catch (e) {
+                if (msg) {
+                    msg.style.color = "var(--warning)";
+                    msg.innerText = "⚠️ 서버 오류 (로컬 저장 완료)";
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = "💾 저장";
+                }
+            }
+
             /* ④ 클린 모드: 저장 성공 시 폼 초기화 */
             const msgEl = document.getElementById(`fm_${u}`);
             if (msgEl && msgEl.innerText.startsWith("✅")) {
@@ -2496,7 +2543,8 @@
                     ['fd1', 'fd2', 'fd3', 'fd4', 'ft1', 'ft2', 'ft3', 'ft4', 'fsl', 'fmt'].forEach(id => { const el = document.getElementById(`${id}_${u}`); if (el) el.value = ''; });
                     ['fn1', 'fn2'].forEach(id => { const el = document.getElementById(`${id}_${u}`); if (el) el.value = ''; });
                     /* 날짜 리셋 중단 (유저 불편 사항 개선: 과거 기록 시 해당 날짜 유지) */
-                    const modeEl = document.getElementById(`fmode_${u}`); if (modeEl) modeEl.textContent = '';
+                    const modeEl = document.getElementById(`fmode_${u}`);
+                    if (modeEl) modeEl.textContent = '';
                     if (msgEl) msgEl.innerText = '';
                 }, 2000);
             }
@@ -2565,11 +2613,12 @@
                     /* localStorage에 머지 (GAS 데이터가 우선 — 동일 date+siteName은 GAS값으로 덮어쓰기) */
                     let localRecs = getRec();
                     d.perf.forEach(gasRec => {
-                        const idx = localRecs.findIndex(r => r.date === gasRec.date && r.siteName === gasRec.siteName);
+                        const key = _recKey(gasRec);
+                        const idx = localRecs.findIndex(r => _recKey(r) === key);
                         if (idx >= 0) localRecs[idx] = { ...localRecs[idx], ...gasRec }; // GAS 데이터 우선
                         else localRecs.push(gasRec);
                     });
-                    localRecs.sort((a, b) => a.date > b.date ? -1 : 1);
+                    localRecs.sort((a, b) => (a.date || '') > (b.date || '') ? -1 : 1);
                     saveRec(localRecs);
                     _gasPerfLoaded = true;
                 } else if (d.error) {
