@@ -1517,7 +1517,8 @@
             cursor: pointer;
             transition: all .2s;
             white-space: nowrap;
-            margin-bottom: -1px
+            margin-bottom: -1px;
+            flex-shrink: 0
         }
 
         .tr-tab:hover {
@@ -1537,6 +1538,7 @@
             padding: 18px;
             margin-bottom: 16px;
             overflow: visible; /* ★ v3.8 수정: hidden → visible (내부 가로 스크롤 허용) */
+            word-break: keep-all
         }
 
         .ch-panel-title {
@@ -1545,14 +1547,18 @@
             margin-bottom: 4px;
             display: flex;
             align-items: center;
-            gap: 6px
+            gap: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
         }
 
         .ch-panel-sub {
             font-size: 10px;
             color: var(--dim);
             margin-bottom: 14px;
-            font-weight: 700
+            font-weight: 700;
+            word-break: keep-all
         }
 
         .ch-apex {
@@ -1615,20 +1621,27 @@
             font-weight: 800;
             margin-bottom: 4px;
             text-transform: uppercase;
-            letter-spacing: .5px
+            letter-spacing: .5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
         }
 
         .kpi-v2 .kv2-val {
-            font-size: 20px;
+            font-size: clamp(16px, 4vw, 20px);
             font-weight: 900;
-            line-height: 1.1
+            line-height: 1.1;
+            white-space: nowrap
         }
 
         .kpi-v2 .kv2-sub {
             font-size: 9px;
             color: var(--dim);
             margin-top: 3px;
-            font-weight: 700
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
         }
 
         .kpi-v2 .kv2-badge {
@@ -1935,7 +1948,7 @@
         </div>
         <!-- 탭 네비게이션 -->
         <div id="trend-tab-nav"
-            style="display:flex;gap:6px;padding:0 20px 0;border-bottom:1px solid var(--border);background:rgba(10,15,30,.8);flex-wrap:wrap;">
+            style="display:flex;gap:6px;padding:0 20px 0;border-bottom:1px solid var(--border);background:rgba(10,15,30,.8);flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
             <button class="tr-tab active" data-tab="trend" onclick="switchTrendTab('trend')">📈 추이 & 예측</button>
             <button class="tr-tab" data-tab="daily" onclick="switchTrendTab('daily')">📊 요일별 분석</button>
             <button class="tr-tab" data-tab="sites" onclick="switchTrendTab('sites')">🏢 사업장 비교</button>
@@ -3233,18 +3246,17 @@
             body.innerHTML = `
             <div style="padding:4px 0 16px">
             ${mkFilterHTML(mk, sites, sfilt)}
-            <!-- KPI 낙폭 + 핵심 지표 -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                    <div class="kpi-v2 accent"><div class="kv2-lbl">정상 평일 평균 (${mk})</div><div class="kv2-val" style="color:${mkColor}">${normAvg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${mk === '중식' ? `DI ${diPct}% · T/O ${toPct}%` : ''}</div></div>
-                    <div class="kpi-v2 warning"><div class="kv2-lbl">저조기 평균</div><div class="kv2-val" style="color:#fbbf24">${lowAvg > 0 ? lowAvg.toLocaleString() : '-'}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${lowDates.length}일 해당</div></div>
-                    <div class="kpi-v2 danger"><div class="kv2-lbl">저조기 낙폭</div><div class="kv2-val" style="color:#f87171">▼${dropPct}<span style="font-size:14px;opacity:.7">%</span></div><div class="kv2-sub">정상 대비</div></div>
-                    <div class="kpi-v2 ${trendPct > 0 ? 'success' : trendPct < 0 ? 'danger' : 'warning'}"><div class="kv2-lbl">최근 7일 추이 (평일)</div><div class="kv2-val" style="color:${trendCls}">${r7avg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${trendPct > 0 ? '↑' : '↓'} ${Math.abs(trendPct)}% vs 전체평균</div></div>
-                </div>
-                <!-- 낙폭 바 패널 -->
-                <div class="ch-panel" style="margin:0;padding:14px 16px">
-                    <div style="font-size:11px;font-weight:900;margin-bottom:10px">📉 정상 대비 저조기 낙폭</div>
-                    ${['중식', '합계', '석식', '조식'].map(m => {
+            <!-- KPI 핵심 지표 (1행 4열 반응형) -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+                <div class="kpi-v2 accent"><div class="kv2-lbl" style="white-space:nowrap">정상 평일 평균</div><div class="kv2-val" style="color:${mkColor}">${normAvg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${mk === '중식' ? `DI ${diPct}% · T/O ${toPct}%` : mk}</div></div>
+                <div class="kpi-v2 warning"><div class="kv2-lbl" style="white-space:nowrap">저조기 평균</div><div class="kv2-val" style="color:#fbbf24">${lowAvg > 0 ? lowAvg.toLocaleString() : '-'}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${lowDates.length}일 해당</div></div>
+                <div class="kpi-v2 danger"><div class="kv2-lbl" style="white-space:nowrap">저조기 낙폭</div><div class="kv2-val" style="color:#f87171">▼${dropPct}<span style="font-size:14px;opacity:.7">%</span></div><div class="kv2-sub">정상 대비</div></div>
+                <div class="kpi-v2 ${trendPct > 0 ? 'success' : trendPct < 0 ? 'danger' : 'warning'}"><div class="kv2-lbl" style="white-space:nowrap">최근 7일 추이</div><div class="kv2-val" style="color:${trendCls}">${r7avg.toLocaleString()}<span style="font-size:11px;opacity:.7"> 식</span></div><div class="kv2-sub">${trendPct > 0 ? '↑' : '↓'} ${Math.abs(trendPct)}% vs 전체</div></div>
+            </div>
+            <!-- 낙폭 바 패널 -->
+            <div class="ch-panel" style="margin-bottom:14px;padding:14px 16px">
+                <div style="font-size:11px;font-weight:900;margin-bottom:10px">📉 정상 대비 저조기 낙폭</div>
+                ${['중식', '합계', '석식', '조식'].map(m => {
                 const mv_n = normalDates.map(d => m === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, mx) => s + (byDate[mx]?.[d] || 0), 0) : (byDate[m]?.[d] || 0)).filter(v => v > 0);
                 const mv_l = lowDates.map(d => m === '합계' ? ['조식', '중식', '석식', '야식'].reduce((s, mx) => s + (byDate[mx]?.[d] || 0), 0) : (byDate[m]?.[d] || 0)).filter(v => v > 0);
                 const na = mv_n.length ? Math.round(mv_n.reduce((a, b) => a + b, 0) / mv_n.length) : 0;
@@ -3254,7 +3266,7 @@
                 const c = MC[m] || '#38bdf8';
                 return `<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:10px;color:var(--dim)">${m}</span><div style="display:flex;gap:8px;align-items:center"><span style="font-size:9px;color:var(--dim)">${la.toLocaleString()}→${na.toLocaleString()}</span><span style="font-size:11px;font-weight:800;color:#f43f5e">▼${dp}%</span></div></div><div style="background:rgba(255,255,255,.04);border-radius:99px;height:5px"><div style="height:100%;border-radius:99px;width:${100 - dp}%;background:linear-gradient(90deg,${c}33,${c})"></div></div></div>`;
             }).join('')}
-                    ${lowDates.length > 0 ? `<div style="font-size:9px;color:var(--dim);margin-top:8px;line-height:1.5">🟠 해당 날짜: ${lowDates.map(d => d.slice(5)).join(' · ')}</div>` : '<div style="font-size:9px;color:var(--dim)">저조기 데이터 없음</div>'}
+                ${lowDates.length > 0 ? `<div style="font-size:9px;color:var(--dim);margin-top:8px;line-height:1.5">🟠 해당 날짜: ${lowDates.map(d => d.slice(5)).join(' · ')}</div>` : '<div style="font-size:9px;color:var(--dim)">저조기 데이터 없음</div>'}
             </div>
             <!-- 추이 + 예측 차트 -->
             <div class="ch-panel">
@@ -3433,13 +3445,13 @@
                                 try {
                                     const c2 = new ApexCharts(entry.target, {
                                         ...APEX_BASE,
-                                        chart: { ...APEX_BASE.chart, type: 'bar', height: 180, stacked: true },
+                                        chart: { ...APEX_BASE.chart, type: 'bar', height: 200, stacked: true },
                                         series: [{ name: 'D/I', data: d14.map(d => diByDate[d] || 0) }, { name: 'T/O', data: d14.map(d => toByDate[d] || 0) }],
                                         colors: ['#38bdf8', '#fbbf24'],
-                                        plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
+                                        plotOptions: { bar: { borderRadius: 3, columnWidth: '55%' } },
                                         xaxis: { ...APEX_BASE.xaxis, categories: d14.map(d => { const ht = getHolidayType(d).type; return d.slice(5) + (ht !== 'workday' ? '\n' + (ht === 'weekend' ? '🟡' : '🔴') : ''); }) },
                                         yaxis: { ...APEX_BASE.yaxis, min: 0, labels: { ...APEX_BASE.yaxis.labels, formatter: v => v.toLocaleString() } },
-                                        dataLabels: { enabled: true, style: { fontSize: '9px' }, formatter: v => v > 0 ? v.toLocaleString() : '' },
+                                        dataLabels: { enabled: true, style: { fontSize: '10px', fontWeight: 700 }, formatter: (v, opts) => { const total = opts.w.globals.stackedSeriesTotals[opts.dataPointIndex] || 1; return (v / total >= 0.12 && v > 0) ? v.toLocaleString() : ''; } },
                                         tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
                                         legend: { ...APEX_BASE.legend, position: 'top' },
                                     });
@@ -3737,6 +3749,15 @@
                 });
             });
             const rptDates7 = dates.slice(-7);
+            /* ★ v4.1 FIX: DI/TO KPI는 최근 7일 데이터만 사용 (헤더 "최근 7일"과 일치시킴) */
+            const rptDiByDate7 = {}, rptToByDate7 = {};
+            rptDates7.forEach(d => { rptDiByDate7[d] = rptDiByDate[d] || 0; rptToByDate7[d] = rptToByDate[d] || 0; });
+            const rptTotalDI_7 = rptDates7.reduce((a, d) => a + (rptDiByDate[d] || 0), 0);
+            const rptTotalTO_7 = rptDates7.reduce((a, d) => a + (rptToByDate[d] || 0), 0);
+            const rptSum7 = rptTotalDI_7 + rptTotalTO_7 || 1;
+            const rptDiPct7 = Math.round(rptTotalDI_7 / rptSum7 * 100);
+            const rptToPct7 = 100 - rptDiPct7;
+            /* 전체 기간 DI/TO (예측 비율용) */
             const rptTotalDI = Object.values(rptDiByDate).reduce((a, b) => a + b, 0);
             const rptTotalTO = Object.values(rptToByDate).reduce((a, b) => a + b, 0);
             const rptSumAll = rptTotalDI + rptTotalTO || 1;
@@ -3748,12 +3769,12 @@
             ${mkFilterHTML(mk, sites, sfilt)}
             <!-- ★ 일반식 vs 테이크아웃 분리 차트 -->
             <div class="ch-panel">
-                <div class="ch-panel-title">🍱 일반식(D/I) vs 테이크아웃(T/O) 분리 분석 <span style="font-size:9px;color:var(--dim);font-weight:400">${mk} 기준 · 최근 7일</span></div>
+                <div class="ch-panel-title" style="white-space:nowrap">🍱 D/I vs T/O 분리 분석 <span style="font-size:9px;color:var(--dim);font-weight:400">${mk} · 최근 7일</span></div>
                 <div class="ch-panel-sub">일반식과 테이크아웃 식수를 분리하여 운영 구성을 분석합니다</div>
-                <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
-                    <div class="kpi-v2 accent" style="flex:1;min-width:80px"><div class="kv2-lbl">일반식(D/I) 합계</div><div class="kv2-val" style="color:#38bdf8">${rptTotalDI.toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptDiPct}%</div></div>
-                    <div class="kpi-v2 warning" style="flex:1;min-width:80px"><div class="kv2-lbl">테이크아웃(T/O) 합계</div><div class="kv2-val" style="color:#fbbf24">${rptTotalTO.toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptToPct}%</div></div>
-                    <div class="kpi-v2 success" style="flex:1;min-width:80px"><div class="kv2-lbl">전체 합계</div><div class="kv2-val" style="color:#34d399">${(rptTotalDI + rptTotalTO).toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${dates.length}일 기준</div></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+                    <div class="kpi-v2 accent"><div class="kv2-lbl" style="white-space:nowrap">일반식(D/I)</div><div class="kv2-val" style="color:#38bdf8">${rptTotalDI_7.toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptDiPct7}%</div></div>
+                    <div class="kpi-v2 warning"><div class="kv2-lbl" style="white-space:nowrap">T/O</div><div class="kv2-val" style="color:#fbbf24">${rptTotalTO_7.toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptToPct7}%</div></div>
+                    <div class="kpi-v2 success"><div class="kv2-lbl" style="white-space:nowrap">전체 합계</div><div class="kv2-val" style="color:#34d399">${(rptTotalDI_7 + rptTotalTO_7).toLocaleString()}<span style="font-size:11px;opacity:.7">식</span></div><div class="kv2-sub">${rptDates7.length}일 기준</div></div>
                 </div>
                 <div style="display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;flex-direction:column">
                     <div style="width:100%"><div id="chartRptDITO" class="ch-apex"></div></div>
@@ -3826,10 +3847,10 @@
                             { name: '테이크아웃(T/O)', data: rptDates7.map(d => rptToByDate[d] || 0) }
                         ],
                         colors: ['#38bdf8', '#fbbf24'],
-                        plotOptions: { bar: { borderRadius: 3, columnWidth: '60%' } },
+                        plotOptions: { bar: { borderRadius: 3, columnWidth: '55%' } },
                         xaxis: { ...APEX_BASE.xaxis, categories: rptDates7.map(d => { const ht = getHolidayType(d).type; return d.slice(5) + (ht !== 'workday' ? '\n' + (ht === 'weekend' ? '🟡' : '🔴') : ''); }) },
                         yaxis: { ...APEX_BASE.yaxis, min: 0, labels: { ...APEX_BASE.yaxis.labels, formatter: v => v.toLocaleString() } },
-                        dataLabels: { enabled: true, style: { fontSize: '8px' }, formatter: v => v > 0 ? v.toLocaleString() : '' },
+                        dataLabels: { enabled: true, style: { fontSize: '10px', fontWeight: 700 }, formatter: (v, opts) => { const total = opts.w.globals.stackedSeriesTotals[opts.dataPointIndex] || 1; return (v / total >= 0.12 && v > 0) ? v.toLocaleString() : ''; } },
                         tooltip: { ...APEX_BASE.tooltip, y: { formatter: v => v.toLocaleString() + '명' } },
                         legend: { ...APEX_BASE.legend, position: 'top' },
                     }); cDITO.render(); window._apexCharts.push(cDITO);
@@ -3838,7 +3859,7 @@
                 try {
                     const cDonut = new ApexCharts(document.getElementById('chartRptDonut'), {
                         chart: { type: 'donut', height: 220, background: 'transparent' },
-                        series: [rptTotalDI, rptTotalTO],
+                        series: [rptTotalDI_7, rptTotalTO_7],
                         labels: ['일반식(D/I)', '테이크아웃(T/O)'],
                         colors: ['#38bdf8', '#fbbf24'],
                         theme: { mode: 'dark' },
