@@ -1999,6 +1999,9 @@
         /* ★ GAS 실적 데이터 캐시 (추이 리포트용) */
         let _gasPerfCache = null;   // 로딩된 서버 실적 데이터
         let _gasForecastCache = [];  // AI 예측 이력 캐시
+        let _gasMonthlyCache = [];   // ★ v5.1 추가: 월간 압축 시트 캐시
+        let _gasTrend3MCache = [];   // ★ v5.1 추가: 3개월 추이 시트 캐시
+        let _gasForecastSummaryCache = []; // ★ v5.1 추가: 예측 요약 시트 캐시
         let _gasPerfLoading = false; // 로딩 중 플래그
         let _gasPerfLoaded = false;  // 최초 로드 완료 플래그
 
@@ -2884,7 +2887,12 @@
             const perfRows = d.perf.map(normalizePerfRow).filter(r => r.date && r.siteName);
             _gasPerfCache = perfRows;
             _gasForecastCache = (d.forecastHistory || []).map(normalizeForecastRow);
+            /* ★ v5.1 추가: 압축/추이/예측요약 시트 캐시 적용 */
+            _gasMonthlyCache = (d.analytics && Array.isArray(d.analytics.monthlyCompressed)) ? d.analytics.monthlyCompressed : [];
+            _gasTrend3MCache = (d.analytics && Array.isArray(d.analytics.trend3m)) ? d.analytics.trend3m : [];
+            _gasForecastSummaryCache = (d.analytics && Array.isArray(d.analytics.forecastSummary)) ? d.analytics.forecastSummary : [];
             window._forecastAggMemo = {}; // ★ v5.0 수정: 예측 캐시 갱신 시 메모 초기화
+            window._wmaAccCache = null; // ★ v6.1: WMA 백테스트 결과 캐시 초기화
             /* 기존 로컬 데이터와 병합 — 서버 데이터가 우선 */
             let currentRecs = getRec();
             perfRows.forEach(gasRec => {
@@ -3195,11 +3203,58 @@
             return false;
         }
 
+        /* ★ v5.1 추가: 압축/추이/예측요약 시트 기반 보조 조회 */
+        function getTrend3MForSelectedSites(siteNames) {
+            const set = new Set((siteNames || []).filter(Boolean));
+            if (!set.size || !_gasTrend3MCache || !_gasTrend3MCache.length) return null;
+            const rows = _gasTrend3MCache.filter(r => set.has(String(r["사업장명"] || '').trim()));
+            if (!rows.length) return null;
+            const sums = { m1Mid: 0, m2Mid: 0, m3Mid: 0, m1Rot: 0, m2Rot: 0, m3Rot: 0, cnt: 0 };
+            rows.forEach(r => {
+                sums.m1Mid += n(r['월1_평균중식']);
+                sums.m2Mid += n(r['월2_평균중식']);
+                sums.m3Mid += n(r['월3_평균중식']);
+                sums.m1Rot += n(r['월1_회전율']);
+                sums.m2Rot += n(r['월2_회전율']);
+                sums.m3Rot += n(r['월3_회전율']);
+                sums.cnt += 1;
+            });
+            if (!sums.cnt) return null;
+            return {
+                avgMid: [Math.round(sums.m1Mid / sums.cnt), Math.round(sums.m2Mid / sums.cnt), Math.round(sums.m3Mid / sums.cnt)],
+                avgRot: [Number((sums.m1Rot / sums.cnt).toFixed(2)), Number((sums.m2Rot / sums.cnt).toFixed(2)), Number((sums.m3Rot / sums.cnt).toFixed(2))],
+                months: rows[0] ? [rows[0]['비교월1'], rows[0]['비교월2'], rows[0]['비교월3']] : []
+            };
+        }
+        function getForecastSummaryForSelectedSites(siteNames) {
+            const set = new Set((siteNames || []).filter(Boolean));
+            if (!set.size || !_gasForecastSummaryCache || !_gasForecastSummaryCache.length) return null;
+            const rows = _gasForecastSummaryCache.filter(r => set.has(String(r["사업장명"] || '').trim()));
+            if (!rows.length) return null;
+            const out = rows.reduce((acc, r) => {
+                acc.forecasts += n(r['예측건수']);
+                acc.actuals += n(r['실측반영건수']);
+                acc.accSum += n(r['평균정확도(%)']);
+                acc.errSum += n(r['평균오차율(%)']);
+                acc.cnt += 1;
+                return acc;
+            }, { forecasts: 0, actuals: 0, accSum: 0, errSum: 0, cnt: 0 });
+            out.avgAccuracy = out.cnt ? Math.round(out.accSum / out.cnt) : null;
+            out.avgErrorPct = out.cnt ? Math.round((out.errSum / out.cnt) * 10) / 10 : null;
+            return out;
+        }
+
         // 전역 현재 끼니 선택
         window._mkSel = window._mkSel || '중식';
         window._trendSiteFilter = window._trendSiteFilter || [];
 
-        function renderTrendReport() {
+        function renderTrendReport(_nd) {
+            /* ★ v6.1 성능패치: 디바운스 50ms — 끼니/사업장 필터 연속 클릭 시 마지막 1회만 렌더링 */
+            if (!_nd) {
+                if (window._trendRT) clearTimeout(window._trendRT);
+                window._trendRT = setTimeout(function() { renderTrendReport(true); }, 50);
+                return;
+            }
             /* ★ v5.0 수정: 정밀리포트는 localStorage 전체 재파싱 대신 메모리 캐시 우선 사용 */
             const recs = (_gasPerfCache && _gasPerfCache.length) ? _gasPerfCache : getRec();
             const body = document.getElementById("trend-body");
@@ -3336,6 +3391,10 @@
             const { filtRecs, dates, sites, wdDates, lowDates, normalDates, byDate,
                 normAvg, lowAvg, dropPct, mk, mkColor, getMkVal, normVals, regionLabel, selectedSites } = window._trCtx;
             const sfilt = window._trendSiteFilter || [];
+            /* ★ v6.1 성능패치: 1단계 — 스켈레톤 즉시 출력 (브라우저 첫 페인트 보장) */
+            body.innerHTML = '<div style="padding:36px 0;text-align:center;color:var(--dim)"><div class="sp-ring" style="margin:0 auto 14px;width:26px;height:26px;border-width:2px"></div><div style="font-size:11px;font-weight:700">추이 분석 생성 중…</div></div>';
+            /* ★ v6.1 성능패치: 2단계 — setTimeout(0)으로 한 프레임 양보 후 무거운 연산 시작 */
+            setTimeout(function() {
 
             // DI / TO 분리
             /* ★ v3.9 수정: 합계 선택 시 모든 끼니 DI/TO 합산 (기존: 중식만 사용) */
@@ -3378,8 +3437,12 @@
                - 저장된 실측 이력 정확도 우선 사용
                - 없으면 leave-one-out WMA 백테스트로 추정
                - WMA는 요일별 참조이므로 normalDates 기준으로 테스트 */
+            const _bKey = (selectedSites||[]).slice().sort().join('|')+'::'+mk+'::'+normalDates.length;
             let aiAccuracy = storedAccuracy;
-            if (aiAccuracy == null && normalDates.length >= 6) {
+            if (aiAccuracy == null) {
+                if (window._wmaAccCache && window._wmaAccCache.k === _bKey) {
+                    aiAccuracy = window._wmaAccCache.v; // ★ v6.1: 캐시 히트 — WMA 백테스트 재연산 스킵
+                } else if (normalDates.length >= 6) {
                 const testN = Math.min(4, Math.floor(normalDates.length / 3));
                 if (testN > 0) {
                     const trainDates = normalDates.slice(0, -testN);
@@ -3399,6 +3462,7 @@
                         aiAccuracy = Math.max(0, Math.round(100 - mape));
                     }
                 }
+                window._wmaAccCache = { k: _bKey, v: aiAccuracy }; // ★ v6.1: WMA 백테스트 결과 캐시 저장
             }
             const aiAccText  = aiAccuracy != null ? `${aiAccuracy}%` : '산출불가';
             const aiAccColor = aiAccuracy != null
@@ -3661,6 +3725,7 @@
                     const t2 = document.getElementById('chartDITO'); if (t2) chartObserver.observe(t2);
                 }
             }, 100);
+            }, 0); /* ★ v6.1 성능패치: renderTabTrend setTimeout(0) 래퍼 닫힘 */
         }
 
         /* ─────────────── TAB 2: 요일별 분석 ─────────────── */
@@ -3911,6 +3976,10 @@
         function renderTabReport(body) {
             const { filtRecs, dates, sites, normalDates, lowDates, byDate, mk, mkColor, normAvg, regionLabel, getMkVal, selectedSites } = window._trCtx;
             const sfilt = window._trendSiteFilter || [];
+            /* ★ v6.1 성능패치: 1단계 — 스켈레톤 즉시 출력 */
+            body.innerHTML = '<div style="padding:36px 0;text-align:center;color:var(--dim)"><div class="sp-ring" style="margin:0 auto 14px;width:26px;height:26px;border-width:2px"></div><div style="font-size:11px;font-weight:700">운영 리포트 생성 중…</div></div>';
+            /* ★ v6.1 성능패치: 2단계 — setTimeout(0) 한 프레임 양보 */
+            setTimeout(function() {
             const wdValsFr = normalDates.map(d => getMkVal(d)).filter(v => v > 0);
             const weVals = (window._trCtx.weDates || []).map(d => getMkVal(d)).filter(v => v > 0);
             const { slope: wdS, intercept: wdI } = linReg(wdValsFr);
@@ -3928,9 +3997,16 @@
                 if (isOff) weN++; else wdN++;
                 foreRows.push({ ds, fv, ht, isOff });
             }
-            const storedAccRpt = getStoredAccuracy(selectedSites, mk);
+            const analyticsTrend = getTrend3MForSelectedSites(selectedSites);
+            const analyticsForecastSummary = getForecastSummaryForSelectedSites(selectedSites);
+            const storedAccRpt = analyticsForecastSummary && analyticsForecastSummary.avgAccuracy != null
+                ? analyticsForecastSummary.avgAccuracy
+                : getStoredAccuracy(selectedSites, mk);
             const confText = storedAccRpt != null ? `정확도 ${storedAccRpt}%` : (wdValsFr.length >= 10 ? '높음 ✅' : wdValsFr.length >= 5 ? '중간 ⚠️' : '낮음 ❌');
-            const direction = wdS > 2 ? '📈 증가 추세' : wdS < -2 ? '📉 감소 추세' : '➡️ 안정적 유지';
+            const trendDelta = analyticsTrend && analyticsTrend.avgMid && analyticsTrend.avgMid.length === 3
+                ? (analyticsTrend.avgMid[2] - analyticsTrend.avgMid[1])
+                : wdS;
+            const direction = trendDelta > 2 ? '📈 증가 추세' : trendDelta < -2 ? '📉 감소 추세' : '➡️ 안정적 유지';
 
             /* ★ DI/TO 분리 데이터 (Tab4 전용) */
             const rptDiByDate = {}, rptToByDate = {};
@@ -3997,7 +4073,7 @@
                 <div style="margin-top:12px;padding:12px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:10px;font-size:11px;line-height:1.9">
                     <strong style="color:var(--accent3)">📋 종합 진단 · ${regionLabel}</strong><br>
                     ${direction} · 평일 변화율 <strong>${wdS > 0 ? '+' : ''}${wdS.toFixed(1)}</strong>식/일<br>
-                    <span style="color:var(--dim)">주말 변화율 ${weS > 0 ? '+' : ''}${weS.toFixed(1)}식/일 · 평일 ${wdValsFr.length}일 / 주말 ${weVals.length}일 데이터 기반</span>
+                    <span style="color:var(--dim)">주말 변화율 ${weS > 0 ? '+' : ''}${weS.toFixed(1)}식/일 · 평일 ${wdValsFr.length}일 / 주말 ${weVals.length}일 데이터 기반${analyticsTrend ? ' · 3개월 압축 추이 반영' : ''}${analyticsForecastSummary && analyticsForecastSummary.avgErrorPct != null ? ' · 평균 오차율 ' + analyticsForecastSummary.avgErrorPct + '%' : ''}</span>
                 </div>
             </div>
             <div class="ch-panel" style="background:rgba(56,189,248,.02);border:1px dashed rgba(56,189,248,.3)">
@@ -4115,6 +4191,7 @@
                     }); c8.render(); window._apexCharts.push(c8);
                 } catch (e) { }
             }, 100);
+            }, 0); /* ★ v6.1 성능패치: 운영리포트 setTimeout 래퍼 닫힘 */
         }
 
         window.renderAIForecast = function () { };  // 구 호환 stub
