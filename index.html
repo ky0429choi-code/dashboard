@@ -2543,12 +2543,18 @@
         /* ★ v3.9 수정: aggregateForecastByDate
            기존: 동일 targetDate의 여러 baseDate 예측값을 모두 합산 → 예측값 N배 뻥튀기
            수정: 동일 targetDate+siteName+meal 조합에서 최신 baseDate 1개만 사용 */
+        /* ★ v5.0 수정: aggregateForecastByDate 메모이제이션 추가
+           동일 사업장/끼니 조합에서 반복 계산되는 병목 제거 */
+        window._forecastAggMemo = window._forecastAggMemo || {};
         function aggregateForecastByDate(siteNames, mk) {
+            const keySites = (siteNames || []).filter(Boolean).slice().sort().join('|');
+            const memoKey = `${mk}::${keySites}::${(_gasForecastCache || []).length}`;
+            if (window._forecastAggMemo[memoKey]) return window._forecastAggMemo[memoKey];
+
             const set = new Set((siteNames || []).filter(Boolean));
             const meals = mealKeysForForecast(mk);
             const rows = (_gasForecastCache || []).filter(r => r && r.targetDate && (!set.size || set.has(r.siteName)) && meals.includes(r.meal));
 
-            /* ★ 동일 targetDate+siteName+meal 에서 최신 baseDate만 선택 */
             const latestByKey = {};
             rows.forEach(r => {
                 if (mk === '합계' && r.meal !== '합계' && meals.includes('합계')) return;
@@ -2566,6 +2572,7 @@
                 if (r.actual !== '' && r.actual != null) { agg[k].actual += n(r.actual); agg[k].hasActual = true; }
                 agg[k].count += 1;
             });
+            window._forecastAggMemo[memoKey] = agg;
             return agg;
         }
         function getStoredAccuracy(siteNames, mk) {
@@ -2877,6 +2884,7 @@
             const perfRows = d.perf.map(normalizePerfRow).filter(r => r.date && r.siteName);
             _gasPerfCache = perfRows;
             _gasForecastCache = (d.forecastHistory || []).map(normalizeForecastRow);
+            window._forecastAggMemo = {}; // ★ v5.0 수정: 예측 캐시 갱신 시 메모 초기화
             /* 기존 로컬 데이터와 병합 — 서버 데이터가 우선 */
             let currentRecs = getRec();
             perfRows.forEach(gasRec => {
@@ -3192,7 +3200,8 @@
         window._trendSiteFilter = window._trendSiteFilter || [];
 
         function renderTrendReport() {
-            const recs = getRec();
+            /* ★ v5.0 수정: 정밀리포트는 localStorage 전체 재파싱 대신 메모리 캐시 우선 사용 */
+            const recs = (_gasPerfCache && _gasPerfCache.length) ? _gasPerfCache : getRec();
             const body = document.getElementById("trend-body");
             const regSel = document.getElementById("trend-region-sel");
             const selRegion = regSel ? regSel.value : "ALL";
