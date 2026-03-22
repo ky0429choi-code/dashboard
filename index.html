@@ -527,9 +527,12 @@
             gap: 8px;
             margin-bottom: 14px
         }
+
         /* ★ v3.9: 매우 좁은 화면에서 2열 대응 */
         @media (max-width: 320px) {
-            .stats-row { grid-template-columns: 1fr 1fr; }
+            .stats-row {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         .sbox {
@@ -555,7 +558,8 @@
         }
 
         .sbox .vl {
-            font-size: clamp(13px, 3.8vw, 16px); /* ★ v3.9: 모바일 폰트 반응형 */
+            font-size: clamp(13px, 3.8vw, 16px);
+            /* ★ v3.9: 모바일 폰트 반응형 */
             font-weight: 900;
             white-space: nowrap;
             overflow: hidden;
@@ -1537,7 +1541,8 @@
             border-radius: 14px;
             padding: 18px;
             margin-bottom: 16px;
-            overflow: visible; /* ★ v3.8 수정: hidden → visible (내부 가로 스크롤 허용) */
+            overflow: visible;
+            /* ★ v3.8 수정: hidden → visible (내부 가로 스크롤 허용) */
             word-break: keep-all
         }
 
@@ -1659,7 +1664,8 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 11px;
-            table-layout: auto; /* ★ v3.8: 열 너비 자동 계산 */
+            table-layout: auto;
+            /* ★ v3.8: 열 너비 자동 계산 */
         }
 
         .week-cmp-tbl th {
@@ -1669,9 +1675,12 @@
             font-size: 9px;
             font-weight: 800;
             border-bottom: 1px solid var(--border);
-            background: rgba(17, 24, 39, .97); /* ★ v3.8: sticky 배경 불투명 처리 */
-            white-space: nowrap;  /* ★ v3.8: 열 제목 줄바꿈 방지 */
-            min-width: 72px;      /* ★ v3.8: 최소 열 너비 */
+            background: rgba(17, 24, 39, .97);
+            /* ★ v3.8: sticky 배경 불투명 처리 */
+            white-space: nowrap;
+            /* ★ v3.8: 열 제목 줄바꿈 방지 */
+            min-width: 72px;
+            /* ★ v3.8: 최소 열 너비 */
         }
 
         .week-cmp-tbl td {
@@ -1679,8 +1688,10 @@
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, .03);
             font-weight: 700;
-            white-space: nowrap;  /* ★ v3.8: 수치 줄바꿈 방지 */
-            min-width: 72px;      /* ★ v3.8: 최소 열 너비 */
+            white-space: nowrap;
+            /* ★ v3.8: 수치 줄바꿈 방지 */
+            min-width: 72px;
+            /* ★ v3.8: 최소 열 너비 */
         }
 
         /* ★ v3.8: 사업장명 열 — 가로 스크롤 시 좌측 고정 */
@@ -1694,7 +1705,8 @@
             left: 0;
             background: rgba(17, 24, 39, .97);
             z-index: 2;
-            box-shadow: 2px 0 6px rgba(0, 0, 0, .3); /* 고정 열 구분선 */
+            box-shadow: 2px 0 6px rgba(0, 0, 0, .3);
+            /* 고정 열 구분선 */
         }
 
         .wk-holiday {
@@ -1984,8 +1996,6 @@
             "h1": "도전매출", "h2": "도전영업이익", "h3": "목표재료비",
             /* ★ v3.9: 재료비율(실적), WHI점수 추가 */
             "h4": "재료비율", "h5": "WHI점수",
-            /* ★ v3.9: 재료비율, WHI점수 추가 */
-            "h4": "재료비율", "h5": "WHI점수",
             "m1": "금월_평균중식", "m2": "전월대비", "m3": "조업일수"
         };
         function deobf(arr) { return arr.map(row => { const o = {}; Object.keys(row).forEach(k => { o[RM[k] || k] = row[k] }); return o }); }
@@ -2166,30 +2176,30 @@
         async function sendSessionLog(token, userId) {
             try {
                 const url = API + "?type=sessionLog&tk=" + encodeURIComponent(token)
-                              + "&hint=" + encodeURIComponent(userId || "");
+                    + "&hint=" + encodeURIComponent(userId || "");
                 const r = await fetch(url, { redirect: "follow" });
                 const t = await r.text();
                 if (t === "token_expired") {
                     console.warn("세션 토큰 만료 — 재로그인 필요");
-                    try { sessionStorage.removeItem("WTK"); localStorage.removeItem("WTK"); } catch(e) {}
+                    try { sessionStorage.removeItem("WTK"); localStorage.removeItem("WTK"); } catch (e) { }
                     return "expired";
                 }
                 console.log("sessionLog 전송 성공:", userId);
                 return "ok";
-            } catch(e) {
+            } catch (e) {
                 console.warn("sessionLog 전송 실패 (1차):", e.message);
                 try {
                     await new Promise(r => setTimeout(r, 1000));
                     await fetch(API + "?type=sessionLog&tk=" + encodeURIComponent(token)
-                                  + "&hint=" + encodeURIComponent(userId || ""), { redirect: "follow" });
+                        + "&hint=" + encodeURIComponent(userId || ""), { redirect: "follow" });
                     console.log("sessionLog 재시도 성공");
-                } catch(e2) { console.warn("sessionLog 재시도도 실패:", e2.message); }
+                } catch (e2) { console.warn("sessionLog 재시도도 실패:", e2.message); }
                 return "ok";
             }
         }
 
         /* ★ v3.7: 로그아웃 시 세션 정리 */
-        window.doLogout = function() {
+        window.doLogout = function () {
             sessionStorage.removeItem("WS"); sessionStorage.removeItem("WTK");
             sessionStorage.removeItem("WR"); sessionStorage.removeItem("WRG"); sessionStorage.removeItem("WST");
             localStorage.removeItem("WTK"); localStorage.removeItem("WS");
@@ -2472,16 +2482,16 @@
         ===================================================== */
         window.tp = function (u, t) { ['perf', 'wknd', 'goal', 'edit', 'seat'].forEach(p => { const e = document.getElementById(`p_${p}_${u}`); if (e) { if (p === t) e.classList.toggle('show'); else e.classList.remove('show'); } }); };
         /* ★ FIX 1-B: 좌석수 미저장 문제 해결 — GAS POST 호출 추가 */
-        window.svSeat = async function (u, sn) { 
+        window.svSeat = async function (u, sn) {
             OV[sn] = OV[sn] || {};
-            ['좌석수', '코너수', 'TO_코너수'].forEach(k => { 
-                const v = document.getElementById(`ov_${u}_${k}`).value; 
-                if (v) OV[sn][k] = Number(v); 
-                else delete OV[sn][k]; 
-            }); 
-            so(); 
+            ['좌석수', '코너수', 'TO_코너수'].forEach(k => {
+                const v = document.getElementById(`ov_${u}_${k}`).value;
+                if (v) OV[sn][k] = Number(v);
+                else delete OV[sn][k];
+            });
+            so();
             render();
-            
+
             /* ★ PATCH: 시트에 좌석수 저장 로직 */
             try {
                 const seatData = { tk: TK, action: 'updateSeats', siteName: sn, seats: Number(document.getElementById(`ov_${u}_좌석수`).value || 0), corners: Number(document.getElementById(`ov_${u}_코너수`).value || 0), toCorners: Number(document.getElementById(`ov_${u}_TO_코너수`).value || 0) };
@@ -2501,7 +2511,7 @@
         /* ===== 누적 데이터 (localStorage) ===== */
         function getRec() { try { return JSON.parse(localStorage.getItem("WS_REC") || "[]") } catch (e) { return [] } }
         function saveRec(arr) { localStorage.setItem("WS_REC", JSON.stringify(arr)); }
-        function _recKey(rec) { return `${String(rec.date||"").trim()}||${String(rec.siteName||"").trim()}`; }
+        function _recKey(rec) { return `${String(rec.date || "").trim()}||${String(rec.siteName || "").trim()}`; }
         function addRec(rec) {
             const arr = getRec();
             const key = _recKey(rec);
@@ -2555,7 +2565,9 @@
             /* ★ 동일 targetDate+siteName+meal 에서 최신 baseDate만 선택 */
             const latestByKey = {};
             rows.forEach(r => {
-                if (mk === '합계' && r.meal !== '합계' && meals.includes('합계')) return;
+                /* ★ v4.2 FIX: '합계' 선택 시 개별 끼니만 합산, '합계' 행은 이중 카운트 방지
+                   기존 버그: 개별 끼니(조식/중식/석식/야식)를 건너뛰고 '합계' 행만 남겨 1개 사업장분만 표시 */
+                if (mk === '합계' && r.meal === '합계') return;
                 const key = `${r.targetDate}||${r.siteName}||${r.meal}`;
                 if (!latestByKey[key] || (r.baseDate || '') > (latestByKey[key].baseDate || '')) {
                     latestByKey[key] = r;
@@ -2771,7 +2783,7 @@
            doPost(실적 저장) → incrementGlobalVersion() → 클라이언트 다음 호출 시 캐시 미스
         ===== */
         const PERF_DB_NAME = 'WelstoryCache_V4_1';
-        const PERF_STORE   = 'perf_store';
+        const PERF_STORE = 'perf_store';
         const PERF_VER_KEY = 'global_perf_version';
 
         /* IndexedDB 열기 — 실패 시 null 반환하여 호출부에서 graceful fallback */
@@ -2969,7 +2981,7 @@
         window.refreshTrendFromGAS = async function () {
             const body = document.getElementById("trend-body");
             body.innerHTML = `<div style="text-align:center;padding:60px">📡 데이터 강제 동기화 중...</div>`;
-            _gasPerfLoaded = false; 
+            _gasPerfLoaded = false;
             _gasForecastAggMemo = {}; // ★ [수정] 강제 재동기화 시 예측 메모 초기화
             await loadPerfFromGAS(true); // force=true 로 강제 재다운로드
             _initTrendRegionSel();
@@ -2992,9 +3004,9 @@
 
         window.closeTrend = function () {
             document.getElementById("trend-modal").classList.remove("show");
-            if (window._apexCharts) { 
-                window._apexCharts.forEach(c => { try { c.destroy(); } catch (e) { } }); 
-                window._apexCharts = []; 
+            if (window._apexCharts) {
+                window._apexCharts.forEach(c => { try { c.destroy(); } catch (e) { } });
+                window._apexCharts = [];
             }
         };
 
@@ -3042,9 +3054,9 @@
            - 데이터 3개 미만 → 평일/주말 전체 평균으로 fallback
         */
         function wmaForecast(dates, getMkValFn, targetDs) {
-            const targetDt  = new Date(targetDs + 'T00:00:00');
+            const targetDt = new Date(targetDs + 'T00:00:00');
             const targetDow = targetDt.getDay();           // 0=일 ~ 6=토
-            const isOff     = targetDow === 0 || targetDow === 6;
+            const isOff = targetDow === 0 || targetDow === 6;
 
             /* 동일 요일(평일) or 주말 통합 필터 */
             const sameDayDates = dates.filter(d => {
@@ -3056,17 +3068,17 @@
             /* fallback: 같은 요일 데이터 없을 때 동일 성격(평/주말) 전체 사용 */
             if (sameDayVals.length < 2) {
                 const fbVals = dates
-                    .filter(d => { const dow = new Date(d + 'T00:00:00').getDay(); return isOff ? (dow===0||dow===6) : (dow>=1&&dow<=5); })
+                    .filter(d => { const dow = new Date(d + 'T00:00:00').getDay(); return isOff ? (dow === 0 || dow === 6) : (dow >= 1 && dow <= 5); })
                     .map(d => getMkValFn(d)).filter(v => v > 0);
                 if (!fbVals.length) return 0;
                 /* 데이터가 아주 적을 때는 단순 평균 */
-                if (fbVals.length < 3) return Math.round(fbVals.reduce((a,b)=>a+b,0)/fbVals.length);
+                if (fbVals.length < 3) return Math.round(fbVals.reduce((a, b) => a + b, 0) / fbVals.length);
                 sameDayVals = fbVals;
             }
 
             /* 최근 10개만 사용 */
             const recent = sameDayVals.slice(-10);
-            const ALPHA  = 0.30;
+            const ALPHA = 0.30;
             let wSum = 0, wVal = 0;
             recent.forEach((v, i) => {
                 const w = (1 - ALPHA) ** (recent.length - 1 - i);
@@ -3094,10 +3106,10 @@
            반환: { weekly: [...], monthly: [...], overallAvg, note }
         */
         function detectSpecialMealPattern(dates, getMkValFn, wdDates) {
-            const DOW_NAMES = ['일','월','화','수','목','금','토'];
+            const DOW_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
             /* ① 요일별 데이터 수집 */
-            const byDOW = { 1:[], 2:[], 3:[], 4:[], 5:[] }; // 월~금
+            const byDOW = { 1: [], 2: [], 3: [], 4: [], 5: [] }; // 월~금
             wdDates.forEach(d => {
                 const dow = new Date(d + 'T00:00:00').getDay();
                 if (!byDOW[dow]) byDOW[dow] = [];
@@ -3108,14 +3120,14 @@
             /* 전체 평일 평균 */
             const allWdVals = Object.values(byDOW).flat().map(x => x.val);
             const overallAvg = allWdVals.length
-                ? Math.round(allWdVals.reduce((a,b)=>a+b,0) / allWdVals.length) : 0;
+                ? Math.round(allWdVals.reduce((a, b) => a + b, 0) / allWdVals.length) : 0;
 
             /* ② 요일별 편차 분석 */
             const weekly = [];
             Object.entries(byDOW).forEach(([dowStr, entries]) => {
                 const dow = Number(dowStr);
                 if (entries.length < 2) return;
-                const avg = Math.round(entries.reduce((a,b)=>a+b.val,0) / entries.length);
+                const avg = Math.round(entries.reduce((a, b) => a + b.val, 0) / entries.length);
                 const ratio = overallAvg > 0 ? avg / overallAvg : 1;
                 const diffPct = Math.round((ratio - 1) * 100);
                 if (Math.abs(diffPct) >= 20) {
@@ -3147,16 +3159,18 @@
                 const months = Object.keys(byMonth);
                 if (months.length < 2) return; // 최소 2개월치 필요
                 const allVals = months.flatMap(m => byMonth[m]);
-                const avg = Math.round(allVals.reduce((a,b)=>a+b,0) / allVals.length);
+                const avg = Math.round(allVals.reduce((a, b) => a + b, 0) / allVals.length);
                 const ratio = overallAvg > 0 ? avg / overallAvg : 1;
                 const diffPct = Math.round((ratio - 1) * 100);
                 if (Math.abs(diffPct) >= 20) {
-                    monthly.push({ key, avg, diffPct,
+                    monthly.push({
+                        key, avg, diffPct,
                         type: diffPct > 0 ? 'high' : 'low',
-                        months: months.length });
+                        months: months.length
+                    });
                 }
             });
-            monthly.sort((a,b) => Math.abs(b.diffPct) - Math.abs(a.diffPct));
+            monthly.sort((a, b) => Math.abs(b.diffPct) - Math.abs(a.diffPct));
 
             /* ④ 자동 진단 텍스트 생성 */
             const notes = [];
@@ -3217,7 +3231,7 @@
             const monthFirstDate = new Date(dates[0] + "T00:00:00");
             const monthLastDay = new Date(monthFirstDate.getFullYear(), monthFirstDate.getMonth() + 1, 0).getDate();
             const dataCompleteness = `${dates.length}일/${monthLastDay}일`;
-            
+
             document.getElementById("trend-date-range").textContent =
                 `[${regionLabel}] ${dates[0]} ~ ${dates[dates.length - 1]} · ${dataCompleteness} ${dates.length < monthLastDay * 0.5 ? '⚠️ 미완성' : '✓'} · ${recsToUse.length}건`;
             const sites = [...new Set(recsToUse.map(r => r.siteName))];
@@ -3398,7 +3412,7 @@
                     }
                 }
             }
-            const aiAccText  = aiAccuracy != null ? `${aiAccuracy}%` : '산출불가';
+            const aiAccText = aiAccuracy != null ? `${aiAccuracy}%` : '산출불가';
             const aiAccColor = aiAccuracy != null
                 ? (aiAccuracy >= 80 ? '#34d399' : aiAccuracy >= 60 ? '#fbbf24' : '#f87171')
                 : 'var(--dim)';
@@ -3480,17 +3494,17 @@
                     🔍 식수 편차 패턴 자동 분석 <span style="font-size:9px;color:var(--dim);font-weight:400">· WMA 모델 기준 · 평균 대비 ±20% 이상 구간만 표시</span>
                 </div>
                 ${patternResult.notes.map(note =>
-                    `<div style="font-size:11px;line-height:1.8;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">${note}</div>`
-                ).join('')}
+                `<div style="font-size:11px;line-height:1.8;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">${note}</div>`
+            ).join('')}
                 ${patternResult.weekly.length > 0 ? `
                 <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
                     ${patternResult.weekly.map(p => {
-                        const c = p.type==='high' ? '#34d399' : '#fbbf24';
-                        return `<div style="padding:4px 10px;border-radius:8px;border:1px solid ${c}33;background:${c}0d;font-size:10px;font-weight:700">
-                            ${p.name}요일 ${p.type==='high'?'↑':'↓'}${Math.abs(p.diffPct)}%
+                const c = p.type === 'high' ? '#34d399' : '#fbbf24';
+                return `<div style="padding:4px 10px;border-radius:8px;border:1px solid ${c}33;background:${c}0d;font-size:10px;font-weight:700">
+                            ${p.name}요일 ${p.type === 'high' ? '↑' : '↓'}${Math.abs(p.diffPct)}%
                             <span style="opacity:.6;font-weight:400">avg ${p.avg.toLocaleString()}식</span>
                         </div>`;
-                    }).join('')}
+            }).join('')}
                 </div>` : ''}
                 <div style="margin-top:10px;font-size:9px;color:var(--dim);line-height:1.6;padding:8px;background:rgba(0,0,0,.2);border-radius:8px">
                     💡 <strong>WMA 모델 해석 안내</strong> — 이 예측은 요일별 가중 이동평균 기반입니다.
@@ -3561,11 +3575,11 @@
                                                             const ratio = totalVal / normAvg;
                                                             if (ratio >= 1.20) {
                                                                 deviationNote = `<div style="margin-top:6px;font-size:10px;padding:5px 8px;background:rgba(52,211,153,.08);border-radius:6px;color:#34d399">
-                                                                    📈 정상 평균 대비 +${Math.round((ratio-1)*100)}% 상승 — ${dayOfWeek}요일 특식/이벤트 메뉴 가능성 확인 권장
+                                                                    📈 정상 평균 대비 +${Math.round((ratio - 1) * 100)}% 상승 — ${dayOfWeek}요일 특식/이벤트 메뉴 가능성 확인 권장
                                                                 </div>`;
                                                             } else if (ratio <= 0.80) {
                                                                 deviationNote = `<div style="margin-top:6px;font-size:10px;padding:5px 8px;background:rgba(251,191,36,.08);border-radius:6px;color:#fbbf24">
-                                                                    📉 정상 평균 대비 ${Math.round((ratio-1)*100)}% — 저조 원인 분석 필요 (공휴일 여부·요일 특성 확인)
+                                                                    📉 정상 평균 대비 ${Math.round((ratio - 1) * 100)}% — 저조 원인 분석 필요 (공휴일 여부·요일 특성 확인)
                                                                 </div>`;
                                                             }
                                                         }
@@ -3801,7 +3815,7 @@
                     if (val > 0) weekMap[wn][site] = (weekMap[wn][site] || 0) + val;
                 });
             });
-            
+
             const validWeeks = Object.entries(weekMap).filter(([, sv]) => sites.every(s => (sv[s] || 0) > 0)).slice(-4);
             const lastWeekEntry = validWeeks[validWeeks.length - 1];
             const currentWeekId = lastWeekEntry ? lastWeekEntry[0] : "";
@@ -3816,7 +3830,7 @@
                     const nextWn = `${year}-W${String(nextWeek).padStart(2, '0')} (예측)`;
                     const sv = {};
                     siteData.forEach(sd => {
-                        const history = validWeeks.map(([,v]) => v[sd.site] || 0);
+                        const history = validWeeks.map(([, v]) => v[sd.site] || 0);
                         const { slope, intercept } = linReg(history);
                         sv[sd.site] = Math.max(0, Math.round(intercept + slope * (history.length + i - 1)));
                     });
@@ -3831,26 +3845,26 @@
                     <div class="ch-panel-title">📅 전 사업장 주간 비교 & AI 예측 (${mk}) <span style="font-size:9px;color:var(--dim);font-weight:400">현 시점 🔵 마킹 · 향후 3주 예측 포함</span></div>
                     <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px"><table class="week-cmp-tbl" style="min-width:${Math.max(380, 90 + allDisplayWeeks.length * 82 + 68)}px">
                     <thead><tr><th style="text-align:left;position:sticky;left:0;background:rgba(17,24,39,.97);z-index:2;box-shadow:2px 0 6px rgba(0,0,0,.3)">사업장</th>${allDisplayWeeks.map(([w]) => {
-                        const isCur = w === currentWeekId;
-                        const isPred = w.includes('예측');
-                        return `<th style="${isCur ? 'background:rgba(56,189,248,.1);color:#38bdf8' : ''}${isPred ? 'color:var(--accent3)' : ''}">${isCur ? '🔵 ' : ''}${weekLabel(w)}</th>`;
-                    }).join('')}<th>증감</th></tr></thead>
+                    const isCur = w === currentWeekId;
+                    const isPred = w.includes('예측');
+                    return `<th style="${isCur ? 'background:rgba(56,189,248,.1);color:#38bdf8' : ''}${isPred ? 'color:var(--accent3)' : ''}">${isCur ? '🔵 ' : ''}${weekLabel(w)}</th>`;
+                }).join('')}<th>증감</th></tr></thead>
                     <tbody>${siteData.map(sd => {
-                        const wkV = allDisplayWeeks.map(([, sv]) => sv[sd.site] || 0);
-                        const lastActualIdx = validWeeks.length - 1;
-                        const last2Actual = wkV.slice(lastActualIdx - 1, lastActualIdx + 1);
-                        const chg = last2Actual[0] > 0 ? ((last2Actual[1] - last2Actual[0]) / last2Actual[0] * 100).toFixed(1) : 0;
-                        const cc = chg > 1 ? '#34d399' : chg < -1 ? '#f87171' : '#fbbf24';
-                        
-                        return `<tr><td style="color:${sd.color};position:sticky;left:0;background:rgba(17,24,39,.97);z-index:1;box-shadow:2px 0 6px rgba(0,0,0,.3)">${sd.site}</td>${wkV.map((v, i) => {
-                            const isCur = allDisplayWeeks[i][0] === currentWeekId;
-                            const isPred = allDisplayWeeks[i][0].includes('예측');
-                            const prev = i > 0 ? wkV[i-1] : v;
-                            const p = prev > 0 ? ((v - prev) / prev * 100).toFixed(0) : 0;
-                            const pc = p > 0 ? '#34d399' : p < 0 ? '#f87171' : 'var(--border)';
-                            return `<td style="${isCur ? 'background:rgba(56,189,248,.05);font-weight:900' : ''}${isPred ? 'background:rgba(167,139,250,.03);color:var(--accent3);font-style:italic' : ''}">${v.toLocaleString()}<br><span style="font-size:9px;color:${pc}">${i > 0 && prev > 0 ? (p > 0 ? '+' : '') + p + '%' : ''}</span></td>`
-                        }).join('')}<td style="color:${cc};font-weight:900">${chg > 0 ? '↑' : '↓'} ${Math.abs(chg)}%</td></tr>`;
-                    }).join('')}</tbody></table></div></div>`;
+                    const wkV = allDisplayWeeks.map(([, sv]) => sv[sd.site] || 0);
+                    const lastActualIdx = validWeeks.length - 1;
+                    const last2Actual = wkV.slice(lastActualIdx - 1, lastActualIdx + 1);
+                    const chg = last2Actual[0] > 0 ? ((last2Actual[1] - last2Actual[0]) / last2Actual[0] * 100).toFixed(1) : 0;
+                    const cc = chg > 1 ? '#34d399' : chg < -1 ? '#f87171' : '#fbbf24';
+
+                    return `<tr><td style="color:${sd.color};position:sticky;left:0;background:rgba(17,24,39,.97);z-index:1;box-shadow:2px 0 6px rgba(0,0,0,.3)">${sd.site}</td>${wkV.map((v, i) => {
+                        const isCur = allDisplayWeeks[i][0] === currentWeekId;
+                        const isPred = allDisplayWeeks[i][0].includes('예측');
+                        const prev = i > 0 ? wkV[i - 1] : v;
+                        const p = prev > 0 ? ((v - prev) / prev * 100).toFixed(0) : 0;
+                        const pc = p > 0 ? '#34d399' : p < 0 ? '#f87171' : 'var(--border)';
+                        return `<td style="${isCur ? 'background:rgba(56,189,248,.05);font-weight:900' : ''}${isPred ? 'background:rgba(167,139,250,.03);color:var(--accent3);font-style:italic' : ''}">${v.toLocaleString()}<br><span style="font-size:9px;color:${pc}">${i > 0 && prev > 0 ? (p > 0 ? '+' : '') + p + '%' : ''}</span></td>`
+                    }).join('')}<td style="color:${cc};font-weight:900">${chg > 0 ? '↑' : '↓'} ${Math.abs(chg)}%</td></tr>`;
+                }).join('')}</tbody></table></div></div>`;
             } else {
                 wkTbl = `<div class="ch-panel" style="margin-top:0"><div class="ch-panel-sub" style="padding:8px 0">⚠️ 주간 데이터가 부족합니다</div></div>`;
             }
@@ -3916,14 +3930,17 @@
             const wdAvg = wdValsFr.length ? wdValsFr.reduce((a, b) => a + b, 0) / wdValsFr.length : 0;
             const weAvg = weVals.length ? weVals.reduce((a, b) => a + b, 0) / weVals.length : wdAvg * 0.4;
             const lastDate = new Date(dates[dates.length - 1] + 'T00:00:00');
-            const foreRows = []; let wdN = wdValsFr.length, weN = Math.max(weVals.length, 1);
+            /* ★ v4.2: Tab4 예측도 WMA 통일 (Tab1과 일관성 확보)
+               기존: 선형회귀(linReg) → 요일/공휴일 보정 없음, Tab1과 값 불일치
+               수정: wmaForecast() → 동일 요일 최근 10개 기반 가중이동평균 + 휴일 보정 */
+            const foreRows = [];
             for (let i = 1; i <= 21; i++) {
                 const fd = new Date(lastDate); fd.setDate(fd.getDate() + i);
                 const ds = _toYMD(fd), ht = getHolidayType(ds);
                 const isOff = ht.type !== 'workday';
                 const storedPred = getForecastValueForDate(selectedSites, mk, ds);
-                const fv = storedPred > 0 ? storedPred : (isOff ? Math.max(0, Math.round(weI + weS * weN)) : Math.max(0, Math.round(wdI + wdS * wdN)));
-                if (isOff) weN++; else wdN++;
+                const wmaVal = wmaForecast(dates, getMkVal, ds);
+                const fv = storedPred > 0 ? storedPred : wmaVal;
                 foreRows.push({ ds, fv, ht, isOff });
             }
             const storedAccRpt = getStoredAccuracy(selectedSites, mk);
@@ -4166,7 +4183,7 @@
         /* ===== REPORT ===== */
         /* ★ v3.9: 업무강도 끼니별 조회 — 전역 선택 상태 */
         window._rptMeal = window._rptMeal || '전체';
-        window.setRptMeal = function(meal) {
+        window.setRptMeal = function (meal) {
             window._rptMeal = meal;
             openReport();
         };
@@ -4175,9 +4192,9 @@
             const st = gSt(d) || 1;
             let tm;
             if (meal === '전체') {
-                tm = ["조식","중식","석식","야식"].reduce((a,m) => a + n(d["DI_"+m]) + n(d["TO_"+m]), 0);
+                tm = ["조식", "중식", "석식", "야식"].reduce((a, m) => a + n(d["DI_" + m]) + n(d["TO_" + m]), 0);
             } else {
-                tm = n(d["DI_"+meal]) + n(d["TO_"+meal]);
+                tm = n(d["DI_" + meal]) + n(d["TO_" + meal]);
             }
             return { s: tm / st, tm, st };
         }
@@ -4186,13 +4203,13 @@
             if (!fd.length) return;
             const ct = document.getElementById("ov-ct");
             const rptMeal = window._rptMeal || '전체';
-            const MEAL_OPTS = ['전체','조식','중식','석식','야식'];
-            const MEAL_C = { 전체:'#38bdf8', 조식:'#f97316', 중식:'#38bdf8', 석식:'#a78bfa', 야식:'#f472b6' };
+            const MEAL_OPTS = ['전체', '조식', '중식', '석식', '야식'];
+            const MEAL_C = { 전체: '#38bdf8', 조식: '#f97316', 중식: '#38bdf8', 석식: '#a78bfa', 야식: '#f472b6' };
             /* ★ 끼니 선택 버튼 */
             const mealBtns = MEAL_OPTS.map(m => {
                 const ac = m === rptMeal;
                 const c = MEAL_C[m];
-                return `<button onclick="setRptMeal('${m}')" style="padding:4px 12px;border-radius:16px;border:1px solid ${ac?c+'88':'var(--border)'};background:${ac?c+'22':'rgba(255,255,255,.02)'};color:${ac?c:'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer;transition:all .15s">${m}</button>`;
+                return `<button onclick="setRptMeal('${m}')" style="padding:4px 12px;border-radius:16px;border:1px solid ${ac ? c + '88' : 'var(--border)'};background:${ac ? c + '22' : 'rgba(255,255,255,.02)'};color:${ac ? c : 'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer;transition:all .15s">${m}</button>`;
             }).join('');
             let h = `<div class="ov-hdr"><h3>📊 ${REG} 운영 리포트</h3><button class="cls-btn" onclick="document.getElementById('ov').style.display='none'">닫기</button></div>`;
             h += `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:10px 0 14px"><span style="font-size:10px;color:var(--dim);white-space:nowrap">끼니 기준</span>${mealBtns}</div>`;
@@ -4223,13 +4240,13 @@
                 h += `<tr><td>${d["사업장명"]}</td><td style="color:${rc(re)};font-weight:900">${re.toFixed(1)}</td><td style="color:${rc(ri)};font-weight:900">${ri.toFixed(1)}</td><td><div style="display:flex;gap:2px;height:14px"><div style="width:${Math.min(re / 4 * 100, 100)}%;background:var(--success);border-radius:3px 0 0 3px"></div><div style="width:${Math.min((ri - re) / 4 * 100, 100)}%;background:var(--warning);border-radius:0 3px 3px 0"></div></div></td></tr>`;
             });
             h += `</tbody></table></div>`;
-            h += `<div class="sec-title">📋 종합 비교 · ${rptMeal}</div><div class="tbl-wrap" style="overflow-x:auto"><table style="min-width:440px"><thead><tr><th style="text-align:left">사업장</th><th>인원</th><th>좌석</th><th>${rptMeal==='전체'?'합계식수':'끼니식수'}</th><th>회전율</th><th>인시당</th><th>강도</th></tr></thead><tbody>`;
+            h += `<div class="sec-title">📋 종합 비교 · ${rptMeal}</div><div class="tbl-wrap" style="overflow-x:auto"><table style="min-width:440px"><thead><tr><th style="text-align:left">사업장</th><th>인원</th><th>좌석</th><th>${rptMeal === '전체' ? '합계식수' : '끼니식수'}</th><th>회전율</th><th>인시당</th><th>강도</th></tr></thead><tbody>`;
             fd.forEach(d => {
                 /* ★ v3.9: 선택 끼니 식수 사용 */
                 const st = gSt(d);
                 const mealSum = rptMeal === '전체'
-                    ? ["조식","중식","석식","야식"].reduce((a,m)=>a+n(d["DI_"+m])+n(d["TO_"+m]),0)
-                    : n(d["DI_"+rptMeal]) + n(d["TO_"+rptMeal]);
+                    ? ["조식", "중식", "석식", "야식"].reduce((a, m) => a + n(d["DI_" + m]) + n(d["TO_" + m]), 0)
+                    : n(d["DI_" + rptMeal]) + n(d["TO_" + rptMeal]);
                 const rot = n(d["회전율(중식_T/O포함)"]); // 회전율은 중식 기준 유지
                 const it = intenMeal(d, rptMeal), lb = iLb(it.s);
                 const eff = st > 0 ? (mealSum / st).toFixed(1) : "-";
