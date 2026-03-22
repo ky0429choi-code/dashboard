@@ -2952,11 +2952,12 @@
             document.getElementById("trend-modal").classList.add("show");
             const body = document.getElementById("trend-body");
 
-            /* v4.1: 로컬 데이터가 있으면 즉시 렌더링, 서버 동기화는 백그라운드 진행 */
+            /* v4.2: 로컬 데이터가 있으면 즉시 렌더링, 서버 동기화는 백그라운드 진행
+               ★ 지역 필터를 먼저 적용해야 선택된 지역 기준으로 렌더링됨 */
             const hasLocalData = getRec().length > 0;
             if (!_gasPerfLoaded && hasLocalData) {
-                renderTrendReport();
                 _initTrendRegionSel();
+                renderTrendReport();
                 // 서버 버전 확인 후 변경 시에만 업데이트 (비차단)
                 loadPerfFromGAS().then(() => {
                     _initTrendRegionSel();
